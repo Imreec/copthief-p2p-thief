@@ -1,0 +1,22 @@
+{
+  "files": {
+    ".claude/skills/commit-discipline/SKILL.md": "4cc396d594f0acd8f210728ed818c58425ac78c86b27f9ec33807ebccc405940",
+    ".claude/skills/eval-harness/SKILL.md": "cb49b4187d0e6de702e38a60557d95a04dc541b364e34ca794df5d3cbfb42f38",
+    ".claude/skills/pr-discipline/SKILL.md": "a2743a764009a4b6dea39caa1156b62dc4d06da398a0e6a7b22a3f052570a226",
+    ".claude/skills/self-grade/SKILL.md": "2322978e54d5c5d239359791456cc8b418578345b23b8fae7d6437418982f8b8",
+    ".claude/skills/tdd-cycle/SKILL.md": "603b808da80a724a65868452d28e64d3badaa513deed81ed0d0542a31101def1",
+    ".github/workflows/quality.yml": "b3d4ba48f173cb63c9da39aac621652b65840d131d5b2a44f008c70e4996a398",
+    "docs/REVIEW_PROCESS.md": "00c0a77abbb89ccc5a22695b44e1c093df6196f4de360ba9182479d20b9c1688",
+    "scripts/check_anti_patterns.py": "53ed6c5c66082053949f49b70b684741d1f61673a5f633a320faf111e486b121",
+    "scripts/check_file_sizes.py": "abb028552d232724e76437625cdd01b401071d0291d62d4421288ca81fb941f2",
+    "scripts/check_no_hardcoded.py": "921cd11e5f6f56ce2883a0feeebbfc77cf9a55c70563fbf5d34c7041608102f2",
+    "scripts/check_submission.py": "c6499a3591e79abf79a7a1aac483fd16609cfa2b3447300cdc8821e895b6c3ef",
+    "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
+    "scripts/sync_core.py": "7c918a4a9904dac193f454f0eff00a140d956500ed043c578c97770d9739c4aa",
+    "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
+    "src/copthief_core/__pycache__/__init__.cpython-312.pyc": "78d2ebcdc2f2aa342ca7d2cfe19b824e7849e7b03f5ee1a35c594d08066d54bc"
+  },
+  "source_commit": "e5c500c",
+  "source_repo": "copthief-p2p-cop",
+  "tree_hash": "852b41f4a599635ebda007dd4c44def368f6c835db4a53f74d4faf884e4725e8"
+}
