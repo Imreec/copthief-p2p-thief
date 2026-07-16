@@ -3,6 +3,18 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #4 — sync/m1-core (M1-2 + M1-3 arrival)
+
+- **Driver:** Imree (authorized the lead merges + "continue") · **Author:** Claude (terminal) ·
+  **Reviewer:** cross-model review ran on the police PRs (copthief-p2p-cop#4, #5); this PR is
+  their mechanical, hash-verified landing.
+- **This PR:** `sync: core from police@3e747bf` — M1-2 (board/rules/scoring, App F guard, typed
+  loader) + M1-3 (crypto from kit CORE, terms extraction, conformance fixtures) + the core test
+  tree (now MIRRORED). Plus this repo's config tree: game.json / app_f_table.json /
+  rate_limits.json identical to the lead, game.toml role-adapted (thief identity, port 8801).
+  All gates green here: 73 tests, 100% coverage, kit CORE vectors green (M1-3 DoD "both repos"
+  satisfied). TODO M1-2/M1-3 ticked.
+
 ## PR #3 — docs/m1-mechanism-prds (M1-1 gate, thief-side landing)
 
 - **Driver:** Imree (approved both PRDs at the M1-1 gate in the police repo) · **Author:** Claude
