@@ -19,6 +19,13 @@ from pathlib import Path
 
 MIRRORED = [
     "src/copthief_core",
+    # Core tests travel WITH the code they cover (PRD_crypto §7): without them the
+    # follower's coverage gate cannot hold. Role-package tests (tests/unit/test_packages.py)
+    # stay per-repo — they import the role package and legitimately differ.
+    "tests/unit/domain",
+    "tests/unit/shared",
+    "tests/integration",
+    "tests/conformance",
     ".claude/skills",
     ".github/workflows",
     "docs/REVIEW_PROCESS.md",
