@@ -12,11 +12,10 @@
     "scripts/check_no_hardcoded.py": "921cd11e5f6f56ce2883a0feeebbfc77cf9a55c70563fbf5d34c7041608102f2",
     "scripts/check_submission.py": "c6499a3591e79abf79a7a1aac483fd16609cfa2b3447300cdc8821e895b6c3ef",
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
-    "scripts/sync_core.py": "7c918a4a9904dac193f454f0eff00a140d956500ed043c578c97770d9739c4aa",
-    "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
-    "src/copthief_core/__pycache__/__init__.cpython-312.pyc": "78d2ebcdc2f2aa342ca7d2cfe19b824e7849e7b03f5ee1a35c594d08066d54bc"
+    "scripts/sync_core.py": "50c0b3f9b49d07f52a2d79b79d56463df51832244f7cc16fcd5e5dc443e96c34",
+    "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232"
   },
-  "source_commit": "942b613",
+  "source_commit": "42578c4",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "852b41f4a599635ebda007dd4c44def368f6c835db4a53f74d4faf884e4725e8"
+  "tree_hash": "39e56bf84afff743d4d4a6b24bcf5292c14af64316c6a74d7cf5f3b93ef28145"
 }

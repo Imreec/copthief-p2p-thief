@@ -38,15 +38,20 @@ def is_lead() -> bool:
     return repo_root().name == LEAD_DIR
 
 
+def _is_junk(path: Path) -> bool:
+    """Untracked build/cache artifacts must never enter the manifest (CI checkouts lack them)."""
+    return "__pycache__" in path.parts or path.suffix in {".pyc", ".pyo"}
+
+
 def mirrored_files(base: Path) -> list[Path]:
-    """All files under the MIRRORED paths, sorted for determinism."""
+    """All files under the MIRRORED paths, junk excluded, sorted for determinism."""
     files: list[Path] = []
     for entry in MIRRORED:
         p = base / entry
         if p.is_file():
             files.append(p)
         elif p.is_dir():
-            files.extend(q for q in sorted(p.rglob("*")) if q.is_file())
+            files.extend(q for q in sorted(p.rglob("*")) if q.is_file() and not _is_junk(q))
     return sorted(files)
 
 
