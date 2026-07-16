@@ -1,0 +1,15 @@
+# Private per-peer config (book App B s4): never crosses the wire, never negotiated.
+# game.json overlays this file on shared keys - the private file can never weaken a signed term.
+# M1 carries only the sections the walking skeleton reads; [strategy]/[trash_talk]/[llm]/[email]
+# arrive with their milestones (M5/M6).
+
+version = "1.00"
+
+[game]
+group_name = "ImreEyal-Thief"
+group_id = "imreeyal"
+sub_game_number = 1
+
+[network]
+my_port = 8801
+opponent_url = ""
