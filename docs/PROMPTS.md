@@ -3,6 +3,15 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #3 — docs/m1-mechanism-prds (M1-1 gate, thief-side landing)
+
+- **Driver:** Imree (approved both PRDs at the M1-1 gate in the police repo) · **Author:** Claude
+  (terminal) · **Reviewer:** cross-model review ran on the police PR
+  (Imreec/copthief-p2p-cop#3); this landing copies the merged text.
+- **This PR:** `docs/PRD_engine.md` + `docs/PRD_crypto.md` copied from the police (lead) repo
+  with a this-copy role note added — engine/crypto are role-agnostic core mechanisms (ADR-0001
+  docs convention: docs land per-repo, code arrives via sync). TODO M1-1 ticked.
+
 ## PR #1 — chore/m0-bootstrap (M0 process bedrock)
 
 - **Driver:** Imree (direction, approvals, repo/remote setup) · **Author:** Claude (terminal) ·
