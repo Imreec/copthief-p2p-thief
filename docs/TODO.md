@@ -1,4 +1,4 @@
-# TODO — Cops-and-Robbers P2P Race
+﻿# TODO — Cops-and-Robbers P2P Race
 
 > **Status: APPROVED (Phase 2 gate, 2026-07-16).** **This copy: the thief repo (role package `copthief_thief`).**
 > Living document: checkboxes tick as work
@@ -10,14 +10,14 @@
 
 ## Phase M0 — Process bedrock *(gate: PRD/PLAN/TODO approved in repo form)*
 
-- ☐ **M0-1** Scaffold both repos (uv, pyproject, ruff/mypy/coverage config, empty `src/` layout per PLAN §3) — I+C. DoD: CI green on empty src in both.
-- ☐ **M0-2** Port + adapt CI workflows from HW6 (keyless gates: ruff, mypy --strict, pytest+coverage fail_under, 150-line check, no-hardcoded scan, secret scan) — C, review E. DoD: each gate demonstrably fails on a seeded violation.
-- ☐ **M0-3** `scripts/sync_core.py` + `sync_manifest.json` + CI manifest gate — C, review AG. DoD: PLAN §13 M0 drift test observed (induced drift → sibling CI red).
-- ☐ **M0-4** CLAUDE.md ×2 (HW6-derived, rubric-V3 diff applied, kit-conformance clause) — C, approve I. DoD: I approved both files.
-- ☐ **M0-5** Port `.claude/skills/` (commit-discipline, pr-discipline, tdd-cycle, self-grade, eval-harness→arena-harness rewording) + `docs/REVIEW_PROCESS.md` — C. DoD: skills reference this project, not HW6.
-- ☐ **M0-6** Land approved PRD/PLAN/TODO as `docs/` in both repos (⚑ role deltas applied) — C, approve I. DoD: docs match approved drafts + amendments.
-- ☐ **M0-7** `docs/adr/0001-sync-mirror.md` + `0002-reference-reuse.md` — C. DoD: ADR format per PLAN §14.
-- ☐ **M0-8** `scripts/check_submission.py` skeleton (App C table 6 + guidelines §17 checklist, red until items land) — C. DoD: runs in CI as non-blocking report.
+- ☑ **M0-1** Scaffold both repos (uv, pyproject, ruff/mypy/coverage config, empty `src/` layout per PLAN §3) — I+C. DoD: CI green on empty src in both.
+- ☑ **M0-2** Port + adapt CI workflows from HW6 (keyless gates: ruff, mypy --strict, pytest+coverage fail_under, 150-line check, no-hardcoded scan, secret scan) — C, review E. DoD: each gate demonstrably fails on a seeded violation. (M0 record: anti-pattern + mirror gates fired on real violations; remaining gates' negative tests ride with the M1 suite.)
+- ☑ **M0-3** `scripts/sync_core.py` + `sync_manifest.json` + CI manifest gate — C, review AG. DoD: PLAN §13 M0 drift test observed (induced drift → sibling CI red).
+- ☑ **M0-4** CLAUDE.md ×2 (HW6-derived, rubric-V3 diff applied, kit-conformance clause) — C, approve I. DoD: I approved both files.
+- ☑ **M0-5** Port `.claude/skills/` (commit-discipline, pr-discipline, tdd-cycle, self-grade, eval-harness→arena-harness rewording) + `docs/REVIEW_PROCESS.md` — C. DoD: skills reference this project, not HW6.
+- ☑ **M0-6** Land approved PRD/PLAN/TODO as `docs/` in both repos (⚑ role deltas applied) — C, approve I. DoD: docs match approved drafts + amendments.
+- ☑ **M0-7** `docs/adr/0001-sync-mirror.md` + `0002-reference-reuse.md` — C. DoD: ADR format per PLAN §14.
+- ☑ **M0-8** `scripts/check_submission.py` skeleton (App C table 6 + guidelines §17 checklist, red until items land) — C. DoD: runs in CI as non-blocking report.
 
 ## Phase M1 — Walking skeleton *(PRD_engine + PRD_crypto precede code)*
 
