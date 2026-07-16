@@ -1,0 +1,36 @@
+# Local hooks only — everything runs through uv, keyless. Never bypass with --no-verify
+# (documented emergency in docs/PROMPTS.md required if ever done).
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (autofix)
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy --strict (src)
+        entry: uv run mypy src/
+        language: system
+        pass_filenames: false
+        files: ^src/
+      - id: file-sizes
+        name: file-size limit (150 source lines)
+        entry: uv run python scripts/check_file_sizes.py
+        language: system
+        pass_filenames: false
+      - id: anti-patterns
+        name: anti-pattern scan
+        entry: uv run python scripts/check_anti_patterns.py
+        language: system
+        pass_filenames: false
+      - id: no-hardcoded
+        name: no hardcoded config values
+        entry: uv run python scripts/check_no_hardcoded.py
+        language: system
+        pass_filenames: false
