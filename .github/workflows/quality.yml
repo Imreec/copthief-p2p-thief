@@ -1,0 +1,67 @@
+name: Quality
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      # Keyless CI: dev tooling only. Live deps (LLM/Gmail/tunnel) are never installed here.
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Mypy (strict, src)
+        run: uv run mypy src/
+
+      - name: File-size check (150 source lines)
+        run: uv run python scripts/check_file_sizes.py
+
+      - name: Anti-pattern check
+        run: uv run python scripts/check_anti_patterns.py
+
+      - name: No-hardcoded check
+        run: uv run python scripts/check_no_hardcoded.py
+
+      - name: Core-mirror manifest check
+        run: uv run python scripts/sync_core.py --verify
+
+      # Kit CORE conformance — activates at M1 when tests/conformance lands (CLAUDE.md §1 #13).
+      - name: Kit CORE vectors
+        run: |
+          if [ -d tests/conformance ]; then
+            uv run pytest tests/conformance -v
+          else
+            echo "tests/conformance not yet populated (M1) — skipped"
+          fi
+
+      - name: Self-grade config validation
+        run: uv run python scripts/self_grade.py --validate
+
+      - name: Submission checklist (non-blocking report until M8)
+        run: uv run python scripts/check_submission.py
+
+      - name: Tests with coverage
+        run: uv run pytest --cov=src --cov-report=xml --cov-fail-under=85

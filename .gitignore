@@ -1,0 +1,71 @@
+# Secrets — NEVER commit
+.env
+.env.local
+*.key
+*.pem
+credentials.json
+secrets/
+
+# OAuth / token / tunnel state — NEVER commit
+client_secret*.json
+token*.json
+*.token
+*.tunnel
+ngrok*.yml
+cloudflared*.yml
+
+# Python bytecode & packaging artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment (uv)
+.venv/
+
+# uv.lock IS committed — it pins exact dependency versions for reproducibility
+
+# Runtime logs & per-game scratch (committed evidence lives under docs/ or tests/fixtures/)
+logs/
+*.log
+games/scratch/
+artifacts/scratch/
+arena/out/
+
+# IDE & OS junk
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Ruff & mypy caches
+.ruff_cache/
+.mypy_cache/
+
+# Temporary / scratch
+tmp/
+scratch/
+*.tmp
+
+# Claude Code worktrees & per-machine state — NEVER commit (paths/usernames leak)
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+.claude/settings.json
+.claude/settings.local.json
+
+# Cross-model PR-review scratch artifacts (never commit)
+*.diff
+patch.txt
+review_payload.json
+summary_review.md

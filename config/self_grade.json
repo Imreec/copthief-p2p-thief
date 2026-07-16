@@ -1,0 +1,42 @@
+{
+  "version": "1.00",
+  "note": "Code quality only — never league results (App E rule 55). Scores stay 0 until the work exists; prose in docs/SELF_GRADE.md must match script output at M8.",
+  "categories": [
+    {
+      "name": "Architecture & orchestration patterns",
+      "weight": 20,
+      "score": 0,
+      "justification": "M0 — not yet gradeable; no production code exists."
+    },
+    {
+      "name": "Protocol/crypto correctness & interop evidence",
+      "weight": 20,
+      "score": 0,
+      "justification": "M0 — not yet gradeable; kit conformance lands at M1, oracle spike at M2."
+    },
+    {
+      "name": "Strategy-module engineering (clarity, tests, tuning methodology)",
+      "weight": 20,
+      "score": 0,
+      "justification": "M0 — not yet gradeable; brains land at M5."
+    },
+    {
+      "name": "Reliability engineering (state machine, deadline, watchdog, chaos evidence)",
+      "weight": 15,
+      "score": 0,
+      "justification": "M0 — not yet gradeable."
+    },
+    {
+      "name": "Documentation & research artifacts",
+      "weight": 15,
+      "score": 0,
+      "justification": "M0 — planning docs approved and landed; scored only with the full evidence layer at M8."
+    },
+    {
+      "name": "Process discipline",
+      "weight": 10,
+      "score": 0,
+      "justification": "M0 — gates wired; scored across the project's PR history at M8."
+    }
+  ]
+}
