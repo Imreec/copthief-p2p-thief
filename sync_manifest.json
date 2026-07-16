@@ -16,7 +16,7 @@
     "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
     "src/copthief_core/__pycache__/__init__.cpython-312.pyc": "78d2ebcdc2f2aa342ca7d2cfe19b824e7849e7b03f5ee1a35c594d08066d54bc"
   },
-  "source_commit": "e5c500c",
+  "source_commit": "942b613",
   "source_repo": "copthief-p2p-cop",
   "tree_hash": "852b41f4a599635ebda007dd4c44def368f6c835db4a53f74d4faf884e4725e8"
 }
