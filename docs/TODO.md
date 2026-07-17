@@ -32,10 +32,10 @@
 
 ## Phase M2 — 🚦 Oracle spike (go/no-go gate)
 
-- ☐ **M2-1** Run reference peer on second machine; named tunnel setup both ends (OI-3 decided) — I+C. DoD: reachability both directions.
-- ☐ **M2-2** Full mini-game vs reference: negotiate locks byte-identical terms → play → mutual audit Verified OK both directions — I+C. DoD: PLAN §13 M2 observed; logs committed as evidence.
-- ☐ **M2-3** Answer SQ1 (scent emission timing) / SQ2 (capture-claim semantics) / SQ3 (smell-grid sealing?) against running reference — C. DoD: written findings in `docs/adr/` or spike notes; belief/audit PRDs updated.
-- ☐ **M2-4** `docs/adr/0003-crypto-early.md` + `0006-deploy-tunnel.md` (spike results) — C.
+- ☑ **M2-1** Reference peer run as oracle (sha 960499fd, keyless); Cloudflare named tunnel `copthief` on `imreeyal.com`, both hostnames (OI-3 decided) — I+C. DoD observed 2026-07-18: reachability both directions through the public edge. *(Executed from the police repo — lead evidence + ADRs live there; our thief peer played pairing 2.)*
+- ☑ **M2-2** Both role pairings vs the live reference over public URLs: mutual audit Verified OK both directions; our thief answered 35 straight capture claims (SQ2 live); shared game_uid verified cross-implementation — I+C. DoD: police repo `docs/evidence/` (spike notes §6 + four JSONL logs).
+- ☑ **M2-3** SQ1/SQ2/SQ3 answered in writing against the running reference (police repo spike notes §3/§6) — C.
+- ☑ **M2-4** `docs/adr/0003-crypto-early.md` + `0006-deploy-tunnel.md` (police repo, lead for shared ADRs) — C.
 - ☐ **M2-5** **GO/NO-GO review with I** — everything below blocked until pass — I.
 
 ## Phase M3 — Perception + arena

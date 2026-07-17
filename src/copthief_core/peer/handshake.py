@@ -27,15 +27,26 @@ class NegotiationError(RuntimeError):
 
 
 def negotiate_payload(session: PeerSession) -> dict[str, Any]:
-    """Our side of the gate: terms + fresh-nonce signature + identity."""
+    """Our side of the gate: terms + fresh-nonce signature + identity (F8: the
+    reference's exact message shape — identity is a dict, NOT signed, and the
+    opponent reads our group id from identity.group_id)."""
     terms = terms_from_config(session.constitution)
     nonce = make_nonce()
     return {
-        "group_id": session.private.group_id,
-        "role": session.role,
         "terms": terms,
         "nonce": nonce,
         "signature": terms_signature(terms, nonce),
+        # F8b: all seven keys the reference's declaration writer dereferences;
+        # spec stays {} until shared/sysinfo lands (M6-3) — its fields are .get()-safe.
+        "identity": {
+            "group_id": session.private.group_id,
+            "group_name": session.private.group_name,
+            "members": list(session.private.members),
+            "repos": dict(session.private.repos),
+            "mcp_servers": dict(session.private.mcp_servers),
+            "llm_model": session.private.llm_model,
+            "spec": {},
+        },
     }
 
 
@@ -47,6 +58,9 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
         raise NegotiationError("terms mismatch: opponent terms do not value-equal ours")
     if terms_signature(ours, str(raw.get("nonce"))) != raw.get("signature"):
         raise NegotiationError("signature verification failed over our terms")
-    session.opponent_group = str(raw.get("group_id"))
+    identity = raw.get("identity") or {}
+    # F8: the reference carries the group id inside `identity`; "unknown-group"
+    # mirrors its own default so both sides degrade identically if it is absent.
+    session.opponent_group = str(identity.get("group_id", raw.get("group_id", "unknown-group")))
     session.game_uid = game_uid(ours, session.private.group_id, session.opponent_group)
     return {"status": "ok", "game_uid": session.game_uid}

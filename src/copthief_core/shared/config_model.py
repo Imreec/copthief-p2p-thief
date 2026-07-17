@@ -110,6 +110,12 @@ class PrivateSettings:
     group_name: str
     group_id: str
     sub_game_number: int
+    # Group identity block (F8b): exchanged in the handshake because the reference's
+    # declaration writer requires every key; spec fills at M6-3 (shared/sysinfo).
+    members: tuple[str, ...]
+    repos: dict[str, str]
+    mcp_servers: dict[str, str]
+    llm_model: str
     my_port: int
     opponent_url: str
     turn_timeout_seconds: float
