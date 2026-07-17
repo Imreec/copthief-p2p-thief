@@ -36,7 +36,7 @@
 - ☑ **M2-2** Both role pairings vs the live reference over public URLs: mutual audit Verified OK both directions; our thief answered 35 straight capture claims (SQ2 live); shared game_uid verified cross-implementation — I+C. DoD: police repo `docs/evidence/` (spike notes §6 + four JSONL logs).
 - ☑ **M2-3** SQ1/SQ2/SQ3 answered in writing against the running reference (police repo spike notes §3/§6) — C.
 - ☑ **M2-4** `docs/adr/0003-crypto-early.md` + `0006-deploy-tunnel.md` (police repo, lead for shared ADRs) — C.
-- ☐ **M2-5** **GO/NO-GO review with I** — everything below blocked until pass — I.
+- ☑ **M2-5** **GO/NO-GO review with I** — **GO, 2026-07-18** (recorded in the police repo's spike notes §7–§8 with the residual-gap disclosure) — I.
 
 ## Phase M3 — Perception + arena
 
