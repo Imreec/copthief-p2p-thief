@@ -24,6 +24,48 @@ def _handshake(police: PeerSession, thief: PeerSession) -> None:
     police.handle_negotiate(thief.negotiate_payload())
 
 
+def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
+    # M2 Stage A finding F8 (oracle sha 960499fd): the reference reads the opponent's
+    # group id from message["identity"]["group_id"] — without it we were filed as
+    # "unknown-group" and the two sides derived DIFFERENT game_uids (observed live).
+    police, _thief = _pair()
+    payload = police.negotiate_payload()
+    assert set(payload) == {"terms", "nonce", "signature", "identity"}
+    # F8b (observed live): the reference's declaration writer group_block() KeyErrors
+    # unless the identity carries all seven reference keys.
+    assert set(payload["identity"]) == {
+        "group_id",
+        "group_name",
+        "members",
+        "repos",
+        "mcp_servers",
+        "llm_model",
+        "spec",
+    }
+    assert payload["identity"]["group_id"] == PRIVATE.group_id
+    assert payload["identity"]["group_name"] == PRIVATE.group_name
+    assert payload["identity"]["members"] == list(PRIVATE.members)
+    assert isinstance(payload["identity"]["spec"], dict)
+
+
+def test_handle_negotiate_reads_the_group_from_the_identity_dict() -> None:
+    from copthief_core.domain.crypto import game_uid, make_nonce, terms_signature
+    from copthief_core.domain.terms import terms_from_config
+
+    _police, thief = _pair()
+    terms = terms_from_config(CONSTITUTION)
+    nonce = make_nonce()
+    reference_shaped = {  # exactly what the reference's Negotiation.signed() sends
+        "terms": terms,
+        "nonce": nonce,
+        "signature": terms_signature(terms, nonce),
+        "identity": {"group_id": "segal-thief-team", "group_name": "Segal-Thief-Team"},
+    }
+    thief.handle_negotiate(reference_shaped)
+    assert thief.opponent_group == "segal-thief-team"
+    assert thief.game_uid == game_uid(terms, PRIVATE.group_id, "segal-thief-team")
+
+
 def test_handshake_locks_the_same_game_uid_on_both_peers() -> None:
     police, thief = _pair()
     _handshake(police, thief)

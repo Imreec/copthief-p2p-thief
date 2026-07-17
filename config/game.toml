@@ -9,6 +9,18 @@ version = "1.00"
 group_name = "ImreEyal-Thief"
 group_id = "imreeyal"
 sub_game_number = 1
+# Group identity (F8b): exchanged in the handshake so the opponent can build the
+# whole-match declaration; the reference's writer requires every key.
+members = ["Imree Cohen", "Eyal Shtinmetz"]
+llm_model = "none"
+
+[game.repos]
+cop = "https://github.com/Imreec/copthief-p2p-cop"
+thief = "https://github.com/Imreec/copthief-p2p-thief"
+
+[game.mcp_servers]
+cop = "https://cop.imreeyal.com/mcp"
+thief = "https://thief.imreeyal.com/mcp"
 
 [network]
 my_port = 8801
