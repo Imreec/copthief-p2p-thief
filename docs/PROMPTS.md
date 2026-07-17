@@ -3,6 +3,15 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #8 — sync/m1-7-sdk (M1-7 arrival + pyproject parity)
+
+- **Driver:** Imree (authorized the lead merge + "continue") · **Author:** Claude (terminal) ·
+  **Reviewer:** cross-model review ran on the police PR (copthief-p2p-cop#9); mechanical landing.
+- **This PR:** `sync: core from police@6146bbc` — SDK facade, `copthief` CLI, real FastMCP
+  adapters, p2p driver, evidence-backed live test. Plus manual pyproject parity (NOT mirrored):
+  `fastmcp>=3.4.4` dependency + lockfile, `[project.scripts] copthief`, live-adapter coverage
+  omits. TODO M1-6/M1-7 ticked (M1 exit observed on the lead; evidence committed there).
+
 ## PR #7 — sync/m1-5-6-core (M1-5 + M1-6 arrival)
 
 - **Driver:** Imree (authorized the lead merges + "continue") · **Author:** Claude (terminal) ·
