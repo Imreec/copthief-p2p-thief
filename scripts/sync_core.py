@@ -20,10 +20,10 @@ from pathlib import Path
 MIRRORED = [
     "src/copthief_core",
     # Core tests travel WITH the code they cover (PRD_crypto §7): without them the
-    # follower's coverage gate cannot hold. Role-package tests (tests/unit/test_packages.py)
-    # stay per-repo — they import the role package and legitimately differ.
-    "tests/unit/domain",
-    "tests/unit/shared",
+    # follower's coverage gate cannot hold. Whole trees are mirrored (a new test subdir
+    # must never silently miss the mirror — the M1-5 wire tests once did); role-specific
+    # tests live under tests/role/, which stays per-repo.
+    "tests/unit",
     "tests/integration",
     "tests/conformance",
     ".claude/skills",
