@@ -39,12 +39,37 @@ def check_str(raw: dict[str, Any], key: str, *, non_empty: bool = False) -> str 
     return None
 
 
-def check_number(raw: dict[str, Any], key: str) -> str | None:
-    """Required int-or-float (bool excluded) — e.g. an epoch timestamp."""
+def _is_cell(value: object) -> bool:
+    """A `[row, col]` int pair (bools excluded) — the wire's cell shape."""
+    return (
+        isinstance(value, list | tuple)
+        and len(value) == 2
+        and all(isinstance(v, int) and not isinstance(v, bool) for v in value)
+    )
+
+
+def check_optional_claim_response(raw: dict[str, Any], key: str) -> str | None:
+    """Optional reference-shaped `{"claim": [r, c], "caught": bool}` (null/absent fine)."""
     value = raw.get(key)
-    if not isinstance(value, int | float) or isinstance(value, bool):
-        return f"{key}: required number, got {value!r}"
-    return None
+    if value is None:
+        return None
+    if (
+        isinstance(value, dict)
+        and _is_cell(value.get("claim"))
+        and isinstance(value.get("caught"), bool)
+    ):
+        return None
+    return f'{key}: must be {{"claim": [r, c], "caught": bool}} when present, got {value!r}'
+
+
+def check_optional_win_claim(raw: dict[str, Any], key: str) -> str | None:
+    """Optional reference-shaped `{"type": <non-empty str>}` (null/absent fine)."""
+    value = raw.get(key)
+    if value is None:
+        return None
+    if isinstance(value, dict) and isinstance(value.get("type"), str) and value["type"]:
+        return None
+    return f'{key}: must be {{"type": str}} when present, got {value!r}'
 
 
 def check_hex64(raw: dict[str, Any], key: str) -> str | None:
@@ -68,21 +93,9 @@ def check_smell_grid(raw: dict[str, Any], key: str) -> str | None:
     return None
 
 
-def check_optional_bool(raw: dict[str, Any], key: str) -> str | None:
-    """Optional strict bool (absent is fine; anything else must BE a bool)."""
-    if key in raw and not isinstance(raw[key], bool):
-        return f"{key}: must be a bool when present, got {raw[key]!r}"
-    return None
-
-
 def check_optional_cell(raw: dict[str, Any], key: str) -> str | None:
-    """Optional `[row, col]` int pair (a declared barrier placement)."""
-    if key not in raw:
+    """Optional `[row, col]` int pair (explicit null fine — the reference emits nulls)."""
+    value = raw.get(key)
+    if value is None or _is_cell(value):
         return None
-    value = raw[key]
-    ok = (
-        isinstance(value, list | tuple)
-        and len(value) == 2
-        and all(isinstance(v, int) and not isinstance(v, bool) for v in value)
-    )
-    return None if ok else f"{key}: must be [row, col] ints when present, got {value!r}"
+    return f"{key}: must be [row, col] ints when present, got {value!r}"

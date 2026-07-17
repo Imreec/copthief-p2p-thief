@@ -112,6 +112,9 @@ class PrivateSettings:
     sub_game_number: int
     my_port: int
     opponent_url: str
+    turn_timeout_seconds: float
+    poll_interval_seconds: float
+    connect_timeout_seconds: float
 
 
 @dataclass(frozen=True)

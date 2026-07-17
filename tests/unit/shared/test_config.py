@@ -75,6 +75,21 @@ def test_malformed_private_version_is_refused(tmp_path: Path) -> None:
         load_all(clone, counted=False)
 
 
+def test_min_center_intensity_reads_the_reference_schema_key(tmp_path: Path) -> None:
+    # M2 finding F4 (oracle sha 960499fd): the reference's game.json schema 1.3 carries
+    # the emission gate as pheromones.pheromone_min_center_intensity — a signed shared
+    # key, not a reference-code-only default. The loader must read that exact key.
+    clone = _copy_config(tmp_path, pheromones__pheromone_min_center_intensity=0.7)
+    constitution, _, _ = load_all(clone, counted=False)
+    assert constitution.pheromones.min_center_intensity == 0.7
+
+
+def test_min_center_intensity_defaults_when_the_signed_file_omits_it(tmp_path: Path) -> None:
+    clone = _copy_config(tmp_path)  # shipped game.json omits the key
+    constitution, _, _ = load_all(clone, counted=False)
+    assert constitution.pheromones.min_center_intensity == 0.5
+
+
 def test_rate_limits_below_a_signed_minimum_are_refused(tmp_path: Path) -> None:
     clone = _copy_config(tmp_path)
     limits_path = clone / "rate_limits.json"

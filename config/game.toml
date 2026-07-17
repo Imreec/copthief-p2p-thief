@@ -13,3 +13,8 @@ sub_game_number = 1
 [network]
 my_port = 8801
 opponent_url = ""
+# Private timing budget (M2 F1 symmetric loop): opponent silent past turn_timeout ->
+# technical loss; poll paces inbox drains; connect bounds handshake/audit waits.
+turn_timeout_seconds = 180
+poll_interval_seconds = 0.5
+connect_timeout_seconds = 60

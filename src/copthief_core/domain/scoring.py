@@ -33,6 +33,17 @@ class SeriesResult:
     tied: bool
 
 
+def scores_for(outcome: str, table: ScoringTable) -> tuple[int, int]:
+    """`score_mini_game` over the peer layer's internal outcome strings.
+
+    "cop_capture" / "thief_survival" hit their table rows; anything else (timeout,
+    incomplete, protocol violation) is the technical-loss row — 0/0 for both, matching
+    the reference's scoring of non-capture/non-survival results.
+    """
+    named = {"cop_capture": Outcome.COP_CAPTURE, "thief_survival": Outcome.THIEF_SURVIVAL}
+    return score_mini_game(named.get(outcome, Outcome.TECHNICAL_LOSS), table)
+
+
 def score_mini_game(outcome: Outcome, table: ScoringTable) -> tuple[int, int]:
     """(cop points, thief points) for one mini-game outcome per the fixed table."""
     rows: dict[Outcome, tuple[int, int]] = {

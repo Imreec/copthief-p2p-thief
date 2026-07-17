@@ -25,6 +25,14 @@ def test_technical_loss_zeroes_both_sides() -> None:
     assert score_mini_game(Outcome.TECHNICAL_LOSS, TABLE) == (0, 0)
 
 
+def test_scores_for_maps_internal_outcome_strings_to_table_rows() -> None:
+    from copthief_core.domain.scoring import scores_for
+
+    assert scores_for("cop_capture", TABLE) == (20, 5)
+    assert scores_for("thief_survival", TABLE) == (5, 10)
+    assert scores_for("timeout", TABLE) == (0, 0)  # anything else = technical loss row
+
+
 def test_series_totals_accumulate_per_minigame_scores() -> None:
     scores = [(20, 5), (5, 10), (20, 5)]
     result = settle_series(scores, TABLE)
