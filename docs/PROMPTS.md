@@ -3,6 +3,17 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #7 — sync/m1-5-6-core (M1-5 + M1-6 arrival)
+
+- **Driver:** Imree (authorized the lead merges + "continue") · **Author:** Claude (terminal) ·
+  **Reviewer:** cross-model review ran on the police PRs (copthief-p2p-cop#7, #8); mechanical
+  landing. (The first M1-5 sync attempt, PR #6 here, was closed red: tests/unit/wire had missed
+  the lead's explicit MIRRORED list; the lead now mirrors whole test trees.)
+- **This PR:** role test moved to tests/role/ (per-repo, outside the mirror), then
+  `sync: core from police@2f6f441` — the wire layer (M1-5) and the peer loop + in-process MCP
+  fake (M1-6 fake-transport half: full mini-game with mutual audit runs in THIS repo's CI too).
+  TODO M1-5 ticked, M1-6 marked ◐ (one-command two-process form rides with M1-7).
+
 ## PR #5 — sync/m1-4-state-machine (M1-4 arrival)
 
 - **Driver:** Imree (authorized the lead merge + "continue") · **Author:** Claude (terminal) ·
