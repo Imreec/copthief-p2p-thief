@@ -58,7 +58,7 @@ omit = [
     "src/main.py",
     "src/copthief_core/infra/mcp_server.py",
     "src/copthief_core/infra/mcp_client.py",
-    "src/copthief_core/peer/p2p.py",
+    "src/copthief_core/infra/p2p_transport.py",
 ]
 
 [tool.coverage.report]
