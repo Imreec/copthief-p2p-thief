@@ -20,6 +20,7 @@ from copthief_core.peer.audit_flow import (
 )
 from copthief_core.peer.session import PeerSession
 from copthief_core.shared.config import load_all
+from copthief_core.shared.jsonl_logger import JsonlEventLogger
 from copthief_core.wire.audit import AuditPayload
 
 
@@ -54,22 +55,42 @@ def _server_for(session: PeerSession) -> FakeMcpServer:
     )
 
 
-def run_local_minigame(config_dir: Path, *, police_seed: int, thief_seed: int) -> MatchResult:
+def run_local_minigame(
+    config_dir: Path, *, police_seed: int, thief_seed: int, log_path: Path | None = None
+) -> MatchResult:
     """One full mini-game: handshake → turns to survival → mutual audit (Input: the
-    config tree + seeds; Output: the observed MatchResult; loud exception on any break)."""
+    config tree + seeds + optional JSONL log path; Output: the observed MatchResult).
+
+    With `log_path`, every exchanged payload is logged verbatim (PLAN §7) so the game
+    replays and re-verifies from the log alone (peer/replay, M1-8)."""
+    log = JsonlEventLogger(log_path).log if log_path is not None else (lambda event: None)
     constitution, private, _limits = load_all(config_dir, counted=False)
     police = PeerSession(constitution, private, role="police", seed=police_seed)
     thief = PeerSession(constitution, private, role="thief", seed=thief_seed)
     to_thief = FakeMcpClient(_server_for(thief))
     to_police = FakeMcpClient(_server_for(police))
+    log({"event": "provenance", "payload": {"police_seed": police_seed, "thief_seed": thief_seed}})
 
-    to_thief.call("negotiate", police.negotiate_payload())
-    to_police.call("negotiate", thief.negotiate_payload())
+    for sender, client, payload in (
+        ("police", to_thief, police.negotiate_payload()),
+        ("thief", to_police, thief.negotiate_payload()),
+    ):
+        log({"event": "negotiate", "sender": sender, "payload": payload})
+        client.call("negotiate", payload)
 
     threshold = constitution.movement.survival_threshold
     for step in range(1, threshold + 1):
-        to_thief.call("receive_turn", police.take_turn(now=float(step)))
-        to_police.call("receive_turn", thief.take_turn(now=float(step) + 0.5))
+        for sender, client, session in (("police", to_thief, police), ("thief", to_police, thief)):
+            message = session.take_turn(now=float(step) if sender == "police" else step + 0.5)
+            log({"event": "turn", "sender": sender, "message": message})
+            client.call("receive_turn", message)
+        log(
+            {
+                "event": "state",
+                "police": police.machine.state.value,
+                "thief": thief.machine.state.value,
+            }
+        )
 
     police_claim = {
         "result": derive_result(
@@ -79,9 +100,10 @@ def run_local_minigame(config_dir: Path, *, police_seed: int, thief_seed: int) -
         ),
         "steps": len(police.records),
     }
-    settlement = to_thief.call(
-        "submit_audit", build_audit(police.role, police.records, police_claim)
-    )
+    police_audit = build_audit(police.role, police.records, police_claim)
+    log({"event": "audit", "payload": police_audit})
+    settlement = to_thief.call("submit_audit", police_audit)
+    log({"event": "audit_answer", "payload": settlement})
     thief_side_ok = settlement["status"] == "verified"
     police_side_ok = verify_audit(AuditPayload.from_wire(settlement["audit"])) == []
 
@@ -89,6 +111,18 @@ def run_local_minigame(config_dir: Path, *, police_seed: int, thief_seed: int) -
     scoring = constitution.scoring
     scores = (
         (scoring.survival_cop, scoring.survival_thief) if outcome == "thief_survival" else (0, 0)
+    )
+    log(
+        {
+            "event": "result",
+            "payload": {
+                "outcome": outcome,
+                "steps": len(police.records),
+                "game_uid": police.game_uid or "",
+                "audit_ok_police_side": police_side_ok,
+                "audit_ok_thief_side": thief_side_ok,
+            },
+        }
     )
     return MatchResult(
         outcome=outcome,
