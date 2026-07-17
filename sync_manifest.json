@@ -25,6 +25,10 @@
     "src/copthief_core/shared/appf_guard.py": "2084a22ad0a09780b700da55de67dba397f5d440b40859d26fc8a9c95c5d064e",
     "src/copthief_core/shared/config.py": "e7f87394c26523df07e4e2ad1a9e2bf6364c1af289604cb21bb811bcb704ced5",
     "src/copthief_core/shared/config_model.py": "fce476535c01bca97af802ae145673a1b409814f4f7c531c7318e6a7523cf165",
+    "src/copthief_core/wire/__init__.py": "c77dd402833f3d6f0f57f05cfbb2b231d4359d3454fa30aaa7f8221904babfde",
+    "src/copthief_core/wire/audit.py": "32d2e6ff9252ebfbe35270901aac55628f61abbebadd35e34b310ed55609658d",
+    "src/copthief_core/wire/turn.py": "57d8da878d28a626f42b198e958403b4f63658b004049f66b13652b332d6d79c",
+    "src/copthief_core/wire/validation.py": "e0afdef0f6e754f1f808606d956fcdba537cb87b53ddc64aa3310f34893ee453",
     "tests/conformance/SOURCE.md": "bdff0656712f71166727f74b96f66c7e67c269d6a64b95c5c4824becf61db2e7",
     "tests/conformance/test_kit_core_vectors.py": "2a309ed3e6a7ee72f4841e50ffc955fecd964c7e7376cfba7fe0199bfd441c6d",
     "tests/conformance/vectors/canonical_json.json": "7b4b144078f0ba3d401b9bdf189632b309da0f210f86499b0ad0821f4d3fcd8d",
@@ -41,7 +45,7 @@
     "tests/unit/shared/test_appf_guard.py": "e11582463a868d2bebdc3da9036026c4bddf185c0b9bbc6e9ae8a3ba75ef4173",
     "tests/unit/shared/test_config.py": "b94bd1e3a3241bed56582b2c27d4b0a7446eb8a4ebc8bf2e0c808b95c2c7f025"
   },
-  "source_commit": "7dc7e48",
+  "source_commit": "ee14700",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "ee11410d989c9c47f4ad9ebc067b6797001b640a1a946a1614e15030eb05e7f2"
+  "tree_hash": "9ddb7617ad5c923d6bfd2f44e361082af11213d9910b7b7f7c87977198784c47"
 }

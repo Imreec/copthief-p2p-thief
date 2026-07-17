@@ -3,6 +3,13 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #6 — sync/m1-5-wire (M1-5 arrival)
+
+- **Driver:** Imree (authorized the lead merge + "continue") · **Author:** Claude (terminal) ·
+  **Reviewer:** cross-model review ran on the police PR (copthief-p2p-cop#7); mechanical landing.
+- **This PR:** `sync: core from police@ee14700` — the wire layer (TurnMessage / AuditPayload /
+  ControlMessage + validation) and its schema test suite. TODO M1-5 ticked.
+
 ## PR #5 — sync/m1-4-state-machine (M1-4 arrival)
 
 - **Driver:** Imree (authorized the lead merge + "continue") · **Author:** Claude (terminal) ·
