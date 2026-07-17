@@ -2,8 +2,9 @@
 
 The audit payload is the trust anchor of the whole protocol: the opponent re-hashes every
 revealed record in it (kit §3), so record `payload` dicts are carried VERBATIM — never
-re-shaped — from wire to verifier. ControlMessage is the opt-in status/restart/quit side
-channel; it is never sealed. Both shapes are M2-verified against the live reference.
+re-shaped — from wire to verifier. Shapes pinned against the running reference (oracle sha
+960499fd, spike notes §2): `result_claim` is a plain result string; ControlMessage is the
+opt-in control channel keyed by `kind` (enable/status/restart/quit) and is never sealed.
 """
 
 from __future__ import annotations
@@ -15,9 +16,9 @@ from typing import Any
 from copthief_core.wire.validation import WireValidationError, check_hex64, check_str
 
 _NONCE_FORM = re.compile(r"^[0-9a-f]+$")
-_CONTROL_ACTIONS = frozenset({"status", "restart", "quit"})
+_CONTROL_KINDS = frozenset({"enable", "status", "restart", "quit"})
 _AUDIT_KEYS = frozenset({"sender", "records", "result_claim"})
-_CONTROL_KEYS = frozenset({"sender", "action", "message"})
+_CONTROL_KEYS = frozenset({"kind", "sender", "sub_game_number", "status", "step_budget", "payload"})
 
 
 @dataclass(frozen=True)
@@ -45,17 +46,24 @@ def _check_record(index: int, raw: object) -> str | None:
 
 @dataclass(frozen=True)
 class AuditPayload:
-    """The end-of-game audit submission: all sealed records + the derived result claim."""
+    """The end-of-game audit submission: all sealed records + the claimed result string."""
 
     sender: str
     records: tuple[SealedRecord, ...]
-    result_claim: dict[str, Any]
+    result_claim: str
     extras: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_wire(cls, raw: dict[str, Any]) -> AuditPayload:
         """Validate before verification begins; every problem reported at once."""
-        problems = [p for p in (check_str(raw, "sender", non_empty=True),) if p is not None]
+        problems = [
+            p
+            for p in (
+                check_str(raw, "sender", non_empty=True),
+                check_str(raw, "result_claim", non_empty=True),
+            )
+            if p is not None
+        ]
         records = raw.get("records")
         if not isinstance(records, list):
             problems.append(f"records: required list, got {type(records).__name__}")
@@ -63,8 +71,6 @@ class AuditPayload:
         problems.extend(
             p for p in (_check_record(i, r) for i, r in enumerate(records)) if p is not None
         )
-        if not isinstance(raw.get("result_claim"), dict):
-            problems.append("result_claim: required object")
         if problems:
             raise WireValidationError("AuditPayload", problems)
         return cls(
@@ -92,36 +98,43 @@ class AuditPayload:
 
 @dataclass(frozen=True)
 class ControlMessage:
-    """Opt-in status/restart/quit side channel — never sealed, never scored."""
+    """Opt-in control channel (reference field set) — never sealed, never scored."""
 
+    kind: str
     sender: str
-    action: str
-    message: str | None = None
+    sub_game_number: int = 1
+    status: str = ""
+    step_budget: float = 0.0
+    payload: dict[str, Any] | None = None
     extras: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_wire(cls, raw: dict[str, Any]) -> ControlMessage:
-        """Validate sender + the closed action set; unknown fields tolerated."""
+        """Validate sender + the closed kind set; unknown fields tolerated inbound."""
         problems = [p for p in (check_str(raw, "sender", non_empty=True),) if p is not None]
-        if raw.get("action") not in _CONTROL_ACTIONS:
+        if raw.get("kind") not in _CONTROL_KINDS:
             problems.append(
-                f"action: must be one of {sorted(_CONTROL_ACTIONS)}, got {raw.get('action')!r}"
+                f"kind: must be one of {sorted(_CONTROL_KINDS)}, got {raw.get('kind')!r}"
             )
-        if "message" in raw and not isinstance(raw["message"], str):
-            problems.append(f"message: must be a str when present, got {raw['message']!r}")
         if problems:
             raise WireValidationError("ControlMessage", problems)
         return cls(
+            kind=raw["kind"],
             sender=raw["sender"],
-            action=raw["action"],
-            message=raw.get("message"),
+            sub_game_number=raw.get("sub_game_number", 1),
+            status=raw.get("status", ""),
+            step_budget=raw.get("step_budget", 0.0),
+            payload=raw.get("payload"),
             extras={k: v for k, v in raw.items() if k not in _CONTROL_KEYS},
         )
 
     def to_wire(self) -> dict[str, Any]:
-        """The outbound dict; `message` emitted only when set."""
-        wire: dict[str, Any] = {"sender": self.sender, "action": self.action}
-        if self.message is not None:
-            wire["message"] = self.message
-        wire.update({k: v for k, v in self.extras.items() if k not in wire})
-        return wire
+        """The outbound dict: the reference's six-key set (asdict parity), extras never."""
+        return {
+            "kind": self.kind,
+            "sender": self.sender,
+            "sub_game_number": self.sub_game_number,
+            "status": self.status,
+            "step_budget": self.step_budget,
+            "payload": self.payload,
+        }

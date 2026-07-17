@@ -84,9 +84,10 @@ def load_constitution(path: Path, table: AppFTable, *, counted: bool) -> Constit
             center_intensity=raw["pheromones"]["pheromone_center_intensity"],
             decay=raw["pheromones"]["pheromone_decay"],
             grid_size=raw["pheromones"]["pheromone_grid_size"],
-            # Reference-only gate: signed value when present, App F table default otherwise.
+            # Emission gate, reference schema-1.3 key (M2 F4): signed value when the
+            # shared file carries it, App F table default otherwise.
             min_center_intensity=raw["pheromones"].get(
-                "min_center_intensity",
+                "pheromone_min_center_intensity",
                 table.entries["pheromones.min_center_intensity"].default,
             ),
         ),
@@ -107,6 +108,9 @@ def load_private_settings(path: Path) -> PrivateSettings:
         sub_game_number=int(game["sub_game_number"]),
         my_port=int(network["my_port"]),
         opponent_url=str(network["opponent_url"]),
+        turn_timeout_seconds=float(network["turn_timeout_seconds"]),
+        poll_interval_seconds=float(network["poll_interval_seconds"]),
+        connect_timeout_seconds=float(network["connect_timeout_seconds"]),
     )
 
 

@@ -28,7 +28,9 @@ def terms_from_config(constitution: Constitution) -> dict[str, object]:
         "decay_per_step": constitution.pheromones.decay,
         "emit_intensity": constitution.pheromones.center_intensity,
         "min_center_intensity": constitution.pheromones.min_center_intensity,
-        "max_steps": constitution.movement.max_moves,
+        # F3 (M2, oracle sha 960499fd): the reference's terms read max_steps from
+        # survival_threshold, not max_moves — value-hidden while the two coincide.
+        "max_steps": constitution.movement.survival_threshold,
         "barriers_max": constitution.movement.max_barriers,
         "setting": constitution.world.map_area,
         "hint_max_words": constitution.world.hint_max_words,

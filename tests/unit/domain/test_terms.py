@@ -37,10 +37,23 @@ def test_terms_values_map_from_the_signed_constitution() -> None:
     assert terms["smell_grid_size"] == CONSTITUTION.pheromones.grid_size
     assert terms["decay_per_step"] == CONSTITUTION.pheromones.decay
     assert terms["emit_intensity"] == CONSTITUTION.pheromones.center_intensity
-    assert terms["max_steps"] == CONSTITUTION.movement.max_moves
+    assert terms["max_steps"] == CONSTITUTION.movement.survival_threshold
     assert terms["barriers_max"] == CONSTITUTION.movement.max_barriers
     assert terms["setting"] == CONSTITUTION.world.map_area
     assert terms["num_games"] == CONSTITUTION.league.num_games
+
+
+def test_max_steps_maps_from_survival_threshold_not_max_moves() -> None:
+    # M2 finding F3 (oracle sha 960499fd): the reference's _translate_shared maps its
+    # terms' max_steps from movement_and_barriers.survival_threshold — NOT max_moves.
+    # The shipped configs hold both at the same value, which is exactly why only a
+    # discriminating constitution can pin the provenance.
+    from dataclasses import replace
+
+    skewed = replace(
+        CONSTITUTION, movement=replace(CONSTITUTION.movement, max_moves=40, survival_threshold=35)
+    )
+    assert terms_from_config(skewed)["max_steps"] == 35
 
 
 def test_min_center_intensity_defaults_from_the_app_f_table_when_absent() -> None:

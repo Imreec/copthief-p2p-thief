@@ -1,9 +1,9 @@
 """CLI entry (TODO M1-7): everything goes through SimulationSdk, output is JSON/ASCII.
 
 Commands:
-  copthief run local-match   one command, full mini-game, both peers in-process (fake MCP)
+  copthief run local-match   one command, full mini-game, both peers in-process (queues)
   copthief run p2p-match     one command, full mini-game, TWO processes over localhost HTTP
-  copthief run peer          serve one peer's tools (used by p2p-match's subprocess)
+  copthief run peer          play one full standalone peer (own server + symmetric loop)
 """
 
 from __future__ import annotations
@@ -21,30 +21,34 @@ _LOCALHOST = "127.0.0.1"
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="copthief")
     commands = parser.add_subparsers(dest="verb", required=True)
-    run = commands.add_parser("run", help="run an M1 flow")
+    run = commands.add_parser("run", help="run a game flow")
     flows = run.add_subparsers(dest="flow", required=True)
 
-    local = flows.add_parser("local-match", help="in-process mini-game over the MCP fake")
+    local = flows.add_parser("local-match", help="in-process mini-game over queue transports")
     p2p = flows.add_parser("p2p-match", help="two-process mini-game over localhost FastMCP")
-    peer = flows.add_parser("peer", help="serve one peer's four tools (blocking)")
+    peer = flows.add_parser("peer", help="play one standalone peer (blocking, full game)")
 
     for sub in (local, p2p, peer):
         sub.add_argument("--config", type=Path, default=Path("config"))
     for sub in (local, p2p):
         sub.add_argument("--police-seed", type=int, default=11)
         sub.add_argument("--thief-seed", type=int, default=22)
-    local.add_argument("--log", type=Path, default=None, help="write a replayable JSONL log")
+    for sub in (local, peer):
+        sub.add_argument("--log", type=Path, default=None, help="write a replayable JSONL log")
     p2p.add_argument("--host", default=_LOCALHOST)
     p2p.add_argument("--thief-port", type=int, default=None, help="default: my_port + 1")
     peer.add_argument("--role", required=True, choices=("police", "thief"))
     peer.add_argument("--seed", type=int, default=22)
     peer.add_argument("--host", default=_LOCALHOST)
     peer.add_argument("--port", type=int, default=None, help="default: game.toml my_port")
+    peer.add_argument(
+        "--opponent-url", default=None, help="default: game.toml network.opponent_url"
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Dispatch one CLI invocation; match results print as one JSON object."""
+    """Dispatch one CLI invocation; every flow prints one JSON object."""
     args = _parser().parse_args(argv)
     sdk = SimulationSdk(args.config)
     if args.flow == "local-match":
@@ -67,7 +71,16 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(asdict(p2p_result)))
         return 0
     port = args.port if args.port is not None else sdk.private.my_port
-    sdk.serve_peer(role=args.role, seed=args.seed, host=args.host, port=port)
+    opponent_url = args.opponent_url if args.opponent_url is not None else sdk.private.opponent_url
+    peer_result = sdk.run_peer(
+        role=args.role,
+        seed=args.seed,
+        host=args.host,
+        port=port,
+        opponent_url=opponent_url,
+        log_path=args.log,
+    )
+    print(json.dumps(asdict(peer_result)))
     return 0
 
 

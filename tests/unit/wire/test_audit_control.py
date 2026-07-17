@@ -1,4 +1,9 @@
-"""AuditPayload + ControlMessage validation (PLAN §6): the audit is the trust anchor."""
+"""AuditPayload + ControlMessage validation (PLAN §6): the audit is the trust anchor.
+
+Shapes pinned against the running reference at M2 (oracle sha 960499fd, spike notes §2
+F5/F6): `result_claim` is a plain result string, and ControlMessage carries the
+reference's control-channel field set keyed by `kind`.
+"""
 
 import pytest
 
@@ -13,8 +18,9 @@ RECORD = {
 VALID_AUDIT = {
     "sender": "police",
     "records": [RECORD],
-    "result_claim": {"outcome": "thief_survival", "steps": 35},
+    "result_claim": "survival",
 }
+CONTROL_KEYS = {"kind", "sender", "sub_game_number", "status", "step_budget", "payload"}
 
 
 def test_valid_audit_parses_with_typed_records() -> None:
@@ -23,6 +29,7 @@ def test_valid_audit_parses_with_typed_records() -> None:
     assert len(audit.records) == 1
     assert audit.records[0].payload["move"] == "MOVE:S"
     assert audit.records[0].nonce == RECORD["nonce"]
+    assert audit.result_claim == "survival"
 
 
 @pytest.mark.parametrize("missing", ["sender", "records", "result_claim"])
@@ -30,6 +37,12 @@ def test_each_missing_audit_field_is_rejected_by_name(missing: str) -> None:
     raw = {k: v for k, v in VALID_AUDIT.items() if k != missing}
     with pytest.raises(WireValidationError, match=missing):
         AuditPayload.from_wire(raw)
+
+
+def test_non_string_result_claim_is_rejected() -> None:
+    # The reference sends "capture" | "survival" | "timeout" as a plain string.
+    with pytest.raises(WireValidationError, match="result_claim"):
+        AuditPayload.from_wire({**VALID_AUDIT, "result_claim": {"outcome": "survival"}})
 
 
 def test_malformed_records_are_rejected_with_their_index() -> None:
@@ -61,31 +74,48 @@ def test_empty_records_list_is_valid_shape() -> None:
     assert audit.records == ()
 
 
-def test_valid_control_message_parses() -> None:
-    msg = ControlMessage.from_wire({"sender": "thief", "action": "status"})
-    assert msg.action == "status"
-    assert msg.message is None
-
-
-def test_control_action_outside_the_contract_is_rejected() -> None:
-    with pytest.raises(WireValidationError, match="action"):
-        ControlMessage.from_wire({"sender": "thief", "action": "surrender"})
-    with pytest.raises(WireValidationError, match="sender"):
-        ControlMessage.from_wire({"action": "quit"})
-
-
 def test_non_object_record_entry_is_rejected() -> None:
     with pytest.raises(WireValidationError, match=r"records\[0\]: must be an object"):
         AuditPayload.from_wire({**VALID_AUDIT, "records": ["sealed-blob"]})
 
 
-def test_non_string_control_message_is_rejected() -> None:
-    with pytest.raises(WireValidationError, match="message"):
-        ControlMessage.from_wire({"sender": "thief", "action": "quit", "message": 42})
+def test_valid_control_message_parses_with_reference_defaults() -> None:
+    msg = ControlMessage.from_wire({"kind": "status", "sender": "thief"})
+    assert msg.kind == "status"
+    assert msg.sub_game_number == 1
+    assert msg.status == ""
+    assert msg.step_budget == 0.0
+    assert msg.payload is None
 
 
-def test_control_round_trip_with_message_and_extras() -> None:
-    raw = {"sender": "thief", "action": "restart", "message": "resync please", "ping": 1}
+def test_control_kind_outside_the_contract_is_rejected() -> None:
+    with pytest.raises(WireValidationError, match="kind"):
+        ControlMessage.from_wire({"kind": "surrender", "sender": "thief"})
+    with pytest.raises(WireValidationError, match="sender"):
+        ControlMessage.from_wire({"kind": "quit"})
+
+
+def test_control_enable_kind_is_part_of_the_contract() -> None:
+    # The reference's bidirectional-channel opt-in handshake starts with kind="enable".
+    msg = ControlMessage.from_wire({"kind": "enable", "sender": "police"})
+    assert msg.kind == "enable"
+
+
+def test_control_round_trip_carries_the_reference_field_set() -> None:
+    raw = {
+        "kind": "status",
+        "sender": "thief",
+        "sub_game_number": 2,
+        "status": "THINKING",
+        "step_budget": 12.5,
+        "payload": {"note": "resync"},
+    }
     msg = ControlMessage.from_wire(raw)
     assert ControlMessage.from_wire(msg.to_wire()) == msg
-    assert msg.to_wire()["ping"] == 1
+    assert set(msg.to_wire()) == CONTROL_KEYS
+
+
+def test_control_tolerates_unknown_fields_inbound() -> None:
+    msg = ControlMessage.from_wire({"kind": "quit", "sender": "thief", "ping": 1})
+    assert msg.extras == {"ping": 1}
+    assert set(msg.to_wire()) == CONTROL_KEYS

@@ -1,27 +1,25 @@
-"""Local mini-game runner (PLAN §13 M1, fake-transport half): the loop the CLI will call.
+"""Local mini-game runner (PLAN §13, fake-transport half): the loop the CLI calls.
 
-Wires two symmetric PeerSessions through the in-process MCP fake — every exchange goes
-through a tool call, exactly as it will over FastMCP — and settles the game with the
-mutual audit. Deterministic: seeds fix the walks, step indices serve as timestamps.
+Both peers run the SAME symmetric loop (peer/p2p) over an in-process queue-transport
+pair — the reference's push/inbox convention with zero network — and settle with the
+mutual audit. Threads appear only at the inbox seams (guidelines §15): one per peer,
+joined before any result is read; the shared JSONL log is lock-guarded.
 """
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
+from copthief_core.domain.scoring import scores_for
 from copthief_core.domain.state_machine import GameState
-from copthief_core.infra.fake_mcp import FakeMcpClient, FakeMcpServer
-from copthief_core.peer.audit_flow import (
-    build_audit,
-    derive_result,
-    handle_submit_audit,
-    verify_audit,
-)
+from copthief_core.peer.p2p import PeerGameResult, run_peer_game
 from copthief_core.peer.session import PeerSession
+from copthief_core.peer.transport import queue_pair
 from copthief_core.shared.config import load_all
 from copthief_core.shared.jsonl_logger import JsonlEventLogger
-from copthief_core.wire.audit import AuditPayload
 
 
 @dataclass(frozen=True)
@@ -43,94 +41,77 @@ class MatchResult:
     thief_moves: tuple[str, ...]
 
 
-def _server_for(session: PeerSession) -> FakeMcpServer:
-    """The four peer tools, exposed exactly as the FastMCP server will expose them."""
-    return FakeMcpServer(
-        tools={
-            "negotiate": session.handle_negotiate,
-            "receive_turn": session.handle_receive_turn,
-            "submit_audit": lambda raw: handle_submit_audit(session, raw),
-            "receive_control": session.handle_receive_control,
-        }
-    )
+def _locked_log(log_path: Path | None) -> Any:  # noqa: ANN401 - callable-or-noop seam
+    """A thread-safe event logger callable (two peer loops share one file)."""
+    if log_path is None:
+        return lambda event: None
+    logger = JsonlEventLogger(log_path)
+    lock = threading.Lock()
+
+    def emit(event: dict[str, Any]) -> None:
+        with lock:
+            logger.log(event)
+
+    return emit
 
 
 def run_local_minigame(
     config_dir: Path, *, police_seed: int, thief_seed: int, log_path: Path | None = None
 ) -> MatchResult:
-    """One full mini-game: handshake → turns to survival → mutual audit (Input: the
-    config tree + seeds + optional JSONL log path; Output: the observed MatchResult).
+    """One full mini-game, both symmetric loops in-process (Input: the config tree +
+    seeds + optional JSONL log path; Output: the observed MatchResult).
 
-    With `log_path`, every exchanged payload is logged verbatim (PLAN §7) so the game
+    With `log_path`, every sent payload is logged verbatim (PLAN §7) so the game
     replays and re-verifies from the log alone (peer/replay, M1-8)."""
-    log = JsonlEventLogger(log_path).log if log_path is not None else (lambda event: None)
+    log = _locked_log(log_path)
     constitution, private, _limits = load_all(config_dir, counted=False)
     police = PeerSession(constitution, private, role="police", seed=police_seed)
     thief = PeerSession(constitution, private, role="thief", seed=thief_seed)
-    to_thief = FakeMcpClient(_server_for(thief))
-    to_police = FakeMcpClient(_server_for(police))
+    police_transport, thief_transport = queue_pair(wait_timeout=private.connect_timeout_seconds)
     log({"event": "provenance", "payload": {"police_seed": police_seed, "thief_seed": thief_seed}})
 
-    for sender, client, payload in (
-        ("police", to_thief, police.negotiate_payload()),
-        ("thief", to_police, thief.negotiate_payload()),
-    ):
-        log({"event": "negotiate", "sender": sender, "payload": payload})
-        client.call("negotiate", payload)
+    results: dict[str, PeerGameResult] = {}
 
-    threshold = constitution.movement.survival_threshold
-    for step in range(1, threshold + 1):
-        for sender, client, session in (("police", to_thief, police), ("thief", to_police, thief)):
-            message = session.take_turn(now=float(step) if sender == "police" else step + 0.5)
-            log({"event": "turn", "sender": sender, "message": message})
-            client.call("receive_turn", message)
-        log(
-            {
-                "event": "state",
-                "police": police.machine.state.value,
-                "thief": thief.machine.state.value,
-            }
+    def play(session: PeerSession, transport: Any) -> None:  # noqa: ANN401 - Protocol param
+        results[session.role] = run_peer_game(
+            session,
+            transport,
+            turn_timeout=private.turn_timeout_seconds,
+            poll_interval=private.poll_interval_seconds,
+            log=log,
         )
 
-    police_claim = {
-        "result": derive_result(
-            steps_survived=len(police.records),
-            survival_threshold=threshold,
-            max_moves=constitution.movement.max_moves,
-        ),
-        "steps": len(police.records),
-    }
-    police_audit = build_audit(police.role, police.records, police_claim)
-    log({"event": "audit", "payload": police_audit})
-    settlement = to_thief.call("submit_audit", police_audit)
-    log({"event": "audit_answer", "payload": settlement})
-    thief_side_ok = settlement["status"] == "verified"
-    police_side_ok = verify_audit(AuditPayload.from_wire(settlement["audit"])) == []
+    threads = [
+        threading.Thread(target=play, args=(police, police_transport), name="peer-police"),
+        threading.Thread(target=play, args=(thief, thief_transport), name="peer-thief"),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=private.turn_timeout_seconds + private.connect_timeout_seconds)
 
-    outcome = str(police_claim["result"])
+    outcome = results["thief"].outcome
     scoring = constitution.scoring
-    scores = (
-        (scoring.survival_cop, scoring.survival_thief) if outcome == "thief_survival" else (0, 0)
-    )
+    scores = scores_for(outcome, scoring)
     log(
         {
             "event": "result",
             "payload": {
                 "outcome": outcome,
-                "steps": len(police.records),
-                "game_uid": police.game_uid or "",
-                "audit_ok_police_side": police_side_ok,
-                "audit_ok_thief_side": thief_side_ok,
+                "steps": results["thief"].steps,
+                "game_uid": results["police"].game_uid,
+                "audit_ok_police_side": results["police"].audit_ok,
+                "audit_ok_thief_side": results["thief"].audit_ok,
             },
         }
     )
     return MatchResult(
         outcome=outcome,
-        steps=len(police.records),
-        survival_threshold=threshold,
-        game_uid=police.game_uid or "",
-        audit_ok_police_side=police_side_ok,
-        audit_ok_thief_side=thief_side_ok,
+        steps=results["thief"].steps,
+        survival_threshold=constitution.movement.survival_threshold,
+        game_uid=results["police"].game_uid,
+        audit_ok_police_side=results["police"].audit_ok,
+        audit_ok_thief_side=results["thief"].audit_ok,
         police_state=police.machine.state,
         thief_state=thief.machine.state,
         scores=scores,
