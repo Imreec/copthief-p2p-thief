@@ -27,9 +27,15 @@ class SimulationSdk:
         self.config_dir = config_dir
         self.constitution, self.private, self.rate_limits = load_all(config_dir, counted=counted)
 
-    def run_local_match(self, *, police_seed: int, thief_seed: int) -> MatchResult:
-        """Full mini-game, both peers in-process over the MCP fake (keyless CI path)."""
-        return run_local_minigame(self.config_dir, police_seed=police_seed, thief_seed=thief_seed)
+    def run_local_match(
+        self, *, police_seed: int, thief_seed: int, log_path: Path | None = None
+    ) -> MatchResult:
+        """Full mini-game, both peers in-process over the MCP fake (keyless CI path).
+
+        With `log_path`, the game is JSONL-logged and replayable (peer/replay, M1-8)."""
+        return run_local_minigame(
+            self.config_dir, police_seed=police_seed, thief_seed=thief_seed, log_path=log_path
+        )
 
     def serve_peer(self, *, role: str, seed: int, host: str, port: int) -> None:
         """Serve one peer's four tools over real FastMCP HTTP (blocking)."""

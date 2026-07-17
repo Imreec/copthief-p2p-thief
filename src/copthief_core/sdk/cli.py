@@ -33,6 +33,7 @@ def _parser() -> argparse.ArgumentParser:
     for sub in (local, p2p):
         sub.add_argument("--police-seed", type=int, default=11)
         sub.add_argument("--thief-seed", type=int, default=22)
+    local.add_argument("--log", type=Path, default=None, help="write a replayable JSONL log")
     p2p.add_argument("--host", default=_LOCALHOST)
     p2p.add_argument("--thief-port", type=int, default=None, help="default: my_port + 1")
     peer.add_argument("--role", required=True, choices=("police", "thief"))
@@ -47,7 +48,9 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     sdk = SimulationSdk(args.config)
     if args.flow == "local-match":
-        result = sdk.run_local_match(police_seed=args.police_seed, thief_seed=args.thief_seed)
+        result = sdk.run_local_match(
+            police_seed=args.police_seed, thief_seed=args.thief_seed, log_path=args.log
+        )
         payload = {k: v for k, v in asdict(result).items() if not k.endswith("_moves")}
         payload["police_state"] = result.police_state.value
         payload["thief_state"] = result.thief_state.value

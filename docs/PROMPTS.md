@@ -3,6 +3,15 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #9 — sync/m1-8-logger (M1-8 arrival — phase M1 complete)
+
+- **Driver:** Imree (authorized the lead merge + the final M1 sync) · **Author:** Claude
+  (terminal) · **Reviewer:** cross-model review ran on the police PR (copthief-p2p-cop#10);
+  mechanical landing.
+- **This PR:** `sync: core from police@5823d5b` — JSONL logger, match-runner instrumentation,
+  replay-from-log (tamper + hint-divergence detection runs in THIS repo's CI too), CLI --log.
+  TODO M1-8 ticked. **Phase M1 complete in both repos: M1-1..M1-8 all ☑.**
+
 ## PR #8 — sync/m1-7-sdk (M1-7 arrival + pyproject parity)
 
 - **Driver:** Imree (authorized the lead merge + "continue") · **Author:** Claude (terminal) ·

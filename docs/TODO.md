@@ -28,7 +28,7 @@
 - ☑ **M1-5** `wire/` dataclasses + validation (mirror reference fields; forward-compat rule) — C. DoD: schema tests incl. reject-missing/tolerate-unknown.
 - ☑ **M1-6** `infra/mcp` server (4 tools) + client + in-process fake; `peer/` minimal loop (handshake→turns→audit, geometric play, template hints stubbed) — C, review AG. DoD: PLAN §13 M1 — one command, full localhost mini-game, self-audit pass. *(Observed on the lead repo 2026-07-17; evidence in its `docs/evidence/m1-p2p-match.md`.)*
 - ☑ **M1-7** `sdk/` facade + CLI entry (`run peer`, `run local-match`) — C. DoD: all M1 flows callable only via sdk.
-- ☐ **M1-8** JSONL logger (verbatim bytes, transitions, decisions, provenance) — C. DoD: M1 game replayable from log.
+- ☑ **M1-8** JSONL logger (verbatim bytes, transitions, decisions, provenance) — C. DoD: M1 game replayable from log.
 
 ## Phase M2 — 🚦 Oracle spike (go/no-go gate)
 
