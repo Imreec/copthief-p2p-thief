@@ -22,10 +22,16 @@ cop = "https://cop.imreeyal.com/mcp"
 thief = "https://thief.imreeyal.com/mcp"
 
 [strategy]
-# Private brain selection (PLAN s7): which BrainBase class each role runs. Baselines
-# only until M5 lands the role brains; the sparring host stays on the generic brain.
+# Private brain selection (PLAN s7): which BrainBase class each role runs (book s6.2
+# package.module:Class notation for role brains). The sparring host stays on the
+# generic brain - tuned weights never deploy there (CLAUDE.md s9).
 police_class = "random"
-thief_class = "random"
+thief_class = "copthief_thief.brain:ThiefBrain"
+
+[strategy.thief]
+# ThiefBrain knobs: the canonical defaults live in copthief_thief/features.py
+# (DEFAULT_OPTIONS data table, AppFTable pattern); keys here override them.
+# The M5-4 GA writes tuned values into this table - code never changes.
 
 [belief]
 # Private evidence-trust tuning (PRD_belief s5): how sharply the scent/hint likelihoods

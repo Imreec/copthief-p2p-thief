@@ -60,7 +60,7 @@
 
 - ☑ **M5-1** ⚑ `docs/PRD_police_brain.md` (police repo) / `docs/PRD_thief_brain.md` (thief repo) — C, approved I (thief PR #20 + police PR #30, approved together; merge = the approval; ADR-0005 rides the police PR).
 - ☐ **M5-2** ⚑ PoliceBrain: expectimax over belief + barrier graph-surgery + claim policy — C, review E. DoD: ≥60% arena vs reference heuristic (cop role).
-- ☐ **M5-3** ⚑ ThiefBrain: region-survival + articulation awareness + deception timing — C, review E. DoD: ≥60% arena vs reference heuristic (thief role).
+- ☑ **M5-3** ⚑ ThiefBrain: region-survival + articulation awareness + deception timing — C, review E/AG (sync PR #21 + role PR #22). DoD OBSERVED, CI-blocking: 25/32 = **78%** survival vs `ref-police` over the 32-scenario suite (floor 60%; holdout seeds 101-132: 72%; `docs/evidence/m5-arena.md`). Candid note: the greedy baseline ties 25/32 vs ref-police on this suite — the brain's articulation/trap machinery targets barrier-surgery cops (the sibling PoliceBrain), unmeasurable cross-repo by design; further tuning = M5-4 GA. Deception timing unit-pinned (self-mirror quadrant, budget/cooldown, decoy-away-from-heading); efficacy metric = M5-6.
 - ☐ **M5-4** Genetic tuning runs (HW6 salvage adapted; weights → config) — C. DoD: improving fitness curve artifact committed.
 - ☐ **M5-5** Post-audit opponent profiling (lie-rate, motion priors → next mini-game) — C. DoD: PLAN §13 M5 prior-shift test.
 - ☐ **M5-6** Template-bank A/B in arena (deception efficacy metric) — C. DoD: measured table in notebook; winning bank shipped.
