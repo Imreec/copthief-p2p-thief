@@ -7,8 +7,10 @@ from copthief_core.sdk.simulation import SimulationSdk
 
 def test_run_local_match_flows_through_the_facade() -> None:
     sdk = SimulationSdk(Path("config"))
-    result = sdk.run_local_match(police_seed=1, thief_seed=2)  # probed: survival
-    assert result.outcome == "thief_survival"
+    result = sdk.run_local_match(police_seed=1, thief_seed=2)
+    # Outcome-agnostic (PR #29 rule): the shipped [strategy] classes differ per
+    # repo and per tuning drop - the facade flow + clean audits are the pin.
+    assert result.outcome in ("thief_survival", "cop_capture")
     assert result.audit_ok_police_side
     assert result.audit_ok_thief_side
 

@@ -119,6 +119,16 @@ def test_observation_carries_the_deception_construction_kit() -> None:
     assert second.own_smell  # by turn two, our own trail has crossed the wire
 
 
+def test_peer_observation_carries_the_signed_clock() -> None:
+    session = _thief_session()
+    spy = _SpyBrain()
+    session.brain = spy
+    session.take_turn(now=0.0)
+    movement = CONSTITUTION.movement
+    assert spy.seen[0].survival_threshold == movement.survival_threshold
+    assert spy.seen[0].max_moves == movement.max_moves
+
+
 def test_decide_template_preserves_hint_fields_through_the_clamp() -> None:
     board = CONSTITUTION.board.make_board()
     belief = BeliefFilter(

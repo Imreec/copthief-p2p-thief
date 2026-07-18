@@ -48,6 +48,8 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
                 step=len(session.records) + 1,
                 barriers_used=session.barriers_placed,
                 max_barriers=session.constitution.movement.max_barriers,
+                survival_threshold=session.constitution.movement.survival_threshold,
+                max_moves=session.constitution.movement.max_moves,
                 gazetteer=session.gazetteer,
                 own_smell=session.own_trail.snapshot(),
                 pheromones=session.constitution.pheromones,
