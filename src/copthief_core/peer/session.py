@@ -1,46 +1,67 @@
 """PeerSession — one mini-game's protocol driver (PLAN §4; PRD FR-8 single gateway).
 
-Owns the state machine, position, sealed records, and the tool handlers. Every inbound
-dict is adversarial until the wire layer accepts it; any protocol violation collapses the
-machine to TECHNICAL_LOSS *before* the error propagates (App E rules 3–7). Reference
-semantics pinned at M2 (oracle sha 960499fd): the thief moves first; the police claims
-its landing cell on every moving turn; the thief answers claims honestly (a caught thief
-sends the final message); the thief's threshold turn carries the survival win claim.
+Owns the state machine, position, sealed records, scent fields, and the tool handlers.
+Every inbound dict is adversarial until the wire layer accepts it; any protocol
+violation collapses the machine to TECHNICAL_LOSS *before* the error propagates
+(App E rules 3–7). Reference semantics pinned at M2 (oracle sha 960499fd); the turn
+cycle itself lives in peer/turns (the reference's turn_sender/turn_handler split),
+the handshake in peer/handshake.
 """
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
+from copthief_core.domain.belief import BeliefFilter
+from copthief_core.domain.gazetteer import Gazetteer
+from copthief_core.domain.scent import ScentField
 from copthief_core.domain.state_machine import GameState, GameStateMachine
-from copthief_core.peer import handshake
+from copthief_core.peer import handshake, turns
 from copthief_core.peer.handshake import NegotiationError
 from copthief_core.peer.policy import SkeletonPolicy
-from copthief_core.peer.sealing import SealedTurn, seal_turn
+from copthief_core.peer.sealing import SealedTurn
+from copthief_core.peer.turns import FINAL_CAUGHT_HINT
 from copthief_core.shared.config_model import Constitution, PrivateSettings
+from copthief_core.strategy.brains import make_brain
 from copthief_core.wire.turn import TurnMessage
-from copthief_core.wire.validation import WireValidationError
 
 __all__ = ["FINAL_CAUGHT_HINT", "NegotiationError", "PeerSession", "ProtocolViolationError"]
-
-# The mandatory "you got me" final message (fixed protocol text, mirrors the reference).
-FINAL_CAUGHT_HINT = "You got me."
 
 
 class ProtocolViolationError(RuntimeError):
     """An inbound message broke the protocol; the session is already in TECHNICAL_LOSS."""
 
 
+def _make_scent_field(constitution: Constitution) -> ScentField:
+    """One scent field under the signed pheromone params + board axis contract."""
+    return ScentField(
+        board_size=constitution.board.grid_size,
+        window=constitution.pheromones.grid_size,
+        decay=constitution.pheromones.decay,
+        min_center_intensity=constitution.pheromones.min_center_intensity,
+        origin=constitution.board.axis_start_index,
+    )
+
+
 class PeerSession:
     """One peer's mini-game session (Input: validated config + role; see handlers)."""
 
     def __init__(
-        self, constitution: Constitution, private: PrivateSettings, *, role: str, seed: int
+        self,
+        constitution: Constitution,
+        private: PrivateSettings,
+        *,
+        role: str,
+        seed: int,
+        gazetteer: Gazetteer | None = None,
     ) -> None:
         self.constitution = constitution
         self.private = private
         self.role = role
+        # M3-4 verbal layer: with a (non-empty) gazetteer our hints come from the
+        # template×landmark composer and inbound hints feed the belief; without one
+        # the M1 policy bank still plays (empty closed world = no geography talk).
+        self.gazetteer = gazetteer if gazetteer is not None and gazetteer.landmarks() else None
         self.board = constitution.board.make_board()
         self.position = (
             constitution.board.cop_start if role == "police" else constitution.board.thief_start
@@ -49,14 +70,39 @@ class PeerSession:
         self.machine = GameStateMachine(
             state=GameState.COMPUTING_MOVE if role == "thief" else GameState.WAITING_FOR_OPPONENT
         )
-        self.policy: Any = SkeletonPolicy(seed=seed)  # duck-typed seam (BrainBase at M3-5)
+        # M3-5 BrainBase seam: moves come from the config-selected brain reading the
+        # belief; the M1 policy remains ONLY as the no-gazetteer hint fallback.
+        self.brain: Any = make_brain(
+            private.police_class if role == "police" else private.thief_class, seed=seed
+        )
+        self.policy: Any = SkeletonPolicy(seed=seed)
         self.records: list[SealedTurn] = []
         self.inbound: list[TurnMessage] = []
         self.game_uid: str | None = None
         self.opponent_group: str | None = None
         self.outcome: str | None = None  # set by protocol events, cross-checked at audit
         self.pending_claim_response: dict[str, Any] | None = None
-        self._caught = False
+        self.caught = False
+        # PRD_scent §3: two fields — own_trail's snapshot crosses the wire (never a
+        # coordinate); known_field stores what the opponent transmitted (belief input).
+        self.own_trail = _make_scent_field(constitution)
+        self.known_field = _make_scent_field(constitution)
+        # Locked scent-model hashes (PRD_scent §4), recorded by the handshake.
+        self.scent_model_hash: str | None = None
+        self.opponent_scent_model_hash: str | None = None
+        # PRD_belief: the opponent's position filter, primed at THEIR signed start;
+        # peer/turns runs its predict/update pipeline on every inbound message.
+        self.belief = BeliefFilter(
+            board=self.board,
+            move_set=constitution.movement.move_set,
+            start=(
+                constitution.board.thief_start if role == "police" else constitution.board.cop_start
+            ),
+            center_intensity=constitution.pheromones.center_intensity,
+            decay=constitution.pheromones.decay,
+            smell_trust=private.smell_trust_weight,
+            hint_trust=private.hint_trust_default,
+        )
 
     # -- handshake (PLAN §4; peer/handshake) -----------------------------------------
 
@@ -68,101 +114,21 @@ class PeerSession:
         """Verify the opponent's agreement; lock the game_uid (peer/handshake)."""
         return handshake.handle_negotiate(self, raw)
 
-    # -- turn cycle (PLAN §5 choreography) -------------------------------------------
+    # -- turn cycle (PLAN §5 choreography; peer/turns) --------------------------------
 
     def take_turn(self, *, now: float) -> dict[str, Any]:
-        """Pick → seal → build the outbound TurnMessage; nonce stays withheld."""
-        if self.machine.state is GameState.WAITING_FOR_OPPONENT:
-            self.machine.advance(GameState.COMPUTING_MOVE)
-        if self._caught:  # the mandatory final message: no move, honest answer
-            move, hint = "STAY", FINAL_CAUGHT_HINT
-        else:
-            move = self.policy.pick_move(
-                self.board, self.position, self.constitution.movement.move_set
-            )
-            self.position = self.board.apply_move(self.position, move)
-            hint = self.policy.next_hint(hint_max_words=self.constitution.world.hint_max_words)
-        step = len(self.records) + 1
-        sealed = seal_turn(
-            step=step,
-            grid_size=self.constitution.board.grid_size,
-            position=self.position,
-            barriers=self.board.barriers,
-            move=move,
-            intent="truth",
-            hint=hint,
-        )
-        self.records.append(sealed)
-        self.machine.advance(GameState.COMMITTING)
-        self.machine.advance(GameState.AWAITING_REVEAL)
-        message = TurnMessage(
-            step=step,
-            sender=self.role,
-            hint=hint,
-            smell_grid={},  # scent field lands at M3-2 (kit §5)
-            commit=sealed.commit,
-            # F5: ISO-8601 UTC string from the caller epoch — no clock read here.
-            timestamp=datetime.fromtimestamp(now, UTC).isoformat(),
-            # SQ2: the police claims its landing cell on every MOVING turn — free,
-            # automatic; STAY claims nothing (mirrors MoveType.MOVE-only claims).
-            capture_claim=self.position if self.role == "police" and move != "STAY" else None,
-            claim_response=self.pending_claim_response,
-            win_claim=self._win_claim(step),
-        ).to_wire()
-        self.pending_claim_response = None
-        if self._caught:
-            self.outcome = "cop_capture"
-            self.machine.advance(GameState.VERIFYING)
-            self.machine.advance(GameState.GAME_OVER)
-        return message
+        """Pick → seal → deposit scent → outbound TurnMessage (delegates to peer/turns)."""
+        return turns.take_turn(self, now=now)
 
-    def _win_claim(self, step: int) -> dict[str, Any] | None:
-        """The thief's survival claim on its threshold turn (never when caught) — F2."""
-        threshold = self.constitution.movement.survival_threshold
-        if self.role == "thief" and not self._caught and step >= threshold:
-            self.outcome = "thief_survival"
-            self.machine.advance(GameState.VERIFYING)
-            self.machine.advance(GameState.GAME_OVER)
-            return {"type": "survival"}
-        return None
+    def handle_receive_turn(self, raw: dict[str, Any]) -> dict[str, Any]:
+        """Validate, absorb scent, advance the machine (delegates to peer/turns)."""
+        return turns.handle_receive_turn(self, raw)
 
     def collapse(self, reason: str) -> ProtocolViolationError:
         """Record the violation as TECHNICAL_LOSS, then hand back the error to raise."""
         if not self.machine.is_terminal:
             self.machine.advance(GameState.TECHNICAL_LOSS)
         return ProtocolViolationError(reason)
-
-    def handle_receive_turn(self, raw: dict[str, Any]) -> dict[str, Any]:
-        """Validate the inbound turn BEFORE any state change; then advance the machine."""
-        try:
-            message = TurnMessage.from_wire(raw)
-        except WireValidationError as error:
-            raise self.collapse(str(error)) from error
-        expected = len(self.inbound) + 1
-        if message.step != expected:
-            raise self.collapse(f"step discontinuity: expected {expected}, got {message.step}")
-        self.inbound.append(message)
-        if message.capture_claim is not None:  # SQ2: answer honestly on our next turn
-            self._caught = tuple(message.capture_claim) == tuple(self.position)
-            self.pending_claim_response = {
-                "claim": list(message.capture_claim),
-                "caught": self._caught,
-            }
-        if self.machine.state is GameState.WAITING_FOR_OPPONENT:
-            self.machine.advance(GameState.COMPUTING_MOVE)
-        elif self.machine.state is GameState.AWAITING_REVEAL:
-            self.machine.advance(GameState.VERIFYING)
-            if message.claim_response is not None and message.claim_response.get("caught"):
-                self.outcome = "cop_capture"  # their honest answer; audit re-proves it
-                self.machine.advance(GameState.GAME_OVER)
-            elif message.win_claim is not None:
-                self.outcome = "thief_survival"  # cross-checked at audit (threshold)
-                self.machine.advance(GameState.GAME_OVER)
-            else:
-                self.machine.advance(GameState.WAITING_FOR_OPPONENT)
-        else:
-            raise self.collapse(f"turn arrived in state {self.machine.state.name}")
-        return {"status": "ok", "step": message.step}
 
     def handle_receive_control(self, raw: dict[str, Any]) -> dict[str, Any]:
         """Opt-in status channel — answered without touching game state (never sealed)."""

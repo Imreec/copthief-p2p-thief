@@ -9,5 +9,5 @@ generator — on a kit revision, re-copy and re-verify (PRD_crypto §7).
   rescope/interop-kit-book-v3")
 - Copied at M1-3: `canonical_json.json`, `commit_reveal.json` (incl. `divergent_forms`),
   `terms_signature.json`, `game_uid.json`
-- Joins at M3-2 (with `domain/scent`): `pheromone.json`
+- Copied at M3-2 (with `domain/scent`): `pheromone.json` (LF-rewritten per repo convention)
 - Not copied (ENH, opt-in only): `joint_seed.json`, `derive_starts.json`

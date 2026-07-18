@@ -121,6 +121,12 @@ class PrivateSettings:
     turn_timeout_seconds: float
     poll_interval_seconds: float
     connect_timeout_seconds: float
+    # [belief] evidence-trust tuning (PRD_belief §5) — private, never negotiated.
+    smell_trust_weight: float
+    hint_trust_default: float
+    # [strategy] brain selection per role (PLAN §7) — private, never negotiated.
+    police_class: str
+    thief_class: str
 
 
 @dataclass(frozen=True)

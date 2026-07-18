@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import random
 
-from copthief_core.domain.board import Board, Coord
+from copthief_core.domain.board import STAY, Board, Coord
 from copthief_core.domain.rules import legal_moves
 
 # ≤ the App F hint word-cap example (15) by construction; M3 replaces these with the
@@ -32,8 +32,13 @@ class SkeletonPolicy:
         self._hint_index = 0
 
     def pick_move(self, board: Board, pos: Coord, move_set: tuple[str, ...]) -> str:
-        """A uniformly random *legal* move; sorted candidates keep seeds reproducible."""
-        candidates = sorted(legal_moves(board, pos, move_set))
+        """A uniformly random *legal* move; sorted candidates keep seeds reproducible.
+
+        With opponent barriers noted since M3-3, a fully-walled position can leave no
+        legal move — never stall the loop (the reference falls back to HOLD): STAY,
+        and let the audit/rules layer resolve the imprisonment.
+        """
+        candidates = sorted(legal_moves(board, pos, move_set)) or [STAY]
         return self._rng.choice(candidates)
 
     def next_hint(self, *, hint_max_words: int) -> str:
