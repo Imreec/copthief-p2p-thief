@@ -58,7 +58,7 @@
 
 ## Phase M5 — Intelligence ⚑
 
-- ☐ **M5-1** ⚑ `docs/PRD_police_brain.md` (police repo) / `docs/PRD_thief_brain.md` (thief repo) — C, approve I.
+- ☑ **M5-1** ⚑ `docs/PRD_police_brain.md` (police repo) / `docs/PRD_thief_brain.md` (thief repo) — C, approved I (thief PR #20 + police PR #30, approved together; merge = the approval; ADR-0005 rides the police PR).
 - ☐ **M5-2** ⚑ PoliceBrain: expectimax over belief + barrier graph-surgery + claim policy — C, review E. DoD: ≥60% arena vs reference heuristic (cop role).
 - ☐ **M5-3** ⚑ ThiefBrain: region-survival + articulation awareness + deception timing — C, review E. DoD: ≥60% arena vs reference heuristic (thief role).
 - ☐ **M5-4** Genetic tuning runs (HW6 salvage adapted; weights → config) — C. DoD: improving fitness curve artifact committed.
