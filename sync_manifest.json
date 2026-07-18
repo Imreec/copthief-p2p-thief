@@ -94,7 +94,7 @@
     "tests/integration/test_arena_harness.py": "282d004808716380fa5c4ba41e3d93439659e0dab45e7315af6f7ccf23ce3e62",
     "tests/integration/test_belief_vs_baseline.py": "2c903c162ae38687d86aefd7d7aebb9b4dd3a77c9a0abe5841f706a73d1df8c3",
     "tests/integration/test_headless_series.py": "7fe691cd344a3d428b6ed4443cb697cc49889ef81102dd924d1f44ed5c65279f",
-    "tests/integration/test_local_minigame.py": "9375f20aecd3ac7f2e81f3e0ceb93873fd31b5552753de2acfa5baa3e040d65b",
+    "tests/integration/test_local_minigame.py": "8d7c90d3415502038d719ac2572dc042b4a670e5827778a270866661961404c3",
     "tests/integration/test_log_schema.py": "5be95507a8ece05af50dd4b3d9057a7b93f458c94ad1aaff2b6f48075adcf29c",
     "tests/integration/test_p2p_live.py": "602bc67c91b94dcc32c703f4008b41a635763b8ed4efb51121d02c3515f8819b",
     "tests/integration/test_peer_barriers.py": "0674375a730c894f3b3f8258c7987a64ecdfa33200f18ab29319ea9f2bebd865",
@@ -103,7 +103,7 @@
     "tests/integration/test_replay_from_log.py": "3825378361e1fc13078f53fcbfe6c483497bafd66d81472130d7abb2b4fc91ac",
     "tests/integration/test_replay_verdict.py": "a30f8bab6f2c1bfb241bcc616f14ea1342cea0cdafdc4b81bfb4dad0ff1f36e6",
     "tests/integration/test_scent_transmission.py": "6e8c42444a267a94aa1eea012dbc137ecab7a29b0d950e99894dada13e8c5c70",
-    "tests/integration/test_symmetric_loop.py": "e40c2654cf33289c3fbd000abb00f8388f2e6e2b1cb37c0db1ace7671b497457",
+    "tests/integration/test_symmetric_loop.py": "adf645b5dd91992fc1a6f2d5dd076c3ff39ae7b3100a0d2848bff80ab7ec2bb5",
     "tests/unit/domain/test_belief.py": "17087c3b784d6aba049360c4a2607bf32b52b9d7ed7d376b6f5814861a30c8cf",
     "tests/unit/domain/test_belief_scent.py": "4a9314e25ce9ffd4dbc2c9606c7e163a0f9d94d2c4a00523ea9d5fc616286430",
     "tests/unit/domain/test_board.py": "66edf4f238671ffc513957acc689d7ec13ad8b5e263e0bfa29625faa2a6927b6",
@@ -144,7 +144,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "bda12ec",
+  "source_commit": "dccd34d",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "c70f994a69ca06bf0054461143509ddc1980e7ce361b96564914146fca268f5a"
+  "tree_hash": "2bc13537610330ee6afb30147dc7ecd843d81731af19d982bc11c3b69dcc23a5"
 }
