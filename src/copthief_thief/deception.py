@@ -58,9 +58,7 @@ class DeceptionClock:
         """True while the budget holds and the cooldown has elapsed."""
         if self._lies_used >= self._budget:
             return False
-        if self._last_lie_step is not None and step - self._last_lie_step < self._cooldown:
-            return False
-        return True
+        return self._last_lie_step is None or step - self._last_lie_step >= self._cooldown
 
     def record_lie(self, step: int) -> None:
         """Spend one lie."""

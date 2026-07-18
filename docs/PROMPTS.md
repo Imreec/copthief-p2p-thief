@@ -3,6 +3,27 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #22 — feat/m5-3-thief-brain (M5-3 — ThiefBrain, the graded core ⚑)
+
+- **Driver:** Imree ("continue and build what you need for M5; merge nothing tonight" —
+  AFK directive) · **Author:** Claude (terminal) · **Reviewer:** Antigravity
+  (cross-model, on the PR); merge order: after sync PR #21.
+- **This PR (stacked on sync/m5-core):** RED `tests/role/` pins → GREEN `copthief_thief`
+  (never mirrored): region-survival scoring (worst-case distance vs top-k cop belief with
+  survival-clock ramp · two-front-BFS safe region · Tarjan articulation trap-awareness
+  gated on the cop's REMAINING quota — the pocket flip is pinned both ways · unvisited
+  spread) + deception timing (self-mirror = second BeliefFilter over OUR OWN transmitted
+  evidence, public API only — M3-8 boundary intact; lie iff mirror-sharp AND cop-near;
+  decoy = farthest landmark from the actual heading; budget+cooldown; intent sealed
+  truthfully through the M5-3 hint-intent seam). Knobs in `features.DEFAULT_OPTIONS`
+  (AppFTable pattern) + `[strategy.thief]`/arena overrides (the M5-4 GA interface);
+  `top_k=4` default chosen on DoD 25/32=78% + holdout 23/32=72%. **DoD observed and
+  CI-blocking: 78% survival vs `ref-police` (floor 60%).** Candid: greedy-manhattan ties
+  25/32 vs ref-police on this suite — the champion pin honestly stays greedy (tie is not
+  a dethroning); the brain's trap machinery targets barrier-surgery cops, unmeasurable
+  cross-repo by design. Guards: App-E-25 AST scan, legality property, perf ceiling.
+  TODO M5-3 ticked in the same change.
+
 ## PR #20 — docs/m5-1-thief-brain-prd (M5-1 gate — ThiefBrain PRD)
 
 - **Driver:** Imree (M5 session brief in the police repo: role-split + reference-heuristic
