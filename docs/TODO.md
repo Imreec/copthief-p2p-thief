@@ -51,7 +51,7 @@
 
 ## Phase M4 — Observability
 
-- ☐ **M4-1** `docs/PRD_gui_replay.md` — C, approve I.
+- ☑ **M4-1** `docs/PRD_gui_replay.md` — C, approved I (police repo PR #24; PRD lives in the lead repo).
 - ☐ **M4-2** Live GUI (heatmap + turn banner; local truth only) — C. DoD: screenshot from a real game saved to assets/.
 - ☐ **M4-3** Replay verifier (Verified OK / TAMPERED) — C, review AG. DoD: M2 log → Verified OK; mutated log → TAMPERED (both observed).
 - ☐ **M4-4** Belief-vs-truth overlay + belief-error curve export — C. DoD: overlay rendered from a real audited game.
