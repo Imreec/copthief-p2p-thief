@@ -1,6 +1,7 @@
 {
   "version": "1.00",
   "_comment": "Arena instrument config (M5-2 core, PRD_police_brain s4 / PRD_thief_brain s2): per-role rosters (a role brain enters ONLY its own repo's roster side - ThiefBrain joins thief_roster at M5-3), the seeded scenario suite, per-brain options, and the DoD series list. Referee-mode evaluation only - live games play the signed constitution untouched. Mirrored scripts/tests read THIS file so each repo tests its own roster (PR #29 rule).",
+<<<<<<< HEAD
   "police_roster": [
     "random",
     "greedy-manhattan",
@@ -74,5 +75,15 @@
       ]
     }
   ],
+=======
+  "police_roster": ["random", "greedy-manhattan", "ref-police"],
+  "thief_roster": ["random", "greedy-manhattan", "ref-thief"],
+  "seeds": [1, 2, 3, 4, 5, 6, 7, 8],
+  "scenario_min_separation": 4,
+  "brain_options": {
+    "ref-police": {"ref_police_barrier_chance": 0.15}
+  },
+  "dod_series": [],
+>>>>>>> main
   "evidence_out": "docs/evidence/m5-arena.md"
 }
