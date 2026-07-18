@@ -5,6 +5,7 @@ exchanged as pushes — proven in-process so keyless CI holds the whole conventi
 """
 
 import threading
+from dataclasses import replace
 from pathlib import Path
 
 from copthief_core.domain.state_machine import GameState
@@ -14,11 +15,14 @@ from copthief_core.peer.transport import queue_pair
 from copthief_core.shared.config import load_all
 
 CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+# The probed seed outcomes hold for the M1 random walk - pin both brain classes so the
+# convention test never depends on the repo's shipped [strategy] (PR #29 rule).
+PINNED = replace(PRIVATE, police_class="random", thief_class="random")
 
 
 def _run_pair() -> dict[str, PeerGameResult]:
-    police = PeerSession(CONSTITUTION, PRIVATE, role="police", seed=1)  # (1,2): survival
-    thief = PeerSession(CONSTITUTION, PRIVATE, role="thief", seed=2)
+    police = PeerSession(CONSTITUTION, PINNED, role="police", seed=1)  # (1,2): survival
+    thief = PeerSession(CONSTITUTION, PINNED, role="thief", seed=2)
     police_t, thief_t = queue_pair(wait_timeout=PRIVATE.connect_timeout_seconds)
     results: dict[str, PeerGameResult] = {}
 

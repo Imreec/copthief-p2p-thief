@@ -48,19 +48,26 @@ def compose_hint(
     max_words: int,
     salt: int,
     verdict: str = VERDICT_TRUTH,
+    landmark: str | None = None,
 ) -> ComposedHint:
     """Render one hint (Input: gazetteer + our true position + the signed word cap +
-    a determinism salt + the intended verdict; Output: ComposedHint; Raises:
-    ValueError on an empty gazetteer — composing without geography would fabricate).
+    a determinism salt + the intended verdict + an optional explicit landmark;
+    Output: ComposedHint; Raises: ValueError on an empty gazetteer — composing
+    without geography would fabricate).
 
-    `truth` names the landmark nearest our position, `lie` the farthest; the salt
-    cycles the template bank so runs stay deterministic per (salt, position).
+    `truth` names the landmark nearest our position, `lie` the farthest — unless the
+    caller picks the landmark itself (the M5-3 decoy seam; off-vocabulary picks fall
+    back to the default so the closed world never leaks). The salt cycles the
+    template bank so runs stay deterministic per (salt, position).
     """
     if not gazetteer.landmarks():
         raise ValueError("no landmarks for the signed map_area - cannot compose hints")
-    landmark = (
-        gazetteer.nearest(position) if verdict == VERDICT_TRUTH else (gazetteer.farthest(position))
-    )
+    if landmark is None or landmark not in gazetteer.landmarks():
+        landmark = (
+            gazetteer.nearest(position)
+            if verdict == VERDICT_TRUTH
+            else (gazetteer.farthest(position))
+        )
     text = _TEMPLATES[salt % len(_TEMPLATES)].format(landmark=landmark)
     if len(text.split()) > max_words:
         text = _SHORT_TEMPLATE.format(landmark=landmark)

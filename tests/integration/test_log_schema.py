@@ -20,6 +20,7 @@ from copthief_core.peer.session import PeerSession, ProtocolViolationError
 from copthief_core.peer.transport import queue_pair
 from copthief_core.shared.config import load_all
 from copthief_core.shared.jsonl_logger import read_events
+from copthief_core.strategy.brains import make_brain
 
 CONFIG_DIR = Path("config")
 CONSTITUTION, PRIVATE, _LIMITS = load_all(CONFIG_DIR, counted=False)
@@ -100,9 +101,13 @@ def test_decisions_carry_provenance_matching_the_audit(game_events: list[dict[st
     for role in ("police", "thief"):
         decisions = [e["payload"] for e in _of(game_events, "decision") if e["sender"] == role]
         assert len(decisions) == len([e for e in _of(game_events, "turn") if e["sender"] == role])
+        # Role-blind (PR #29 rule): the expected brain is whatever the local repo's
+        # game.toml [strategy] resolves to through the factory.
+        expected_class = PRIVATE.police_class if role == "police" else PRIVATE.thief_class
+        expected_brain = type(make_brain(expected_class, seed=0)).__name__
         for decision in decisions:
             record = sealed[(role, decision["step"])]
-            assert decision["brain"] == "RandomBrain"  # game.toml [strategy] shipped pin
+            assert decision["brain"] == expected_brain  # game.toml [strategy] pin
             assert decision["move"] == record["move"]
             assert decision["intent"] == record["intent"]
 

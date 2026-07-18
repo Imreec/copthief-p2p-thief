@@ -53,6 +53,8 @@ def load_private_settings(path: Path) -> PrivateSettings:
         hint_trust_default=float(belief["hint_trust_default"]),
         police_class=str(strategy["police_class"]),
         thief_class=str(strategy["thief_class"]),
+        police_options={str(k): float(v) for k, v in strategy.get("police", {}).items()},
+        thief_options={str(k): float(v) for k, v in strategy.get("thief", {}).items()},
         gui=GuiSettings(
             refresh_ms=int(gui["refresh_ms"]),
             cell_px=int(gui["cell_px"]),
