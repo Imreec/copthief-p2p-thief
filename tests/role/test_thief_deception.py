@@ -54,9 +54,7 @@ def _belief(cop_at: tuple[int, int]) -> BeliefFilter:
 
 def _fresh_grid(cell: tuple[int, int]) -> dict[str, float]:
     """A transmitted grid whose fresh center sits exactly on `cell` (sharp evidence)."""
-    value = round(
-        CONSTITUTION.pheromones.center_intensity - CONSTITUTION.pheromones.decay, 3
-    )
+    value = round(CONSTITUTION.pheromones.center_intensity - CONSTITUTION.pheromones.decay, 3)
     return {f"{cell[0]},{cell[1]}": value}
 
 

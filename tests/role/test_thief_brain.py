@@ -73,11 +73,13 @@ def test_prefers_the_open_side_of_a_corridor_fork() -> None:
 
 
 def test_articulation_penalty_rejects_a_sealable_pocket() -> None:
-    # Row 5 is walled except the (5,5) entrance; the southern pocket (row 6) hangs
-    # behind one articulation cell the cop can seal with ONE remaining barrier.
-    walls = frozenset({(5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 6)})
+    # A forced corridor: from (4,5) only N (toward the cop) or S through the (5,5)
+    # neck into the row-6 pocket - one barrier on the neck's feed would imprison us.
+    # With quota in the cop's pocketbook the trap is refused; with quota spent, the
+    # pocket is the legitimate max-distance escape and the same brain dives in.
+    walls = frozenset({(5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 6), (4, 4), (4, 6)})
     board = make_board(barriers=walls)
-    belief = make_belief(board, (0, 5))  # cop far away - pure distance would dive in
+    belief = make_belief(board, (3, 5))  # cop right on top of us
     with_quota = ThiefBrain(seed=1).decide(
         observation(board, (4, 5), barriers_used=len(walls), max_barriers=14), belief
     )
