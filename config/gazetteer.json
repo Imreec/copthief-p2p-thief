@@ -1,0 +1,20 @@
+{
+  "version": "1.00",
+  "_comment": "Private landmark reading of the signed world.map_area (M3-4). Fractional anchors resolve onto the signed grid size; radius is a Chebyshev ball, board-clipped. Never signed, never crosses the wire.",
+  "areas": {
+    "New York": {
+      "landmarks": {
+        "Harlem": { "row_frac": 0.0, "col_frac": 0.5, "radius": 1 },
+        "Central Park": { "row_frac": 0.2, "col_frac": 0.45, "radius": 1 },
+        "Hell's Kitchen": { "row_frac": 0.4, "col_frac": 0.2, "radius": 1 },
+        "Times Square": { "row_frac": 0.45, "col_frac": 0.5, "radius": 1 },
+        "Grand Central": { "row_frac": 0.5, "col_frac": 0.75, "radius": 1 },
+        "Greenwich Village": { "row_frac": 0.7, "col_frac": 0.35, "radius": 1 },
+        "Brooklyn Bridge": { "row_frac": 0.8, "col_frac": 0.8, "radius": 1 },
+        "Wall Street": { "row_frac": 0.95, "col_frac": 0.4, "radius": 1 },
+        "Battery Park": { "row_frac": 1.0, "col_frac": 0.05, "radius": 1 },
+        "The Docks": { "row_frac": 0.6, "col_frac": 1.0, "radius": 1 }
+      }
+    }
+  }
+}

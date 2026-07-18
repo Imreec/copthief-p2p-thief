@@ -1,0 +1,6 @@
+{
+  "version": "1.00",
+  "_comment": "Champion regression pin (CLAUDE.md s5, TODO M3-6): a new brain must not lose to these on the fixed arena seed set - CI runs champion_regression blocking. Update ONLY when a challenger demonstrably tops the role table (the M5 brains' entry bar).",
+  "police_champion": "greedy-manhattan",
+  "thief_champion": "greedy-manhattan"
+}

@@ -41,11 +41,11 @@
 ## Phase M3 — Perception + arena
 
 - ☑ **M3-1** `docs/PRD_scent.md` + `docs/PRD_belief.md` (SQ1-informed) — C, approved I (police repo PR #16, 2026-07-18; PRDs live in the lead repo).
-- ☐ **M3-2** `domain/scent` (kit-pinned form; locked-model doc w/ numeric example; ADR-0004) — C. DoD: kit pheromone vectors + decay/emission tests green.
-- ☐ **M3-3** `domain/belief` exact Bayes filter (motion×scent×hint) — C, review E. DoD: beats last-known-position tracker on belief-error in referee sims (PLAN §13 M3).
-- ☐ **M3-4** Gazetteer + hint templates (map_area landmarks; ≤hint_max_words; intent flag wired to sealing) — C. DoD: our hints round-trip our parser; injection-safety tests (hostile hint corpus).
-- ☐ **M3-5** Baseline brains (random, greedy-Manhattan) via BrainBase seam — C. DoD: full headless series in referee + peer modes.
-- ☐ **M3-6** Arena harness (sdk consumer; seeded round-robin; tables; champion regression gate in CI) — C, review E. DoD: seeded reproducibility test; gate red on champion loss.
+- ☑ **M3-2** `domain/scent` (kit-pinned form; locked-model doc w/ numeric example; ADR-0004) — C. DoD: kit pheromone vectors + decay/emission tests green.
+- ☑ **M3-3** `domain/belief` exact Bayes filter (motion×scent×hint) — C, review E. DoD: beats last-known-position tracker on belief-error in referee sims (PLAN §13 M3).
+- ☑ **M3-4** Gazetteer + hint templates (map_area landmarks; ≤hint_max_words; intent flag wired to sealing) — C. DoD: our hints round-trip our parser; injection-safety tests (hostile hint corpus).
+- ☑ **M3-5** Baseline brains (random, greedy-Manhattan) via BrainBase seam — C. DoD: full headless series in referee + peer modes.
+- ☑ **M3-6** Arena harness (sdk consumer; seeded round-robin; tables; champion regression gate in CI) — C, review E. DoD: seeded reproducibility test; gate red on champion loss.
 
 ## Phase M4 — Observability
 
