@@ -11,9 +11,9 @@
     "w_distance": [0.5, 6.0],
     "w_region": [0.0, 3.0],
     "w_articulation": [0.0, 40.0],
-    "trap_region_min": [3.0, 15.0],
+    "trap_size_fraction": [0.05, 0.6],
     "w_spread": [0.0, 2.0],
-    "ramp_start_step": [10.0, 35.0],
+    "ramp_start_fraction": [0.3, 0.95],
     "ramp_multiplier": [1.0, 5.0]
   },
   "run": {
