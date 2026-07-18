@@ -8,6 +8,7 @@ deadlines and the watchdog live at the peer layer (M1-6), which drives this mach
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -57,17 +58,27 @@ class GameStateMachine:
     """
 
     state: GameState = field(default=GameState.WAITING_FOR_OPPONENT)
+    # Observability seam (PRD_gui_replay §3): called AFTER each successful advance with
+    # (old, new, trigger) — injected by the peer layer, so the domain stays I/O-free.
+    observer: Callable[[GameState, GameState, str], None] | None = None
 
     @property
     def is_terminal(self) -> bool:
         """True once the mini-game reached GAME_OVER (→ audit) or TECHNICAL_LOSS."""
         return self.state in _TERMINAL
 
-    def advance(self, target: GameState) -> GameState:
-        """Move to `target` iff the PLAN §5 table allows it; refuse loudly otherwise."""
+    def advance(self, target: GameState, *, trigger: str = "") -> GameState:
+        """Move to `target` iff the PLAN §5 table allows it; refuse loudly otherwise.
+
+        `trigger` is a free-text annotation for the transition event stream (e.g. the
+        collapse reason) — it never affects legality.
+        """
         if (self.state, target) not in _TRANSITIONS:
             raise IllegalTransitionError(
                 f"illegal transition {self.state.name} -> {target.name} (PLAN s5 table)"
             )
+        old = self.state
         self.state = target
+        if self.observer is not None:
+            self.observer(old, target, trigger)
         return self.state

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from copthief_core.domain.state_machine import GameState
+from copthief_core.peer import events
 from copthief_core.peer.audit_flow import build_audit, verify_audit, wire_result
 from copthief_core.peer.session import NegotiationError, PeerSession
 from copthief_core.peer.transport import PeerTransport
@@ -71,6 +72,7 @@ def validate_opponent_audit(
 def _send_own_turn(session: PeerSession, transport: PeerTransport, emit: LogFn) -> None:
     """Take, log and push one of our turns (the turn token travels with it)."""
     message = session.take_turn(now=time.time())
+    events.decision(emit, session)
     emit({"event": "turn", "sender": session.role, "message": message})
     transport.send_turn(message)
 
@@ -90,9 +92,11 @@ def run_peer_game(
     inbound turn propagates after collapsing the session (PLAN §5).
     """
     emit = log or (lambda event: None)
+    events.wire_observability(session, emit)
     theirs = transport.exchange_agreement(session.negotiate_payload())
     if theirs is None:
         raise NegotiationError("opponent never sent its agreement")
+    events.inbound(emit, "agreement_received", session.role, theirs)
     session.handle_negotiate(theirs)
     emit({"event": "negotiated", "sender": session.role, "game_uid": session.game_uid})
     if session.role == "thief":
@@ -103,10 +107,12 @@ def run_peer_game(
         if incoming is None:
             if time.time() > deadline:
                 session.outcome = "timeout"  # opponent silent past the budget
-                session.machine.advance(GameState.TECHNICAL_LOSS)
+                session.machine.advance(GameState.TECHNICAL_LOSS, trigger="turn deadline exhausted")
             continue
         deadline = time.time() + turn_timeout
+        events.inbound(emit, "turn_received", session.role, incoming)
         session.handle_receive_turn(incoming)
+        events.belief_snapshot(emit, session)
         if not session.machine.is_terminal:
             _send_own_turn(session, transport, emit)
     return _settle(session, transport, emit)
@@ -130,6 +136,8 @@ def _settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> Peer
     ours = build_audit(session.role, session.records, wire_result(outcome))
     emit({"event": "audit", "payload": ours})
     theirs = transport.exchange_audit(ours)
+    if theirs is not None:
+        events.inbound(emit, "audit_received", session.role, theirs)
     if theirs is None:
         return PeerGameResult(
             role=session.role,

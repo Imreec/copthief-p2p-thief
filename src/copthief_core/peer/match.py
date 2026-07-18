@@ -41,29 +41,38 @@ class MatchResult:
     thief_moves: tuple[str, ...]
 
 
-def _locked_log(log_path: Path | None) -> Any:  # noqa: ANN401 - callable-or-noop seam
-    """A thread-safe event logger callable (two peer loops share one file)."""
-    if log_path is None:
+def _locked_log(log_path: Path | None, tee: Any = None) -> Any:  # noqa: ANN401 - callable seam
+    """A thread-safe event callable: file logger and/or live-view tee, one lock."""
+    if log_path is None and tee is None:
         return lambda event: None
-    logger = JsonlEventLogger(log_path)
+    logger = JsonlEventLogger(log_path) if log_path is not None else None
     lock = threading.Lock()
 
     def emit(event: dict[str, Any]) -> None:
         with lock:
-            logger.log(event)
+            if logger is not None:
+                logger.log(event)
+            if tee is not None:
+                tee(event)
 
     return emit
 
 
 def run_local_minigame(
-    config_dir: Path, *, police_seed: int, thief_seed: int, log_path: Path | None = None
+    config_dir: Path,
+    *,
+    police_seed: int,
+    thief_seed: int,
+    log_path: Path | None = None,
+    tee: Any = None,  # noqa: ANN401 - optional LogFn for the live view (M4-2)
 ) -> MatchResult:
     """One full mini-game, both symmetric loops in-process (Input: the config tree +
     seeds + optional JSONL log path; Output: the observed MatchResult).
 
     With `log_path`, every sent payload is logged verbatim (PLAN §7) so the game
-    replays and re-verifies from the log alone (peer/replay, M1-8)."""
-    log = _locked_log(log_path)
+    replays and re-verifies from the log alone (peer/replay, M1-8). `tee` mirrors the
+    same stream to the live view (M4-2)."""
+    log = _locked_log(log_path, tee)
     constitution, private, _limits = load_all(config_dir, counted=False)
     gazetteer = load_gazetteer(
         config_dir / "gazetteer.json",

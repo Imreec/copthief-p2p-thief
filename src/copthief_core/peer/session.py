@@ -127,7 +127,7 @@ class PeerSession:
     def collapse(self, reason: str) -> ProtocolViolationError:
         """Record the violation as TECHNICAL_LOSS, then hand back the error to raise."""
         if not self.machine.is_terminal:
-            self.machine.advance(GameState.TECHNICAL_LOSS)
+            self.machine.advance(GameState.TECHNICAL_LOSS, trigger=reason)
         return ProtocolViolationError(reason)
 
     def handle_receive_control(self, raw: dict[str, Any]) -> dict[str, Any]:

@@ -52,9 +52,9 @@
 ## Phase M4 — Observability
 
 - ☑ **M4-1** `docs/PRD_gui_replay.md` — C, approved I (police repo PR #24; PRD lives in the lead repo).
-- ☐ **M4-2** Live GUI (heatmap + turn banner; local truth only) — C. DoD: screenshot from a real game saved to assets/.
-- ☐ **M4-3** Replay verifier (Verified OK / TAMPERED) — C, review AG. DoD: M2 log → Verified OK; mutated log → TAMPERED (both observed).
-- ☐ **M4-4** Belief-vs-truth overlay + belief-error curve export — C. DoD: overlay rendered from a real audited game.
+- ☑ **M4-2** Live GUI (heatmap + turn banner; local truth only) — C (police PRs #25/#26 + dark-theme facelift, core synced). DoD observed lead-side: `assets/m4-live-heatmap.png` from the real audited game `m4-local-g1` (police `docs/evidence/m4-observability.md`); ⚑ thief-window screenshot for THIS repo's README rides M8-1.
+- ☑ **M4-3** Replay verifier (Verified OK / TAMPERED) — C, review AG (police PR #27, core synced; `copthief replay` works identically here). DoD observed lead-side: M2 g1 + M3 logs → Verified OK; mutated copy → TAMPERED exit 1; rule-19 mutation matrix runs in THIS repo's CI too (synced tests).
+- ☑ **M4-4** Belief-vs-truth overlay + belief-error curve export — C (police PR #28, core synced). DoD observed lead-side: overlay + curve PNGs rendered from the real audited game via `copthief overlay`.
 
 ## Phase M5 — Intelligence ⚑
 

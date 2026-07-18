@@ -75,3 +75,29 @@ def test_first_mover_starts_at_computing_move() -> None:
     assert not machine.is_terminal
     machine.advance(S.COMMITTING)
     assert machine.state is S.COMMITTING
+
+
+def test_observer_sees_every_legal_transition_with_its_trigger() -> None:
+    # PRD_gui_replay §3: `transition` events are built from a machine-level observer.
+    seen: list[tuple[GameState, GameState, str]] = []
+    machine = GameStateMachine(
+        state=S.WAITING_FOR_OPPONENT,
+        observer=lambda old, new, trigger: seen.append((old, new, trigger)),
+    )
+    machine.advance(S.COMPUTING_MOVE)
+    machine.advance(S.COMMITTING, trigger="sealed")
+    assert seen == [
+        (S.WAITING_FOR_OPPONENT, S.COMPUTING_MOVE, ""),
+        (S.COMPUTING_MOVE, S.COMMITTING, "sealed"),
+    ]
+
+
+def test_observer_is_not_called_on_a_refused_transition() -> None:
+    seen: list[tuple[GameState, GameState, str]] = []
+    machine = GameStateMachine(
+        state=S.WAITING_FOR_OPPONENT,
+        observer=lambda old, new, trigger: seen.append((old, new, trigger)),
+    )
+    with pytest.raises(IllegalTransitionError):
+        machine.advance(S.GAME_OVER)
+    assert seen == []
