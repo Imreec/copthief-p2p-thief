@@ -46,6 +46,7 @@
 - ☑ **M3-4** Gazetteer + hint templates (map_area landmarks; ≤hint_max_words; intent flag wired to sealing) — C. DoD: our hints round-trip our parser; injection-safety tests (hostile hint corpus).
 - ☑ **M3-5** Baseline brains (random, greedy-Manhattan) via BrainBase seam — C. DoD: full headless series in referee + peer modes.
 - ☑ **M3-6** Arena harness (sdk consumer; seeded round-robin; tables; champion regression gate in CI) — C, review E. DoD: seeded reproducibility test; gate red on champion loss.
+- ☐ **M3-7** 🚦 **ADR-0004 revision decision** (league coordination 2026-07-18, `notes/LEAGUE-COORDINATION-ALON.md`) — **I decides, approve-before-build; NO scent code changes until decided.** Question: add a second named scent model `multiplicative_book_v1` (+ belief observation-model parameterization) vs hold one-form and require partners to implement subtractive. Motivation: a real book-form interop partner exists (Alon's team; their scent lock refuses subtractive peers) — this invalidates ADR-0004's "no interop partner runs the book form" premise. Their claimed exact Gaussian kernel derivation must be reconciled against our "fig.4 matches no clean formula" note before any book-v1 vectors publish.
 
 ## Phase M4 — Observability
 
@@ -67,18 +68,18 @@
 ## Phase M6 — Reporting & fairness rail
 
 - ☐ **M6-1** `docs/PRD_reporting.md` + `docs/PRD_gatekeeper.md` — C, approve I.
-- ☐ **M6-2** Four artifact schemas + writers (game_uid naming; canonical bytes = emailed bytes) — C, review AG. DoD: validated against reference `docs/sample-run/` shapes.
-- ☐ **M6-3** Step-0 declaration builder (hardware, model, tokens, commit hash, game-count) + signing — C. DoD: real commit hash asserted in test.
+- ☐ **M6-2** Four artifact schemas + writers (game_uid naming; canonical bytes = emailed bytes) — C, review AG. DoD: validated against reference `docs/sample-run/` shapes, **byte-level**. ⚠ Consensus signature (settlement-critical; credit Alon, verified vs reference `report_writer.py` @960499fd lines 22-25/81): SHA256 over `json.dumps(data, sort_keys=True, ensure_ascii=False)` with **DEFAULT (spaced) separators** — a third canonical variant, NOT our compact form — computed over the report **BEFORE** the `חתימת_קונסנזוס_משותפת` key is inserted (sign-then-insert); report schema is Hebrew-keyed per book §8.
+- ☐ **M6-3** Step-0 declaration builder (hardware, model, tokens, commit hash, game-count) + signing — C. DoD: real commit hash asserted in test. Per-step token counts (`tokens_step`/`tokens_total`) go **INSIDE the sealed record** (`peer/sealing`) — the reference's own sealed schema does this (SQ3 list; league coordination re-confirmed).
 - ☐ **M6-4** Gmail sender (send-only OAuth per App A; HW6 flow) + **draft default + arming interlock** — C, operate I. DoD: PLAN §13 M6 — report lands as draft; send path provably requires arming.
 - ☐ **M6-5** Gatekeeper (quota → token bucket → DoS lock; `rate_limits.json` ≥ signed minimums asserted) — C. DoD: synthetic-load test queues, never crashes; 429 backoff honored.
 - ☐ **M6-6** Series runner (`num_games`, per-game config commit, roles) — C. DoD: full local series produces 4 valid artifacts.
 - ☐ **M6-7** Chaos drill harness (PLAN §10 drills) — C, review E. DoD: every drill's defense observed; logs committed.
-- ☐ **M6-8** COST.md + token accounting on every LLM path — C. DoD: 0-token series proven by log.
+- ☐ **M6-8** COST.md + token accounting on every LLM path — C. DoD: 0-token series proven by log **and by the sealed per-step token counts (M6-3) — the 0-token claim becomes cryptographically auditable**.
 
 ## Phase M7 — League ops *(nothing announced unless true of the tree)*
 
-- ☐ **M7-1** Sparring host deployed (both roles, generic brain, draft-pinned; OI-4 decided) — I+C. DoD: external reachability check passes 24h.
-- ☐ **M7-2** Kit: wire-contract page + JSON-schema fixtures + audit fixture (incl. tampered record) + **pre-match checklist & netcheck script** + SPEC §4 naming clarification — C, review E. DoD: kit CI green; I merges.
+- ☐ **M7-1** Sparring host deployed (both roles, generic brain, draft-pinned; OI-4 decided) — I+C. DoD: external reachability check passes 24h. IF the M3-7 ADR-0004 revision is approved: sparring peers accept either named scent model at negotiation.
+- ☐ **M7-2** Kit: wire-contract page + JSON-schema fixtures + audit fixture (incl. tampered record) + **pre-match checklist & netcheck script** + SPEC §4 `_g<NN>` naming clarification — C, review E. DoD: kit CI green; I merges. League-coordination additions, each **"verify present, else add"** (an earlier kit PR from the planning session may land some first): `report_consensus_signature` vector (spaced form + sign-then-insert; **credit Alon by name**) · F-421 Host-header deployment note (posted as kit issue #4) · named scent-model vectors (M3-7-gated).
 - ☐ **M7-3** League outreach round (Alon first) + demo friendlies; cross-audit clean — I (all sends I-authorized). DoD: ≥1 external friendly, clean mutual audit, notes filed.
 - ☐ **M7-4** First counted series (armed by I; full interlock path) — I. DoD: both reports accepted; artifacts + config committed; profiling notes stored.
 - ☐ **M7-5** Additional counted series vs distinct teams as roster allows (target: all reachable) — I. DoD: per-series artifacts committed.
