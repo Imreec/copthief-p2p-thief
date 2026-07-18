@@ -32,6 +32,13 @@ thief_class = "copthief_thief.brain:ThiefBrain"
 # ThiefBrain knobs: the canonical defaults live in copthief_thief/features.py
 # (DEFAULT_OPTIONS data table, AppFTable pattern); keys here override them.
 # The M5-4 GA writes tuned values into this table - code never changes.
+ramp_multiplier = 1.3136
+ramp_start_fraction = 0.9496
+trap_size_fraction = 0.2945
+w_articulation = 8.1599
+w_distance = 5.2704
+w_region = 1.8097
+w_spread = 1.0655
 
 [belief]
 # Private evidence-trust tuning (PRD_belief s5): how sharply the scent/hint likelihoods

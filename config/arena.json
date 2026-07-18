@@ -29,6 +29,15 @@
   "brain_options": {
     "ref-police": {
       "ref_police_barrier_chance": 0.15
+    },
+    "thief-brain": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
     }
   },
   "dod_series": [
