@@ -14,17 +14,17 @@ from copthief_core.shared.config import load_all
 CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 
 
-class _ScriptedPolicy:
-    """Deterministic stand-in: plays a scripted move list, then STAYs."""
+class _ScriptedBrain:
+    """Deterministic BrainBase stand-in: plays a scripted move list, then STAYs.
+
+    Duck-typed against the seam's public `pick_move(observation, belief)` — the
+    session never sees the difference (M3-5)."""
 
     def __init__(self, moves: list[str]) -> None:
         self._moves = list(moves)
 
-    def pick_move(self, board, position, move_set) -> str:  # noqa: ANN001 - test stub
+    def pick_move(self, observation, belief) -> str:  # noqa: ANN001 - test stub
         return self._moves.pop(0) if self._moves else "STAY"
-
-    def next_hint(self, *, hint_max_words: int) -> str:  # noqa: ARG002 - stub ignores cap
-        return "scripted"
 
 
 def _pair() -> tuple[PeerSession, PeerSession]:
@@ -38,7 +38,7 @@ def _pair() -> tuple[PeerSession, PeerSession]:
 def test_police_move_turn_carries_its_landing_cell_as_capture_claim() -> None:
     police, _thief = _pair()
     police.machine.state = GameState.COMPUTING_MOVE  # as if the thief's turn arrived
-    police.policy = _ScriptedPolicy(["S"])
+    police.brain = _ScriptedBrain(["S"])
     message = police.take_turn(now=1.0)
     assert message["capture_claim"] == list(police.position)
 
@@ -46,14 +46,14 @@ def test_police_move_turn_carries_its_landing_cell_as_capture_claim() -> None:
 def test_police_stay_turn_claims_nothing() -> None:
     police, _thief = _pair()
     police.machine.state = GameState.COMPUTING_MOVE
-    police.policy = _ScriptedPolicy(["STAY"])
+    police.brain = _ScriptedBrain(["STAY"])
     assert police.take_turn(now=1.0)["capture_claim"] is None
 
 
 def test_thief_answers_a_missed_claim_honestly_and_plays_on() -> None:
     police, thief = _pair()
     police.handle_receive_turn(thief.take_turn(now=1.0))
-    police.policy = _ScriptedPolicy(["S"])
+    police.brain = _ScriptedBrain(["S"])
     claim_turn = police.take_turn(now=1.5)
     assert claim_turn["capture_claim"] is not None
     thief.handle_receive_turn(claim_turn)
@@ -65,7 +65,7 @@ def test_thief_answers_a_missed_claim_honestly_and_plays_on() -> None:
 def test_caught_thief_sends_the_final_message_and_both_games_end_capture() -> None:
     police, thief = _pair()
     police.handle_receive_turn(thief.take_turn(now=1.0))
-    police.policy = _ScriptedPolicy(["S"])
+    police.brain = _ScriptedBrain(["S"])
     claim_turn = police.take_turn(now=1.5)
     claim_turn["capture_claim"] = list(thief.position)  # the claim lands on the thief
     thief.handle_receive_turn(claim_turn)

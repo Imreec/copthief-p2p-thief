@@ -1,0 +1,67 @@
+"""Hint composition (TODO M3-4): template bank × gazetteer, word-capped, round-trip.
+
+The verbal layer NEVER decides moves (App E rule 25) — it only narrates. Templates are
+fixed strings with one {landmark} slot, so composition is generation-by-lookup: zero
+tokens, zero opponent influence. Verdict vocabulary mirrors the reference constants
+(VERDICT_TRUTH/VERDICT_LIE): `truth` names our nearest landmark, `lie` the farthest —
+the lie MECHANISM ships here, its TIMING is a brain decision (M5).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from copthief_core.domain.board import Coord
+from copthief_core.domain.gazetteer import Gazetteer
+
+VERDICT_TRUTH = "truth"
+VERDICT_LIE = "lie"
+
+# Every template must round-trip: parse(render(landmark)) == landmark for the whole
+# bank × every shipped landmark (unit-enforced). Keep the slot early — the word cap
+# truncates from the right.
+_TEMPLATES = (
+    "They say the crowds near {landmark} hide anyone.",
+    "I heard sirens somewhere around {landmark}.",
+    "The shadows by {landmark} feel busy tonight.",
+    "Word is, keep an eye on {landmark}.",
+    "Someone was asking about {landmark} just now.",
+    "All roads seem to lead to {landmark}.",
+)
+# The guaranteed-short fallback when the signed word cap is tighter than the bank.
+_SHORT_TEMPLATE = "Near {landmark}."
+
+
+@dataclass(frozen=True)
+class ComposedHint:
+    """One rendered hint: the wire text, the sealed verdict, and its landmark."""
+
+    text: str
+    verdict: str
+    landmark: str
+
+
+def compose_hint(
+    gazetteer: Gazetteer,
+    *,
+    position: Coord,
+    max_words: int,
+    salt: int,
+    verdict: str = VERDICT_TRUTH,
+) -> ComposedHint:
+    """Render one hint (Input: gazetteer + our true position + the signed word cap +
+    a determinism salt + the intended verdict; Output: ComposedHint; Raises:
+    ValueError on an empty gazetteer — composing without geography would fabricate).
+
+    `truth` names the landmark nearest our position, `lie` the farthest; the salt
+    cycles the template bank so runs stay deterministic per (salt, position).
+    """
+    if not gazetteer.landmarks():
+        raise ValueError("no landmarks for the signed map_area - cannot compose hints")
+    landmark = (
+        gazetteer.nearest(position) if verdict == VERDICT_TRUTH else (gazetteer.farthest(position))
+    )
+    text = _TEMPLATES[salt % len(_TEMPLATES)].format(landmark=landmark)
+    if len(text.split()) > max_words:
+        text = _SHORT_TEMPLATE.format(landmark=landmark)
+    return ComposedHint(text=text, verdict=verdict, landmark=landmark)

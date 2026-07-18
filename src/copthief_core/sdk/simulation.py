@@ -17,8 +17,9 @@ from pathlib import Path
 from copthief_core.peer.match import MatchResult, run_local_minigame
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
 from copthief_core.peer.session import PeerSession
-from copthief_core.shared.config import load_all
+from copthief_core.shared.config import load_all, load_gazetteer
 from copthief_core.shared.jsonl_logger import JsonlEventLogger
+from copthief_core.strategy.referee import RefereeGameResult, play_referee_series
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,18 @@ class SimulationSdk:
             self.config_dir, police_seed=police_seed, thief_seed=thief_seed, log_path=log_path
         )
 
+    def referee_series(
+        self, police_brain: str, thief_brain: str, *, seeds: list[int]
+    ) -> list[RefereeGameResult]:
+        """Headless referee-mode series (M3-5/M3-6) — the arena's only game source."""
+        return play_referee_series(
+            self.constitution,
+            police_brain_name=police_brain,
+            thief_brain_name=thief_brain,
+            smell_trust=self.private.smell_trust_weight,
+            seeds=seeds,
+        )
+
     def run_peer(
         self,
         *,
@@ -75,7 +88,14 @@ class SimulationSdk:
             connect_timeout=self.private.connect_timeout_seconds,
             retry_interval=self.private.poll_interval_seconds,
         )
-        session = PeerSession(self.constitution, self.private, role=role, seed=seed)
+        gazetteer = load_gazetteer(
+            self.config_dir / "gazetteer.json",
+            map_area=self.constitution.world.map_area,
+            board=self.constitution.board.make_board(),
+        )
+        session = PeerSession(
+            self.constitution, self.private, role=role, seed=seed, gazetteer=gazetteer
+        )
         log = JsonlEventLogger(log_path).log if log_path is not None else None
         return run_peer_game(
             session,

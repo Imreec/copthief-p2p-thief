@@ -30,7 +30,9 @@ def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
     # "unknown-group" and the two sides derived DIFFERENT game_uids (observed live).
     police, _thief = _pair()
     payload = police.negotiate_payload()
-    assert set(payload) == {"terms", "nonce", "signature", "identity"}
+    # M3-2 adds the locked scent-model extra (PRD_scent §4) — safe against the
+    # reference because its verify_peer indexes only its own four keys (source-pinned).
+    assert set(payload) == {"terms", "nonce", "signature", "identity", "scent_model"}
     # F8b (observed live): the reference's declaration writer group_block() KeyErrors
     # unless the identity carries all seven reference keys.
     assert set(payload["identity"]) == {

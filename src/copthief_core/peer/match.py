@@ -18,7 +18,7 @@ from copthief_core.domain.state_machine import GameState
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
 from copthief_core.peer.session import PeerSession
 from copthief_core.peer.transport import queue_pair
-from copthief_core.shared.config import load_all
+from copthief_core.shared.config import load_all, load_gazetteer
 from copthief_core.shared.jsonl_logger import JsonlEventLogger
 
 
@@ -65,8 +65,15 @@ def run_local_minigame(
     replays and re-verifies from the log alone (peer/replay, M1-8)."""
     log = _locked_log(log_path)
     constitution, private, _limits = load_all(config_dir, counted=False)
-    police = PeerSession(constitution, private, role="police", seed=police_seed)
-    thief = PeerSession(constitution, private, role="thief", seed=thief_seed)
+    gazetteer = load_gazetteer(
+        config_dir / "gazetteer.json",
+        map_area=constitution.world.map_area,
+        board=constitution.board.make_board(),
+    )
+    police = PeerSession(
+        constitution, private, role="police", seed=police_seed, gazetteer=gazetteer
+    )
+    thief = PeerSession(constitution, private, role="thief", seed=thief_seed, gazetteer=gazetteer)
     police_transport, thief_transport = queue_pair(wait_timeout=private.connect_timeout_seconds)
     log({"event": "provenance", "payload": {"police_seed": police_seed, "thief_seed": thief_seed}})
 

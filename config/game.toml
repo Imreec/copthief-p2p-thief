@@ -1,7 +1,6 @@
 # Private per-peer config (book App B s4): never crosses the wire, never negotiated.
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
-# M1 carries only the sections the walking skeleton reads; [strategy]/[trash_talk]/[llm]/[email]
-# arrive with their milestones (M5/M6).
+# [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
 version = "1.00"
 
@@ -21,6 +20,19 @@ thief = "https://github.com/Imreec/copthief-p2p-thief"
 [game.mcp_servers]
 cop = "https://cop.imreeyal.com/mcp"
 thief = "https://thief.imreeyal.com/mcp"
+
+[strategy]
+# Private brain selection (PLAN s7): which BrainBase class each role runs. Baselines
+# only until M5 lands the role brains; the sparring host stays on the generic brain.
+police_class = "random"
+thief_class = "random"
+
+[belief]
+# Private evidence-trust tuning (PRD_belief s5): how sharply the scent/hint likelihoods
+# multiply into the Bayes filter. Never signed, never crosses the wire (SQ3 stance:
+# the transmitted grid is unauthenticated - trust is a tunable, never an axiom).
+smell_trust_weight = 4.0
+hint_trust_default = 1.0
 
 [network]
 my_port = 8801
