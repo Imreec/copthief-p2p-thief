@@ -17,6 +17,9 @@ class JsonlEventLogger:
 
     def __init__(self, path: Path) -> None:
         self._path = path
+        # A fresh evidence path must never crash the game it was meant to witness
+        # (bit the thief repo at M3 — PRD_gui_replay §3).
+        path.parent.mkdir(parents=True, exist_ok=True)
         self._seq = len(read_events(path)) if path.exists() else 0
 
     def log(self, event: dict[str, Any]) -> None:

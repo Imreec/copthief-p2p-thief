@@ -8,30 +8,17 @@ does not passively serve tools.
 
 from __future__ import annotations
 
-import json
-import subprocess
-import sys
-from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from copthief_core.peer.match import MatchResult, run_local_minigame
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
+from copthief_core.peer.replay import ReplaySummary, replay_from_log
 from copthief_core.peer.session import PeerSession
+from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
 from copthief_core.shared.config import load_all, load_gazetteer
 from copthief_core.shared.jsonl_logger import JsonlEventLogger
 from copthief_core.strategy.referee import RefereeGameResult, play_referee_series
-
-
-@dataclass(frozen=True)
-class P2PMatchResult:
-    """The two-process form's observable outcome (each side reports its own audit)."""
-
-    outcome: str
-    steps: int
-    game_uid: str
-    audit_ok_police_side: bool
-    audit_ok_thief_side: bool
-    scores: tuple[int, int]
 
 
 class SimulationSdk:
@@ -42,13 +29,34 @@ class SimulationSdk:
         self.constitution, self.private, self.rate_limits = load_all(config_dir, counted=counted)
 
     def run_local_match(
-        self, *, police_seed: int, thief_seed: int, log_path: Path | None = None
+        self,
+        *,
+        police_seed: int,
+        thief_seed: int,
+        log_path: Path | None = None,
+        gui: bool = False,
     ) -> MatchResult:
         """Full mini-game, both peers in-process over queue transports (keyless CI path).
 
-        With `log_path`, the game is JSONL-logged and replayable (peer/replay, M1-8)."""
-        return run_local_minigame(
-            self.config_dir, police_seed=police_seed, thief_seed=thief_seed, log_path=log_path
+        With `log_path`, the game is JSONL-logged and replayable (peer/replay, M1-8).
+        With `gui`, one live window per role renders the SAME event stream (M4-2)."""
+        if not gui:
+            return run_local_minigame(
+                self.config_dir, police_seed=police_seed, thief_seed=thief_seed, log_path=log_path
+            )
+        from copthief_core.gui.windows.launch import run_with_views
+
+        return run_with_views(
+            ["police", "thief"],
+            self.constitution,
+            self.private.gui,
+            lambda tee: run_local_minigame(
+                self.config_dir,
+                police_seed=police_seed,
+                thief_seed=thief_seed,
+                log_path=log_path,
+                tee=tee,
+            ),
         )
 
     def referee_series(
@@ -72,6 +80,7 @@ class SimulationSdk:
         port: int,
         opponent_url: str,
         log_path: Path | None = None,
+        gui: bool = False,
     ) -> PeerGameResult:
         """Play ONE full mini-game as a standalone peer: own FastMCP server on `port`,
         symmetric loop against `opponent_url` (blocking until the game settles)."""
@@ -96,72 +105,63 @@ class SimulationSdk:
         session = PeerSession(
             self.constitution, self.private, role=role, seed=seed, gazetteer=gazetteer
         )
-        log = JsonlEventLogger(log_path).log if log_path is not None else None
-        return run_peer_game(
-            session,
-            transport,
-            turn_timeout=self.private.turn_timeout_seconds,
-            poll_interval=self.private.poll_interval_seconds,
-            log=log,
+        sink = JsonlEventLogger(log_path).log if log_path is not None else None
+
+        def play(extra: Any = None) -> PeerGameResult:  # noqa: ANN401 - optional LogFn tee
+            def fan(event: dict[str, Any]) -> None:
+                if sink is not None:
+                    sink(event)
+                if extra is not None:
+                    extra(event)
+
+            return run_peer_game(
+                session,
+                transport,
+                turn_timeout=self.private.turn_timeout_seconds,
+                poll_interval=self.private.poll_interval_seconds,
+                log=fan,
+            )
+
+        if not gui:
+            return play()
+        from copthief_core.gui.windows.launch import run_with_views
+
+        return run_with_views([role], self.constitution, self.private.gui, play)
+
+    def replay(self, log_path: Path, *, gui: bool = False) -> ReplaySummary:
+        """Re-verify a logged game (M4-3): the cryptographic walk over every record.
+
+        With `gui`, the viewer window (verdict banner + step controls) opens and
+        blocks until closed; the summary is returned either way."""
+        summary = replay_from_log(log_path)
+        if gui:
+            from copthief_core.gui.windows.replay import show_replay
+
+            show_replay(log_path, self.constitution, self.private.gui)
+        return summary
+
+    def export_overlay(
+        self, log_path: Path, out: Path, *, role: str | None = None
+    ) -> tuple[Path, Path]:
+        """Render the belief-vs-truth overlay + error curve PNGs from an audited log
+        (M4-4; post-audit only). Returns (overlay path, curve path). matplotlib is
+        imported lazily — the viz group is an analysis-time dependency (D2)."""
+        from copthief_core.gui.export import export_overlay_pngs
+
+        return export_overlay_pngs(
+            log_path, out, role=role, constitution=self.constitution, settings=self.private.gui
         )
 
     def run_p2p_match(
         self, *, police_seed: int, thief_seed: int, thief_port: int, host: str
     ) -> P2PMatchResult:
-        """The one-command two-process form: spawn the thief peer as a second PROCESS,
-        play the police side in-process; each side reports its own audit verdict.
-
-        The thief subprocess runs this same package's CLI; it is always reaped on the
-        way out, pass or fail, and its printed result supplies the thief-side verdict.
-        """
-        police_port = self.private.my_port
-        command = [
-            sys.executable,
-            "-m",
-            "copthief_core.sdk.cli",
-            "run",
-            "peer",
-            "--role",
-            "thief",
-            "--config",
-            str(self.config_dir),
-            "--seed",
-            str(thief_seed),
-            "--host",
-            host,
-            "--port",
-            str(thief_port),
-            "--opponent-url",
-            f"http://{host}:{police_port}/mcp",
-        ]
-        thief = subprocess.Popen(  # noqa: S603 - our own interpreter+module
-            command, stdout=subprocess.PIPE, text=True, encoding="utf-8"
+        """The one-command two-process form (sdk/p2p_match): spawn the thief peer as a
+        second PROCESS, play the police side in-process; each side reports its own
+        audit verdict."""
+        return play_p2p_match(
+            self,
+            police_seed=police_seed,
+            thief_seed=thief_seed,
+            thief_port=thief_port,
+            host=host,
         )
-        try:
-            police_result = self.run_peer(
-                role="police",
-                seed=police_seed,
-                host=host,
-                port=police_port,
-                opponent_url=f"http://{host}:{thief_port}/mcp",
-            )
-            thief_ok, thief_out = False, ""
-            try:
-                thief_out, _ = thief.communicate(timeout=self.private.connect_timeout_seconds)
-                thief_ok = bool(json.loads(thief_out.strip().splitlines()[-1]).get("audit_ok"))
-            except (subprocess.TimeoutExpired, ValueError, IndexError):
-                pass  # thief verdict unavailable; reported as False, never guessed
-            from copthief_core.domain.scoring import scores_for
-
-            return P2PMatchResult(
-                outcome=police_result.outcome,
-                steps=police_result.steps,
-                game_uid=police_result.game_uid,
-                audit_ok_police_side=police_result.audit_ok,
-                audit_ok_thief_side=thief_ok,
-                scores=scores_for(police_result.outcome, self.constitution.scoring),
-            )
-        finally:
-            if thief.poll() is None:
-                thief.terminate()
-                thief.wait(timeout=self.private.connect_timeout_seconds)

@@ -15,6 +15,10 @@ from typing import Any
 from copthief_core.domain.crypto import verify
 from copthief_core.shared.jsonl_logger import read_events
 
+# Book §7.4 exact banner strings — binary, no almost-match (App E rule 19).
+VERDICT_OK = "Verified OK"
+VERDICT_TAMPERED = "TAMPERED"
+
 
 @dataclass(frozen=True)
 class ReplaySummary:
@@ -28,8 +32,15 @@ class ReplaySummary:
     moves: dict[str, list[str]]
 
 
-def _audit_records(events: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    """Revealed records per sender: the initiator's audit + the responder's audit answer."""
+def verdict_for(summary: ReplaySummary) -> str:
+    """The viewer banner for a summary (Input: a replay summary; Output: the book's
+    exact string — green `Verified OK` iff zero problems, else red `TAMPERED`)."""
+    return VERDICT_OK if summary.verified else VERDICT_TAMPERED
+
+
+def revealed_records(events: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Revealed records per sender: our audit, the responder's answer, and (schema
+    v1.1) the opponent's audit archived verbatim at `audit_received`."""
     records: dict[str, list[dict[str, Any]]] = {}
     for event in events:
         if event["event"] == "audit":
@@ -37,7 +48,34 @@ def _audit_records(events: list[dict[str, Any]]) -> dict[str, list[dict[str, Any
         elif event["event"] == "audit_answer":
             answer = event["payload"]["audit"]
             records[answer["sender"]] = answer["records"]
+        elif event["event"] == "audit_received":
+            raw = event["raw"]
+            if isinstance(raw, dict) and isinstance(raw.get("records"), list):
+                records.setdefault(str(raw.get("sender")), raw["records"])
     return records
+
+
+def wire_turns(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Every TurnMessage that traveled, as `{sender, message}` pairs: our outbound
+    `turn` events plus (schema v1.1) `turn_received` archives — so a one-sided live
+    log walks BOTH sides. Deduped by (sender, step); malformed archives are skipped
+    (they are pre-validation dispute evidence, not verifiable protocol claims)."""
+    turns = [dict(e) for e in events if e["event"] == "turn"]
+    seen = {(t["sender"], t["message"].get("step")) for t in turns}
+    for event in events:
+        if event["event"] != "turn_received":
+            continue
+        raw = event.get("raw")
+        if not isinstance(raw, dict):
+            continue
+        sender, step = raw.get("sender"), raw.get("step")
+        well_formed = (
+            isinstance(sender, str) and isinstance(step, int) and isinstance(raw.get("commit"), str)
+        )
+        if well_formed and (sender, step) not in seen:
+            seen.add((sender, step))
+            turns.append({"sender": sender, "message": raw})
+    return turns
 
 
 def _check_turn(turn: dict[str, Any], revealed: list[dict[str, Any]]) -> str | None:
@@ -58,8 +96,8 @@ def _check_turn(turn: dict[str, Any], revealed: list[dict[str, Any]]) -> str | N
 def replay_from_log(path: Path) -> ReplaySummary:
     """Re-verify a logged mini-game (Input: JSONL path; Output: ReplaySummary)."""
     events = read_events(path)
-    revealed = _audit_records(events)
-    turns = [e for e in events if e["event"] == "turn"]
+    revealed = revealed_records(events)
+    turns = wire_turns(events)
     problems = [
         p for p in (_check_turn(t, revealed.get(t["sender"], [])) for t in turns) if p is not None
     ]

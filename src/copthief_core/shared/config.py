@@ -9,8 +9,6 @@ load loudly (ConfigError lists every problem) instead of playing an illegal game
 from __future__ import annotations
 
 import json
-import re
-import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -28,20 +26,9 @@ from copthief_core.shared.config_model import (
     WorldParams,
 )
 from copthief_core.shared.gazetteer_loader import load_gazetteer as load_gazetteer
-
-_VERSION_FORM = re.compile(r"^\d+\.\d{2}$")
-
-
-class ConfigError(Exception):
-    """A config file is unloadable: guard violation, bad version, or broken precedence."""
-
-
-def _version(raw: dict[str, Any], source: str) -> str:
-    """Validated `version` field (CLAUDE.md §1 #9: starts 1.00, checked at startup)."""
-    value = raw.get("version")
-    if not isinstance(value, str) or not _VERSION_FORM.match(value):
-        raise ConfigError(f"{source}: version must match N.NN, got {value!r}")
-    return value
+from copthief_core.shared.private_config import ConfigError as ConfigError
+from copthief_core.shared.private_config import load_private_settings as load_private_settings
+from copthief_core.shared.private_config import validated_version as _version
 
 
 def _pair(raw: list[int]) -> tuple[int, int]:
@@ -94,33 +81,6 @@ def load_constitution(path: Path, table: AppFTable, *, counted: bool) -> Constit
         ),
         league=LeagueParams(**league),
         gatekeeper=GatekeeperParams(**gate),
-    )
-
-
-def load_private_settings(path: Path) -> PrivateSettings:
-    """Load the per-peer TOML; constitution keys that stray in here are simply ignored
-    (JSON overlays TOML on shared keys — the signed file always wins, App B §4)."""
-    raw = tomllib.loads(path.read_text(encoding="utf-8"))
-    game, network = raw.get("game", {}), raw.get("network", {})
-    belief, strategy = raw.get("belief", {}), raw.get("strategy", {})
-    return PrivateSettings(
-        version=_version(raw, path.name),
-        group_name=str(game["group_name"]),
-        group_id=str(game["group_id"]),
-        sub_game_number=int(game["sub_game_number"]),
-        members=tuple(str(m) for m in game.get("members", [])),
-        repos={str(k): str(v) for k, v in game.get("repos", {}).items()},
-        mcp_servers={str(k): str(v) for k, v in game.get("mcp_servers", {}).items()},
-        llm_model=str(game.get("llm_model", "")),
-        my_port=int(network["my_port"]),
-        opponent_url=str(network["opponent_url"]),
-        turn_timeout_seconds=float(network["turn_timeout_seconds"]),
-        poll_interval_seconds=float(network["poll_interval_seconds"]),
-        connect_timeout_seconds=float(network["connect_timeout_seconds"]),
-        smell_trust_weight=float(belief["smell_trust_weight"]),
-        hint_trust_default=float(belief["hint_trust_default"]),
-        police_class=str(strategy["police_class"]),
-        thief_class=str(strategy["thief_class"]),
     )
 
 

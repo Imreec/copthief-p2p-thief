@@ -34,6 +34,22 @@ thief_class = "random"
 smell_trust_weight = 4.0
 hint_trust_default = 1.0
 
+[gui]
+# Live-view render knobs (PRD_gui_replay s7, police repo): display-only, never
+# negotiated. The heatmap anchors are the p=0 / p=1 colors of the belief shading
+# (book fig. 9); the theme block is the dark-slate window chrome.
+refresh_ms = 200
+cell_px = 64
+heat_low = "#1e293b"
+heat_high = "#dc2626"
+png_dpi = 150
+font_family = "Segoe UI"
+font_size = 11
+theme_bg = "#0f172a"
+theme_panel = "#1e293b"
+theme_fg = "#e2e8f0"
+accent = "#38bdf8"
+
 [network]
 my_port = 8801
 opponent_url = ""

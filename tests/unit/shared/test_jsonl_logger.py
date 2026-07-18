@@ -25,6 +25,14 @@ def test_log_is_one_json_object_per_line_and_appends(tmp_path: Path) -> None:
     assert all(line.startswith("{") and line.endswith("}") for line in lines)
 
 
+def test_logger_creates_missing_parent_directories(tmp_path: Path) -> None:
+    # The M3 thief-repo trap: pointing a fresh log at docs/evidence/ before the
+    # directory exists must work, not crash (PRD_gui_replay §3).
+    log_path = tmp_path / "docs" / "evidence" / "fresh.jsonl"
+    JsonlEventLogger(log_path).log({"event": "a"})
+    assert read_events(log_path) == [{"seq": 1, "event": "a"}]
+
+
 def test_each_event_gains_a_monotonic_sequence_number(tmp_path: Path) -> None:
     log_path = tmp_path / "game.jsonl"
     logger = JsonlEventLogger(log_path)
