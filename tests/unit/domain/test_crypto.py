@@ -5,6 +5,7 @@ from copthief_core.domain.crypto import (
     commit,
     game_uid,
     make_nonce,
+    terms_signature,
     verify,
 )
 
@@ -51,3 +52,24 @@ def test_game_uid_is_sensitive_to_terms_but_not_group_order() -> None:
     terms = {"board_size": 7, "num_games": 1}
     assert game_uid(terms, "g-a", "g-b") == game_uid(terms, "g-b", "g-a")
     assert game_uid(terms, "g-a", "g-b") != game_uid({**terms, "board_size": 9}, "g-a", "g-b")
+
+
+def test_equivalent_float_literals_verify_same_double_same_bytes() -> None:
+    # League coordination 2026-07-18, corrected: 0.10000000000000001 IS 0.1 (the same
+    # IEEE double), so both literal forms canonicalize to "0.1" and the signature
+    # VERIFIES - equivalent-literal drift is a non-problem by construction.
+    terms = {"pheromone_decay": 0.1}
+    nonce = make_nonce()
+    signature = terms_signature(terms, nonce)
+    assert 0.10000000000000001 == 0.1  # noqa: PLR0133 - the point being pinned
+    assert terms_signature({"pheromone_decay": 0.10000000000000001}, nonce) == signature
+
+
+def test_distinct_double_float_drift_breaks_the_terms_signature() -> None:
+    # The REAL drift case (Alon's dict-equality note, sharpened): a genuinely distinct
+    # double - e.g. an accumulated 0.1+0.2 - serializes as 0.30000000000000004, so the
+    # canonical bytes differ and the handshake signature gate refuses the terms.
+    nonce = make_nonce()
+    clean = terms_signature({"pheromone_decay": 0.3}, nonce)
+    drifted = terms_signature({"pheromone_decay": 0.1 + 0.2}, nonce)
+    assert clean != drifted

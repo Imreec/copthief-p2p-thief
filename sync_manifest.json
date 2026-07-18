@@ -81,7 +81,7 @@
     "tests/unit/domain/test_belief.py": "17087c3b784d6aba049360c4a2607bf32b52b9d7ed7d376b6f5814861a30c8cf",
     "tests/unit/domain/test_belief_scent.py": "4a9314e25ce9ffd4dbc2c9606c7e163a0f9d94d2c4a00523ea9d5fc616286430",
     "tests/unit/domain/test_board.py": "66edf4f238671ffc513957acc689d7ec13ad8b5e263e0bfa29625faa2a6927b6",
-    "tests/unit/domain/test_crypto.py": "e7bc6d11c27e0b8d5084c315405ca5a22402be00980b274971fc6a404dd15fca",
+    "tests/unit/domain/test_crypto.py": "fe8390d226908f8dafb195afe430e3cad3bb9d3911ee6b7478242e35850a2a47",
     "tests/unit/domain/test_gazetteer.py": "08ab9c2f969e31c5b369f03b4ee6347aafdd6f320effd7a8247cabb1f7411a02",
     "tests/unit/domain/test_rules.py": "c1424fcb4562693d2692613514af9e4ba147a9374f39c39705048559ddcc2818",
     "tests/unit/domain/test_scent.py": "755743feeffc1289baba9d0923e6051100b6dde7e58cdbb36971a83dd4f59f01",
@@ -109,7 +109,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "dff2283",
+  "source_commit": "c5074ff",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "54836eac25f45cd79b6a2a3fdb8be4d4d2e83f499355d26f3e09e25d01566157"
+  "tree_hash": "2cce6b28a1bbd7d2e7c33e5e4101988d6fa82ff9e743cba80f854eb1d53d202e"
 }
