@@ -16,7 +16,7 @@ from copthief_core.domain.belief import BeliefFilter
 from copthief_core.domain.gazetteer import Gazetteer
 from copthief_core.domain.scent import ScentField
 from copthief_core.domain.state_machine import GameState, GameStateMachine
-from copthief_core.peer import handshake, turns
+from copthief_core.peer import handshake, inbound, turns
 from copthief_core.peer.handshake import NegotiationError
 from copthief_core.peer.policy import SkeletonPolicy
 from copthief_core.peer.sealing import SealedTurn
@@ -70,11 +70,15 @@ class PeerSession:
         self.machine = GameStateMachine(
             state=GameState.COMPUTING_MOVE if role == "thief" else GameState.WAITING_FOR_OPPONENT
         )
-        # M3-5 BrainBase seam: moves come from the config-selected brain reading the
-        # belief; the M1 policy remains ONLY as the no-gazetteer hint fallback.
+        # M3-5/M5-2 BrainBase seam: moves come from the config-selected brain reading
+        # the belief ([strategy] class + [strategy.<role>] options); the M1 policy
+        # remains ONLY as the no-gazetteer hint fallback.
         self.brain: Any = make_brain(
-            private.police_class if role == "police" else private.thief_class, seed=seed
+            private.police_class if role == "police" else private.thief_class,
+            seed=seed,
+            options=private.police_options if role == "police" else private.thief_options,
         )
+        self.barriers_placed = 0  # our own quota bookkeeping (police walls, M5-2)
         self.policy: Any = SkeletonPolicy(seed=seed)
         self.records: list[SealedTurn] = []
         self.inbound: list[TurnMessage] = []
@@ -121,8 +125,8 @@ class PeerSession:
         return turns.take_turn(self, now=now)
 
     def handle_receive_turn(self, raw: dict[str, Any]) -> dict[str, Any]:
-        """Validate, absorb scent, advance the machine (delegates to peer/turns)."""
-        return turns.handle_receive_turn(self, raw)
+        """Validate, absorb scent, advance the machine (delegates to peer/inbound)."""
+        return inbound.handle_receive_turn(self, raw)
 
     def collapse(self, reason: str) -> ProtocolViolationError:
         """Record the violation as TECHNICAL_LOSS, then hand back the error to raise."""

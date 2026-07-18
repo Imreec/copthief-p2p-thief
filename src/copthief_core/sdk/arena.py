@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from copthief_core.domain.rules import Outcome
 from copthief_core.domain.scoring import scores_for
+from copthief_core.sdk.arena_config import ArenaConfig
 from copthief_core.strategy.referee import RefereeGameResult
 
 if TYPE_CHECKING:
@@ -89,20 +90,31 @@ def build_report(
     return ArenaReport(series=tuple(series), standings=standings)
 
 
-def run_round_robin(
-    sdk: SimulationSdk, *, roster: Iterable[str], seeds: Iterable[int]
-) -> ArenaReport:
-    """Every roster brain plays every roster brain in both roles, same seed set."""
-    names = list(roster)
-    seed_list = list(seeds)
+def run_round_robin(sdk: SimulationSdk, *, config: ArenaConfig) -> ArenaReport:
+    """Every police-roster brain plays every thief-roster brain over the config's
+    scenario suite (M5-2 per-role rosters — a role-specific brain only ever enters
+    its own side). Standings carry the roster display aliases."""
+    from copthief_core.strategy.scenarios import scenario_suite
+
+    scenarios = scenario_suite(
+        sdk.constitution, seeds=config.seeds, min_separation=config.scenario_min_separation
+    )
     series = [
         PairingSeries(
-            police_brain=police,
-            thief_brain=thief,
-            results=tuple(sdk.referee_series(police, thief, seeds=seed_list)),
+            police_brain=police.name,
+            thief_brain=thief.name,
+            results=tuple(
+                sdk.scenario_series(
+                    police=police.spec,
+                    thief=thief.spec,
+                    scenarios=scenarios,
+                    police_options=config.options_for(police.name),
+                    thief_options=config.options_for(thief.name),
+                )
+            ),
         )
-        for police in names
-        for thief in names
+        for police in config.police_roster
+        for thief in config.thief_roster
     ]
     scores = {
         outcome.value: scores_for(outcome.value, sdk.constitution.scoring) for outcome in Outcome

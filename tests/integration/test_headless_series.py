@@ -66,6 +66,10 @@ def test_peer_mode_series_with_config_brains_audits_clean_every_game() -> None:
         assert result.audit_ok_thief_side
 
 
-def test_private_settings_carry_the_strategy_classes() -> None:
-    assert PRIVATE.police_class in ("random", "greedy-manhattan")
-    assert PRIVATE.thief_class in ("random", "greedy-manhattan")
+def test_private_settings_carry_resolvable_strategy_classes() -> None:
+    # Role-blind (PR #29 rule): each repo's game.toml may name its own role package
+    # via the book s6.2 dotted notation - the pin is that the factory resolves it.
+    from copthief_core.strategy.brains import BrainBase, make_brain
+
+    assert isinstance(make_brain(PRIVATE.police_class, seed=1), BrainBase)
+    assert isinstance(make_brain(PRIVATE.thief_class, seed=1), BrainBase)

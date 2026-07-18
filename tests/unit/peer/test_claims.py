@@ -10,6 +10,7 @@ from pathlib import Path
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer.session import PeerSession
 from copthief_core.shared.config import load_all
+from copthief_core.strategy.decision import Decision
 
 CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 
@@ -17,14 +18,17 @@ CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 class _ScriptedBrain:
     """Deterministic BrainBase stand-in: plays a scripted move list, then STAYs.
 
-    Duck-typed against the seam's public `pick_move(observation, belief)` — the
-    session never sees the difference (M3-5)."""
+    Duck-typed against the seam's public surface — `decide` since M5-2 (`pick_move`
+    kept for symmetry); the session never sees the difference (M3-5)."""
 
     def __init__(self, moves: list[str]) -> None:
         self._moves = list(moves)
 
     def pick_move(self, observation, belief) -> str:  # noqa: ANN001 - test stub
         return self._moves.pop(0) if self._moves else "STAY"
+
+    def decide(self, observation, belief) -> "Decision":  # noqa: ANN001 - test stub
+        return Decision(move=self.pick_move(observation, belief))
 
 
 def _pair() -> tuple[PeerSession, PeerSession]:

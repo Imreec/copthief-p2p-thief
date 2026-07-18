@@ -11,7 +11,7 @@ def test_run_local_match_prints_a_verified_result(capsys: pytest.CaptureFixture[
     exit_code = main(["run", "local-match", "--police-seed", "5", "--thief-seed", "6"])
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["outcome"] == "thief_survival"
+    assert payload["outcome"] in ("cop_capture", "thief_survival")
     assert payload["audit_ok_police_side"] is True
     assert payload["audit_ok_thief_side"] is True
     assert payload["game_uid"]

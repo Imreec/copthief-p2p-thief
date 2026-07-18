@@ -145,8 +145,12 @@ class PrivateSettings:
     smell_trust_weight: float
     hint_trust_default: float
     # [strategy] brain selection per role (PLAN §7) — private, never negotiated.
+    # [strategy.<role>] sub-tables carry the brain's numeric knobs (M5 weights etc.):
+    # config-owned per CLAUDE.md #5, tuned offline (M5-4), never on the sparring host.
     police_class: str
     thief_class: str
+    police_options: dict[str, float]
+    thief_options: dict[str, float]
     # [gui] live-view render knobs (PRD_gui_replay §7) — private, display-only.
     gui: GuiSettings
 
