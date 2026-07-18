@@ -3,6 +3,25 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #20 — docs/m5-1-thief-brain-prd (M5-1 gate — ThiefBrain PRD)
+
+- **Driver:** Imree (M5 session brief in the police repo: role-split + reference-heuristic
+  questions posed as PRD inputs; M3-8 scent internals fenced off) · **Author:** Claude
+  (terminal) · **Reviewer:** Imree (docs gate — merge = the approval, together with police
+  PR #30).
+- **Context:** shared recon logged in the police repo's PROMPTS entry (PR #30) — book ch.6,
+  reference brains @960499fd, SQ2/SQ3, sync topology. Thief-specific groundwork: the M3-4 lie
+  mechanism (gazetteer + sealed intent) deliberately shipped without a timing policy — this PRD
+  supplies it; the self-mirror instrument (second BeliefFilter over our own emitted evidence,
+  public API only) keeps the M3-8 boundary intact.
+- **This PR:** `docs/PRD_thief_brain.md` — role split (ThiefBrain in `copthief_thief`, core by
+  sync only) · DoD ≥60% survival vs the re-derived `ref-police` over the seeded scenario suite ·
+  region-survival scoring (worst-case distance + survival ramp, two-front-BFS safe region,
+  Tarjan articulation trap-awareness vs remaining barrier quota, unvisited spread) · deception
+  timing (lie iff mirror-sharp AND cop-near; decoy away from actual heading; budget/cooldown;
+  intent sealed truthfully) · M5-6 template-bank seam + efficacy metric · all knobs in
+  `[strategy.thief]`. TODO M5-1 ticked in the same change (true at merge).
+
 ## PR #9 — sync/m1-8-logger (M1-8 arrival — phase M1 complete)
 
 - **Driver:** Imree (authorized the lead merge + the final M1 sync) · **Author:** Claude
