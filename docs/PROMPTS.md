@@ -3,6 +3,22 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #26 — feat/m5-7-thief-notebook (M5-7 results notebook, executed + pinned ⚑)
+
+- **Driver:** Imree (session brief: M5-7 notebook — arena + GA curves + sensitivity;
+  LaTeX + citations; committed with outputs) · **Author:** Claude (terminal) ·
+  **Reviewer:** Antigravity + Eyal (per TODO); stacked on PR #25 (the notebook renders
+  its A/B evidence).
+- **This PR:** sync delta from cop@8daa5ff (the mirrored renders-clean pin
+  `tests/integration/test_notebook.py` — it rides HERE, not the sync PR, because it
+  needs this repo's notebook to exist) + `notebook` dep group parity + the executed
+  `notebooks/results_analysis.ipynb`: metric identities in LaTeX + citations (book
+  ch.6/§6.3.1, ADR-0002/0005, PRD §§) · arena standings + champion gate GREEN · DoD
+  27/32 = 84% PASS live-computed with the deployed evolved weights · GA curve
+  0.708→0.792 with default baseline · w_distance/ramp_start_fraction sensitivity
+  sweeps · the M5-6 A/B table rendered verbatim from the committed evidence.
+  TODO M5-7 ticked. **Phase M5 complete in both repos once this chain merges.**
+
 ## PR #25 — feat/m5-6-thief-ab (M5-6 template-bank A/B — measured, winner shipped ⚑)
 
 - **Driver:** Imree (session brief: "M5-6 template-bank A/B — deception efficacy metric

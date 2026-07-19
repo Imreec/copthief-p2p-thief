@@ -107,6 +107,7 @@
     "tests/integration/test_headless_series.py": "08a2be275c9ac50cfd902cf007ec76183ab9719117ee53e1202f6f6dff99bcb3",
     "tests/integration/test_local_minigame.py": "8d7c90d3415502038d719ac2572dc042b4a670e5827778a270866661961404c3",
     "tests/integration/test_log_schema.py": "5be95507a8ece05af50dd4b3d9057a7b93f458c94ad1aaff2b6f48075adcf29c",
+    "tests/integration/test_notebook.py": "f6adb50d7ce63defc46f24dc680bee224dd27494660123c32ace0f4b9d684cca",
     "tests/integration/test_p2p_live.py": "602bc67c91b94dcc32c703f4008b41a635763b8ed4efb51121d02c3515f8819b",
     "tests/integration/test_peer_barriers.py": "0674375a730c894f3b3f8258c7987a64ecdfa33200f18ab29319ea9f2bebd865",
     "tests/integration/test_prior_shift.py": "d920e4fa98307685ca1b9c4cb738362beae1f7d5455b987361117a8e77180690",
@@ -160,7 +161,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "1e15688",
+  "source_commit": "8daa5ff",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "4cfe43c7c14792e0f4de542995cb7073355a43d1cb1a1d28cf70f3fbfe68373a"
+  "tree_hash": "598e288017fdac7b3d4b09059dc40cbf79e259c163f950d1245dac9ff9558d4a"
 }
