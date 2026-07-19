@@ -76,6 +76,40 @@ def test_tight_word_cap_still_round_trips() -> None:
     assert gazetteer.parse(composed.text, max_words=5) == composed.landmark
 
 
+def test_named_banks_all_round_trip_for_every_landmark() -> None:
+    from copthief_core.strategy.hints import BANKS
+
+    gazetteer = make_gazetteer()
+    assert "classic" in BANKS
+    assert "terse" in BANKS
+    for bank, templates in BANKS.items():
+        for salt in range(len(templates)):
+            composed = compose_hint(
+                gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=salt, bank=bank
+            )
+            assert gazetteer.parse(composed.text, max_words=MAX_WORDS) == composed.landmark
+
+
+def test_default_and_unknown_banks_resolve_to_classic() -> None:
+    gazetteer = make_gazetteer()
+    plain = compose_hint(gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=0)
+    classic = compose_hint(gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=0, bank="classic")
+    unknown = compose_hint(gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=0, bank="jazz")
+    assert plain == classic  # bank-less callers keep today's wording byte-for-byte
+    assert unknown == classic  # off-vocabulary bank names never fabricate
+
+
+def test_banks_differ_in_wording_not_in_landmark() -> None:
+    from copthief_core.strategy.hints import BANKS
+
+    gazetteer = make_gazetteer()
+    classic = compose_hint(gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=0, bank="classic")
+    terse = compose_hint(gazetteer, position=(3, 3), max_words=MAX_WORDS, salt=0, bank="terse")
+    assert classic.landmark == terse.landmark
+    assert classic.text != terse.text
+    assert len(BANKS["terse"]) >= 2  # a bank, not a single line
+
+
 def test_empty_gazetteer_refuses_composition() -> None:
     board = Board(grid_size=7, axis_origin_corner="top-left", axis_start_index=0)
     empty = Gazetteer.from_payload(PAYLOAD, map_area="Atlantis", board=board)

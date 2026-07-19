@@ -119,6 +119,22 @@ def test_observation_carries_the_deception_construction_kit() -> None:
     assert second.own_smell  # by turn two, our own trail has crossed the wire
 
 
+def test_configured_hint_bank_reaches_the_wire() -> None:
+    # M5-6: [strategy] hint_bank selects the bank the verbal layer speaks; the
+    # winner of the A/B run ships here. Unset ("") keeps the default bank.
+    from dataclasses import replace
+
+    from copthief_core.strategy.hints import BANKS
+
+    terse_private = replace(PRIVATE, hint_bank="terse")
+    session = PeerSession(CONSTITUTION, terse_private, role="thief", seed=9, gazetteer=GAZETTEER)
+    message = session.take_turn(now=0.0)
+    landmark = GAZETTEER.parse(message["hint"], max_words=CONSTITUTION.world.hint_max_words)
+    assert landmark is not None  # the bank still round-trips on the wire
+    rendered = {t.format(landmark=landmark) for t in BANKS["terse"]}
+    assert message["hint"] in rendered  # and the wording really is the terse bank's
+
+
 def test_peer_observation_carries_the_signed_clock() -> None:
     session = _thief_session()
     spy = _SpyBrain()

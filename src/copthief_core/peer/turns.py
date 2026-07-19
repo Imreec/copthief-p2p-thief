@@ -75,6 +75,7 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
                 salt=len(session.records),
                 verdict=decision.hint_verdict or VERDICT_TRUTH,
                 landmark=decision.hint_landmark,
+                bank=session.private.hint_bank,  # M5-6: the A/B-shipped bank
             )
             hint, verdict = composed.text, composed.verdict
     step = len(session.records) + 1

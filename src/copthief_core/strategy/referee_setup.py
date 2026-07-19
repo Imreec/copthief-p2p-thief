@@ -12,8 +12,11 @@ from copthief_core.domain.scent import ScentField
 from copthief_core.shared.config_model import Constitution
 
 
-def referee_belief(constitution: Constitution, *, start: Coord, smell_trust: float) -> BeliefFilter:
-    """A scent-only belief primed at the opponent's (scenario) start."""
+def referee_belief(
+    constitution: Constitution, *, start: Coord, smell_trust: float, hint_trust: float = 0.0
+) -> BeliefFilter:
+    """A belief primed at the opponent's (scenario) start — scent-only by default;
+    the M5-6 verbal referee passes a positive hint trust so hints reach the filter."""
     return BeliefFilter(
         board=constitution.board.make_board(),
         move_set=constitution.movement.move_set,
@@ -21,7 +24,7 @@ def referee_belief(constitution: Constitution, *, start: Coord, smell_trust: flo
         center_intensity=constitution.pheromones.center_intensity,
         decay=constitution.pheromones.decay,
         smell_trust=smell_trust,
-        hint_trust=0.0,  # hints are a peer-mode feature; referee trials are scent-only
+        hint_trust=hint_trust,
     )
 
 

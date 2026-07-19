@@ -11,14 +11,15 @@ belief filters, and the cop forgoes its step (reference BARRIER semantics).
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 
 from copthief_core.domain.board import Coord
+from copthief_core.domain.gazetteer import Gazetteer
 from copthief_core.domain.rules import Outcome, check_end
 from copthief_core.shared.config_model import Constitution
-from copthief_core.strategy.brains import BrainBase, Observation, make_brain
+from copthief_core.strategy.brains import BrainBase, Observation
 from copthief_core.strategy.referee_setup import referee_belief, referee_trail
+from copthief_core.strategy.verbal import HintTraceRow, apply_thief_hint
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,10 @@ def play_referee_game(
     seed: int,
     cop_start: Coord | None = None,
     thief_start: Coord | None = None,
+    gazetteer: Gazetteer | None = None,
+    hint_bank: str = "",
+    hint_trust: float = 0.0,
+    verbal_trace: list[HintTraceRow] | None = None,
 ) -> RefereeGameResult:
     """One full-information-resolved, belief-driven mini-game (Input: constitution +
     two brains + trust + the bookkeeping seed + optional scenario starts; Output: the
@@ -52,7 +57,9 @@ def play_referee_game(
     intensity = constitution.pheromones.center_intensity
     cop = constitution.board.cop_start if cop_start is None else cop_start
     thief = constitution.board.thief_start if thief_start is None else thief_start
-    police_belief = referee_belief(constitution, start=thief, smell_trust=smell_trust)
+    police_belief = referee_belief(
+        constitution, start=thief, smell_trust=smell_trust, hint_trust=hint_trust
+    )
     thief_belief = referee_belief(constitution, start=cop, smell_trust=smell_trust)
     thief_trail, cop_trail = referee_trail(constitution), referee_trail(constitution)
 
@@ -62,27 +69,37 @@ def play_referee_game(
         )
 
     for step in range(1, min(threshold, max_moves) + 1):
-        thief = board.apply_move(
-            thief,
-            thief_brain.decide(
-                Observation(
-                    board=board,
-                    position=thief,
-                    move_set=move_set,
-                    role="thief",
-                    step=step,
-                    survival_threshold=threshold,
-                    max_moves=max_moves,
-                    own_smell=thief_trail.snapshot(),
-                    pheromones=constitution.pheromones,
-                ),
-                thief_belief,
-            ).move,
+        thief_decision = thief_brain.decide(
+            Observation(
+                board=board,
+                position=thief,
+                move_set=move_set,
+                role="thief",
+                step=step,
+                survival_threshold=threshold,
+                max_moves=max_moves,
+                gazetteer=gazetteer,
+                own_smell=thief_trail.snapshot(),
+                pheromones=constitution.pheromones,
+            ),
+            thief_belief,
         )
+        thief = board.apply_move(thief, thief_decision.move)
         thief_trail.deposit(thief, intensity)
         thief_trail.decay()
         police_belief.predict()
         police_belief.update_scent(thief_trail.snapshot())
+        if gazetteer is not None:  # M5-6: the verbal layer, peer-order (scent→hint)
+            apply_thief_hint(
+                gazetteer,
+                decision=thief_decision,
+                truth=thief,
+                belief=police_belief,
+                max_words=constitution.world.hint_max_words,
+                salt=step,
+                bank=hint_bank,
+                trace=verbal_trace,
+            )
         outcome = check_end(
             board,
             cop_pos=cop,
@@ -130,25 +147,3 @@ def play_referee_game(
         if outcome is not None:
             return result(outcome, step)
     return result(Outcome.THIEF_SURVIVAL, min(threshold, max_moves))
-
-
-def play_referee_series(
-    constitution: Constitution,
-    *,
-    police_brain_name: str,
-    thief_brain_name: str,
-    smell_trust: float,
-    seeds: Iterable[int],
-) -> list[RefereeGameResult]:
-    """A headless seeded series on the canonical signed starts: fresh brains per game,
-    two RNG streams per seed (police 2n, thief 2n+1) so pairings never share a stream."""
-    return [
-        play_referee_game(
-            constitution,
-            police_brain=make_brain(police_brain_name, seed=2 * seed),
-            thief_brain=make_brain(thief_brain_name, seed=2 * seed + 1),
-            smell_trust=smell_trust,
-            seed=seed,
-        )
-        for seed in seeds
-    ]

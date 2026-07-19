@@ -11,7 +11,7 @@ from pathlib import Path
 from copthief_core.domain.rules import Outcome
 from copthief_core.peer.match import run_local_minigame
 from copthief_core.shared.config import load_all
-from copthief_core.strategy.referee import play_referee_series
+from copthief_core.strategy.scenarios import play_referee_series
 
 CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 SEEDS = (1, 2, 3, 4, 5)

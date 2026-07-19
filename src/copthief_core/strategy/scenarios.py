@@ -56,6 +56,29 @@ def scenario_suite(
     return tuple(suite)
 
 
+def play_referee_series(
+    constitution: Constitution,
+    *,
+    police_brain_name: str,
+    thief_brain_name: str,
+    smell_trust: float,
+    seeds: Iterable[int],
+) -> list[RefereeGameResult]:
+    """A headless seeded series on the canonical signed starts (moved from
+    strategy/referee at M5-6, 150-line rule): fresh brains per game, two RNG
+    streams per seed (police 2n, thief 2n+1) so pairings never share a stream."""
+    return [
+        play_referee_game(
+            constitution,
+            police_brain=make_brain(police_brain_name, seed=2 * seed),
+            thief_brain=make_brain(thief_brain_name, seed=2 * seed + 1),
+            smell_trust=smell_trust,
+            seed=seed,
+        )
+        for seed in seeds
+    ]
+
+
 def play_scenario_series(
     constitution: Constitution,
     *,

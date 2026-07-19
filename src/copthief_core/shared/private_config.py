@@ -51,10 +51,12 @@ def load_private_settings(path: Path) -> PrivateSettings:
         connect_timeout_seconds=float(network["connect_timeout_seconds"]),
         smell_trust_weight=float(belief["smell_trust_weight"]),
         hint_trust_default=float(belief["hint_trust_default"]),
+        profile_hint_floor=float(belief["profile_hint_floor"]),
         police_class=str(strategy["police_class"]),
         thief_class=str(strategy["thief_class"]),
         police_options={str(k): float(v) for k, v in strategy.get("police", {}).items()},
         thief_options={str(k): float(v) for k, v in strategy.get("thief", {}).items()},
+        hint_bank=str(strategy.get("hint_bank", "")),
         gui=GuiSettings(
             refresh_ms=int(gui["refresh_ms"]),
             cell_px=int(gui["cell_px"]),
