@@ -1,0 +1,22 @@
+{
+  "version": "1.00",
+  "_comment": "M5-6 template-bank A/B config (thief-led; PRD_thief_brain s3 M5-6 seam). Referee-mode only - the efficacy metric needs ground truth. The thief runs with the DEPLOYED evolved weights (game.toml [strategy.thief]) so the measurement matches what plays live; seeds are fresh (disjoint from DoD 1-32, GA training 201-248, holdout 401-432 - the instrument is not a training target). The winner ships in game.toml [strategy] hint_bank.",
+  "banks": ["classic", "terse"],
+  "police": "ref-police",
+  "police_options": {
+    "ref_police_barrier_chance": 0.15
+  },
+  "thief": "copthief_thief.brain:ThiefBrain",
+  "thief_options": {
+    "ramp_multiplier": 1.3136,
+    "ramp_start_fraction": 0.9496,
+    "trap_size_fraction": 0.2945,
+    "w_articulation": 8.1599,
+    "w_distance": 5.2704,
+    "w_region": 1.8097,
+    "w_spread": 1.0655
+  },
+  "seeds": [501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532],
+  "scenario_min_separation": 4,
+  "evidence_out": "docs/evidence/m5-template-ab.md"
+}

@@ -3,6 +3,23 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #25 — feat/m5-6-thief-ab (M5-6 template-bank A/B — measured, winner shipped ⚑)
+
+- **Driver:** Imree (session brief: "M5-6 template-bank A/B — deception efficacy metric
+  in referee mode; winning bank shipped") · **Author:** Claude (terminal) · **Reviewer:**
+  Antigravity (cross-model); stacked on PR #24; core instrument from cop PR #39.
+- **This PR:** `config/deception_ab.json` (banks classic+terse · ref-police at the
+  attributed 0.15 · ThiefBrain with the DEPLOYED evolved weights · fresh seeds 501–532,
+  disjoint from DoD/GA/holdout) → committed `docs/evidence/m5-template-ab.md` →
+  **winner `classic` shipped** in `[strategy] hint_bank`. Candid findings, both
+  disclosed in the evidence: (1) banks measure IDENTICAL — wording is neutral to our
+  own closed-vocabulary parser by construction; (2) lie efficacy is real but tiny
+  (+0.000042 error/lie vs −0.006730 per truth-hint): the timing policy lies exactly
+  when the exact-Bayes tracker is already near-certain, where decoy mass barely moves —
+  a strategy-track observation for the report. A first 4dp table rounded the lie delta
+  to +0.0000; the instrument was fixed to 6dp (cop-side script, synced) BEFORE
+  committing evidence — numbers must not round the result away. TODO M5-6 ticked.
+
 ## PR #24 — feat/m5-thief-clock-anchors (signed-clock anchors + thief GA run, M5-4 ⚑)
 
 - **Driver:** Imree (delegated decisions: signed-clock anchors + thief GA; merge nothing) ·
