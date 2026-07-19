@@ -40,7 +40,7 @@ def _evidence(raw: dict[str, object], results: list[BankResult]) -> str:
     ]
     lines += [
         f"| {r.bank} | {r.games} | {r.thief_wins} | {r.summary.lies} | {r.summary.truths} "
-        f"| {r.summary.lie_delta:+.4f} | {r.summary.truth_delta:+.4f} |"
+        f"| {r.summary.lie_delta:+.6f} | {r.summary.truth_delta:+.6f} |"
         for r in results
     ]
     winner = max(results, key=lambda r: (r.summary.lie_delta, r.thief_wins))

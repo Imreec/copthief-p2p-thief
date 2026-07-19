@@ -13,7 +13,7 @@
     "scripts/check_file_sizes.py": "abb028552d232724e76437625cdd01b401071d0291d62d4421288ca81fb941f2",
     "scripts/check_no_hardcoded.py": "921cd11e5f6f56ce2883a0feeebbfc77cf9a55c70563fbf5d34c7041608102f2",
     "scripts/check_submission.py": "c6499a3591e79abf79a7a1aac483fd16609cfa2b3447300cdc8821e895b6c3ef",
-    "scripts/deception_ab.py": "a555a124a0b43781e528a3ec31bc2bfad90bceed08941331fd273cc1f31d229f",
+    "scripts/deception_ab.py": "06087ef032df61ca8f5981e037b6e6a85f7803d561aa8ab371ad367db9b2c302",
     "scripts/ga_run.py": "bd04f8e16cc35d4ff335e2e00e9b06488be1ac0f57014e80987e528951284174",
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
     "scripts/sync_core.py": "3c8ca23345d0d0ab1382c12edc876754180249eb3efa5d74cbd15deb9900edac",
@@ -160,7 +160,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "07f34b0",
+  "source_commit": "1e15688",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "fefe3bce012100601c18c9ad214bc40668b24b82e1cd5e4df375ca274c4bf858"
+  "tree_hash": "4cfe43c7c14792e0f4de542995cb7073355a43d1cb1a1d28cf70f3fbfe68373a"
 }
