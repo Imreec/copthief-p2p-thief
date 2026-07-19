@@ -16,6 +16,7 @@ from copthief_core.peer.p2p import PeerGameResult
 from copthief_core.peer.replay import ReplaySummary, replay_from_log
 from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
 from copthief_core.shared.config import load_all
+from copthief_core.strategy.info_feed import BeliefFeed
 from copthief_core.strategy.referee import RefereeGameResult
 from copthief_core.strategy.scenarios import Scenario, play_referee_series, play_scenario_series
 
@@ -78,9 +79,11 @@ class SimulationSdk:
         scenarios: Sequence[Scenario],
         police_options: Mapping[str, float] | None = None,
         thief_options: Mapping[str, float] | None = None,
+        belief_feed: BeliefFeed | None = None,
     ) -> list[RefereeGameResult]:
         """Referee-mode series over a start-scenario suite (M5-2) — the arena's and
-        the DoD floors' game source; options carry per-brain config knobs."""
+        the DoD floors' game source; options carry per-brain config knobs, and
+        `belief_feed` selects the wire-shape information structure (default hidden)."""
         return play_scenario_series(
             self.constitution,
             police_brain_name=police,
@@ -89,6 +92,7 @@ class SimulationSdk:
             scenarios=scenarios,
             police_options=police_options,
             thief_options=thief_options,
+            belief_feed=belief_feed,
         )
 
     def run_peer(

@@ -18,6 +18,7 @@ from copthief_core.domain.gazetteer import Gazetteer
 from copthief_core.domain.rules import Outcome, check_end
 from copthief_core.shared.config_model import Constitution
 from copthief_core.strategy.brains import BrainBase, Observation
+from copthief_core.strategy.info_feed import BeliefFeed, ScentFeed
 from copthief_core.strategy.referee_setup import referee_belief, referee_trail
 from copthief_core.strategy.verbal import HintTraceRow, apply_thief_hint
 
@@ -45,6 +46,7 @@ def play_referee_game(
     hint_bank: str = "",
     hint_trust: float = 0.0,
     verbal_trace: list[HintTraceRow] | None = None,
+    belief_feed: BeliefFeed | None = None,
 ) -> RefereeGameResult:
     """One full-information-resolved, belief-driven mini-game (Input: constitution +
     two brains + trust + the bookkeeping seed + optional scenario starts; Output: the
@@ -62,6 +64,7 @@ def play_referee_game(
     )
     thief_belief = referee_belief(constitution, start=cop, smell_trust=smell_trust)
     thief_trail, cop_trail = referee_trail(constitution), referee_trail(constitution)
+    feed = ScentFeed() if belief_feed is None else belief_feed  # wire-shape seam
 
     def result(outcome: Outcome, steps: int) -> RefereeGameResult:
         return RefereeGameResult(
@@ -87,8 +90,7 @@ def play_referee_game(
         thief = board.apply_move(thief, thief_decision.move)
         thief_trail.deposit(thief, intensity)
         thief_trail.decay()
-        police_belief.predict()
-        police_belief.update_scent(thief_trail.snapshot())
+        police_belief = feed.observe(police_belief, trail=thief_trail, truth=thief, board=board)
         if gazetteer is not None:  # M5-6: the verbal layer, peer-order (scent→hint)
             apply_thief_hint(
                 gazetteer,
@@ -134,8 +136,7 @@ def play_referee_game(
             cop = board.apply_move(cop, decision.move)
         cop_trail.deposit(cop, intensity)
         cop_trail.decay()
-        thief_belief.predict()
-        thief_belief.update_scent(cop_trail.snapshot())
+        thief_belief = feed.observe(thief_belief, trail=cop_trail, truth=cop, board=board)
         outcome = check_end(
             board,
             cop_pos=cop,
