@@ -21,9 +21,16 @@ dev = [
     # D2 (PRD_gui_replay §8, police repo): analysis-time only — match-time code never
     # imports it; CI needs it for the keyless PNG-export smoke (Agg backend, offline).
     { include-group = "viz" },
+    # M5-7: notebook build/execution + the renders-clean CI pin (nbformat parse).
+    { include-group = "notebook" },
 ]
 viz = [
     "matplotlib>=3.8",
+]
+notebook = [
+    "nbformat>=5.10",
+    "nbclient>=0.10",
+    "ipykernel>=6.29",
 ]
 
 [project.scripts]
