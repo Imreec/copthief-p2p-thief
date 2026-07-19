@@ -1,9 +1,21 @@
 {
-  "version": "1.00",
-  "comment": "Private operational rate limits (book App B; guidelines 5.2). Each value must meet or exceed the signed game.json rate_limiter_gatekeeper minimums - asserted by the config loader (PRD_engine s5).",
+  "version": "1.01",
+  "comment": "Private operational rate limits (book App B; guidelines 5.2). Flat keys must meet or exceed the signed game.json rate_limiter_gatekeeper minimums; `services` overrides may only tighten within [signed minimum, global value]; `queue`/`breaker`/`email` are the M6-5 gatekeeper blocks (PRD_gatekeeper s6) - all loader-asserted.",
   "requests_per_minute": 30,
   "concurrent_requests": 2,
   "retry_backoff_sec": 5,
   "max_retries": 3,
-  "queue_depth": 100
+  "queue_depth": 100,
+  "queue": {
+    "drain_interval_seconds": 0.5,
+    "timeout_seconds": 60
+  },
+  "breaker": {
+    "failure_threshold": 5,
+    "cooldown_seconds": 120
+  },
+  "email": {
+    "daily_cap": 10
+  },
+  "services": {}
 }

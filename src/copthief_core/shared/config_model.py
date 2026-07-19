@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.scoring import ScoringTable
+from copthief_core.shared.gatekeeper import BreakerLimits
+from copthief_core.shared.rate_limiter import QueueLimits
 
 
 @dataclass(frozen=True)
@@ -163,7 +165,8 @@ class PrivateSettings:
 
 @dataclass(frozen=True)
 class RateLimits:
-    """`config/rate_limits.json` — operational limits, each ≥ its signed minimum."""
+    """`config/rate_limits.json` v1.01 — operational limits, each ≥ its signed
+    minimum; `services` overrides are tighten-only within [signed, global] (M6-5)."""
 
     version: str
     requests_per_minute: int
@@ -171,3 +174,7 @@ class RateLimits:
     retry_backoff_sec: int
     max_retries: int
     queue_depth: int
+    queue: QueueLimits
+    breaker: BreakerLimits
+    email_daily_cap: int
+    services: dict[str, dict[str, int]]

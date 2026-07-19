@@ -26,9 +26,9 @@ from copthief_core.shared.config_model import (
     WorldParams,
 )
 from copthief_core.shared.gazetteer_loader import load_gazetteer as load_gazetteer
+from copthief_core.shared.limits_loader import load_rate_limits as load_rate_limits
 from copthief_core.shared.private_config import ConfigError as ConfigError
 from copthief_core.shared.private_config import load_private_settings as load_private_settings
-from copthief_core.shared.private_config import validated_version as _version
 
 
 def _pair(raw: list[int]) -> tuple[int, int]:
@@ -82,36 +82,6 @@ def load_constitution(path: Path, table: AppFTable, *, counted: bool) -> Constit
         league=LeagueParams(**league),
         gatekeeper=GatekeeperParams(**gate),
     )
-
-
-def load_rate_limits(path: Path, gatekeeper: GatekeeperParams) -> RateLimits:
-    """Load the operational limits and assert the signed-minimums precedence (PRD FR-9):
-    every shared key must meet or exceed the constitution's gatekeeper block."""
-    raw: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
-    limits = RateLimits(
-        version=_version(raw, path.name),
-        requests_per_minute=int(raw["requests_per_minute"]),
-        concurrent_requests=int(raw["concurrent_requests"]),
-        retry_backoff_sec=int(raw["retry_backoff_sec"]),
-        max_retries=int(raw["max_retries"]),
-        queue_depth=int(raw["queue_depth"]),
-    )
-    breaches = [
-        name
-        for name in (
-            "requests_per_minute",
-            "concurrent_requests",
-            "retry_backoff_sec",
-            "max_retries",
-            "queue_depth",
-        )
-        if getattr(limits, name) < getattr(gatekeeper, name)
-    ]
-    if breaches:
-        raise ConfigError(
-            f"{path.name}: below the signed gatekeeper minimums: {', '.join(breaches)}"
-        )
-    return limits
 
 
 def load_all(
