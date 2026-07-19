@@ -11,6 +11,7 @@ field, then decays it once per received message.
 
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -34,11 +35,13 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         session.machine.advance(GameState.COMPUTING_MOVE)
     verdict = VERDICT_TRUTH
     barrier = None
+    response_seconds = 0.0  # the mandatory final message costs no decision time
     if session.caught:  # the mandatory final message: no move, honest answer
         move, hint = "STAY", FINAL_CAUGHT_HINT
     else:
         # M3-5/M5-2: the brain reads OUR truth + the belief — never the opponent's.
         # M5-3 deception kit: gazetteer + our own transmitted trail + signed params.
+        decision_started = time.perf_counter()
         decision = session.brain.decide(
             Observation(
                 board=session.board,
@@ -56,6 +59,8 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
             ),
             session.belief,
         )
+        # Sealed timing (M6-3): decision wall-time, precision mirrors the reference.
+        response_seconds = round(time.perf_counter() - decision_started, 3)
         if decision.barrier is not None:  # the police walls instead of stepping
             barrier, move = decision.barrier, BARRIER_MOVE
             session.board = session.board.with_barrier(barrier)
@@ -87,6 +92,12 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         move=move,
         intent=verdict,
         hint=hint,
+        # M6-3 token accounting: the template path charges 0 every step; an LLM
+        # seam would report its per-call usage here (session.tokens_total ledger).
+        model=session.private.llm_model,
+        tokens_step=0,
+        tokens_total=session.tokens_total,
+        response_seconds=response_seconds,
     )
     session.records.append(sealed)
     # SQ1: deposit after the move at the NEW position, then decay the whole trail once.

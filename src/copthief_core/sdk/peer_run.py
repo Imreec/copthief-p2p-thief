@@ -49,7 +49,17 @@ def run_peer_flow(
         map_area=sdk.constitution.world.map_area,
         board=sdk.constitution.board.make_board(),
     )
-    session = PeerSession(sdk.constitution, sdk.private, role=role, seed=seed, gazetteer=gazetteer)
+    from copthief_core.peer.sealing import live_spec_record
+
+    session = PeerSession(
+        sdk.constitution,
+        sdk.private,
+        role=role,
+        seed=seed,
+        gazetteer=gazetteer,
+        # M6-3: the live peer declares its sealed step-0 (real HEAD + game-count).
+        spec_record=live_spec_record(sdk.private, sdk.constitution),
+    )
     sink = JsonlEventLogger(log_path).log if log_path is not None else None
 
     def play(extra: Any = None) -> PeerGameResult:  # noqa: ANN401 - optional LogFn tee

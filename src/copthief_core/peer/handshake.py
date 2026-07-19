@@ -50,8 +50,9 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
         # reference reads only its four keys (verify_peer indexes them), so the
         # extra key is ignored by it and logged by us (hashes on the session).
         "scent_model": scent_model,
-        # F8b: all seven keys the reference's declaration writer dereferences;
-        # spec stays {} until shared/sysinfo lands (M6-3) — its fields are .get()-safe.
+        # F8b: all seven keys the reference's declaration writer dereferences; the
+        # spec comes from OUR sealed step-0 record (M6-3) so the identity we hand the
+        # opponent and the declaration we seal can never disagree.
         "identity": {
             "group_id": session.private.group_id,
             "group_name": session.private.group_name,
@@ -59,7 +60,9 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
             "repos": dict(session.private.repos),
             "mcp_servers": dict(session.private.mcp_servers),
             "llm_model": session.private.llm_model,
-            "spec": {},
+            "spec": (
+                session.spec_record.payload["spec"] if session.spec_record is not None else {}
+            ),
         },
     }
 

@@ -29,7 +29,10 @@ def test_tampered_log_record_is_detected(tmp_path: Path) -> None:
     for index, line in enumerate(lines):
         event = json.loads(line)
         if event["event"] == "audit":
-            event["payload"]["records"][2]["payload"]["move"] = "MOVE:N"  # rewrite history
+            # Rewrite history at GAME step 3 — selected by step, not list index (the
+            # M6-3 step-0 declaration record leads the list).
+            record = next(r for r in event["payload"]["records"] if r["payload"].get("step") == 3)
+            record["payload"]["move"] = "MOVE:N"
             lines[index] = json.dumps(event, ensure_ascii=False)
             break
     log_path.write_text("\n".join(lines) + "\n", encoding="utf-8")

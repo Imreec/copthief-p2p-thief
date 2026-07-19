@@ -38,7 +38,11 @@ def test_series_aligns_belief_snapshots_with_the_audited_truth(
         for e in game_events
         if e["event"] == "audit" and e["payload"]["sender"] == "thief"
     )
-    truth_by_step = {r["payload"]["step"]: tuple(r["payload"]["position"]) for r in thief_records}
+    truth_by_step = {
+        r["payload"]["step"]: tuple(r["payload"]["position"])
+        for r in thief_records
+        if "position" in r["payload"]  # the M6-3 step-0 declaration seals no position
+    }
     assert series.role == "police"
     assert series.opponent == "thief"
     assert len(series.errors) == len(beliefs) > 0

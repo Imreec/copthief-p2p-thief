@@ -93,6 +93,22 @@ def _check_turn(turn: dict[str, Any], revealed: list[dict[str, Any]]) -> str | N
     return None
 
 
+def _check_unpaired(sender: str, records: list[dict[str, Any]]) -> list[str]:
+    """Re-hash EVERY revealed record, paired or not (rule 19; M6-3): audit-only
+    records — the sealed step-0 declaration above all — must not escape the iron
+    rule just because no TurnMessage traveled for them."""
+    problems = []
+    for record in records:
+        try:
+            ok = verify(record["payload"], record["nonce"], record["commit"])
+        except (KeyError, TypeError):
+            ok = False
+        if not ok:
+            step = record.get("payload", {}).get("step") if isinstance(record, dict) else None
+            problems.append(f"{sender} step {step}: revealed record does not re-hash (tamper)")
+    return problems
+
+
 def replay_from_log(path: Path) -> ReplaySummary:
     """Re-verify a logged mini-game (Input: JSONL path; Output: ReplaySummary)."""
     events = read_events(path)
@@ -101,9 +117,18 @@ def replay_from_log(path: Path) -> ReplaySummary:
     problems = [
         p for p in (_check_turn(t, revealed.get(t["sender"], [])) for t in turns) if p is not None
     ]
+    for sender, records in revealed.items():
+        problems.extend(_check_unpaired(sender, records))
     result: dict[str, Any] = next((e["payload"] for e in events if e["event"] == "result"), {})
+    # Game turns only (step >= 1): the M6-3 step-0 declaration seals no move.
     moves = {
-        sender: [str(r["payload"].get("move")) for r in records]
+        sender: [
+            str(r["payload"].get("move"))
+            for r in records
+            if isinstance(r.get("payload"), dict)
+            and isinstance(r["payload"].get("step"), int)
+            and r["payload"]["step"] >= 1
+        ]
         for sender, records in revealed.items()
     }
     return ReplaySummary(

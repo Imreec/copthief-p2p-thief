@@ -55,6 +55,7 @@ class PeerSession:
         seed: int,
         gazetteer: Gazetteer | None = None,
         hint_trust: float | None = None,
+        spec_record: SealedTurn | None = None,
     ) -> None:
         self.constitution = constitution
         self.private = private
@@ -82,6 +83,10 @@ class PeerSession:
         self.barriers_placed = 0  # our own quota bookkeeping (police walls, M5-2)
         self.policy: Any = SkeletonPolicy(seed=seed)
         self.records: list[SealedTurn] = []
+        # M6-3: the sealed step-0 declaration, kept BESIDE the game records (step
+        # numbering + settlement math never see it; the audit prepends it).
+        self.spec_record = spec_record
+        self.tokens_total = 0  # template path charges 0; an LLM seam would add here
         self.inbound: list[TurnMessage] = []
         self.game_uid: str | None = None
         self.opponent_group: str | None = None
