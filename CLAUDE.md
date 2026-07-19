@@ -77,7 +77,9 @@ output before reporting "done"; ticks TODO checkboxes as work lands, never as as
 | Secrets (OAuth, tokens) | `os.environ` / git-ignored files only |
 
 JSON overlays TOML on shared keys; per-game config files committed (`config_<game_id>_g<NN>.json`).
-Gmail scope is **send-only**; nonces from `secrets`, withheld until audit; per-game step-0
+Gmail scope is **compose-only** (`gmail.compose`: create/send drafts, no mailbox read — the
+least privilege supporting the draft rail; D1=A ruling, cop PR #43; sending identity = the
+dedicated team account, OI-5); nonces from `secrets`, withheld until audit; per-game step-0
 declaration records the exact commit hash played.
 
 ## 5. Testing — TDD + keyless layers

@@ -125,6 +125,18 @@ class GuiSettings:
 
 
 @dataclass(frozen=True)
+class EmailSettings:
+    """`[email]` (M6-4): draft default + disabled default — the interlock's resting
+    state survives section omission (constraint #16); recipient is per-run."""
+
+    enabled: bool
+    mode: str
+    recipient: str
+    sender: str
+    token_path: str
+
+
+@dataclass(frozen=True)
 class PrivateSettings:
     """The per-peer `config/game.toml` — never crosses the wire, never negotiated."""
 
@@ -161,6 +173,8 @@ class PrivateSettings:
     hint_bank: str
     # [gui] live-view render knobs (PRD_gui_replay §7) — private, display-only.
     gui: GuiSettings
+    # [email] draft/arming rail (M6-4) — private; safe defaults when absent.
+    email: EmailSettings
 
 
 @dataclass(frozen=True)

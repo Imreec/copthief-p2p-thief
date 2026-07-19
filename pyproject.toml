@@ -32,6 +32,14 @@ notebook = [
     "nbclient>=0.10",
     "ipykernel>=6.29",
 ]
+# M6-4 (PRD_reporting §9 D5): the live Gmail path only — operator machines, never
+# keyless CI (dev deliberately does NOT include this group; the code imports the
+# SDK lazily inside the live methods).
+email-live = [
+    "google-api-python-client>=2.100",
+    "google-auth>=2.23",
+    "google-auth-oauthlib>=1.1",
+]
 
 [project.scripts]
 copthief = "copthief_core.sdk.cli:main"
@@ -55,6 +63,12 @@ ignore = ["E501"]
 python_version = "3.12"
 strict = true
 files = ["src"]
+
+# M6-4: the Google SDK lives only in the operator-side `email-live` group; keyless
+# CI (and local strict runs) treat it as Any behind the lazy imports (HW6 pattern).
+[[tool.mypy.overrides]]
+module = ["google.*", "googleapiclient.*", "google_auth_oauthlib.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
