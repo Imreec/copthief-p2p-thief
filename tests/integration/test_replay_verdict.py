@@ -61,9 +61,45 @@ def test_replay_is_deterministic(real_log: Path) -> None:
     assert replay_from_log(real_log) == replay_from_log(real_log)
 
 
+def test_step0_declaration_rides_the_audit_with_the_real_head(real_log: Path) -> None:
+    """M6-3: the sealed step-0 system_spec record leads the audit records and
+    declares the exact commit hash played + the signed game-count."""
+    from copthief_core.shared.sysinfo import current_commit_hash
+
+    events = read_events(real_log)
+    audit = next(e for e in events if e["event"] == "audit")
+    first = audit["payload"]["records"][0]["payload"]
+    assert first["step"] == 0
+    assert first["type"] == "system_spec"
+    assert first["github_commit"] == current_commit_hash()
+    assert isinstance(first["num_games_declared"], int)
+
+
+def test_spec_record_mutation_flips_to_tampered(real_log: Path, tmp_path: Path) -> None:
+    """Rule 19 covers the declaration too: the step-0 record pairs with no traveled
+    turn, so the verifier must re-hash EVERY revealed record, paired or not."""
+    events = read_events(real_log)
+    audit = next(e for e in events if e["event"] == "audit")
+    audit["payload"]["records"][0]["payload"]["github_commit"] = "forged"
+    mutated = _rewrite(events, tmp_path / "mutated_step0.jsonl")
+    assert verdict_for(replay_from_log(mutated)) == VERDICT_TAMPERED
+
+
 @pytest.mark.parametrize(
     "field",
-    ["state", "move", "intent", "hint", "position", "step"],
+    [
+        "state",
+        "move",
+        "intent",
+        "hint",
+        "position",
+        "step",
+        # M6-3 sealed token accounting (PRD_reporting §4) — same iron rule.
+        "model",
+        "tokens_step",
+        "tokens_total",
+        "response_seconds",
+    ],
 )
 def test_single_sealed_field_mutation_flips_to_tampered(
     real_log: Path, tmp_path: Path, field: str

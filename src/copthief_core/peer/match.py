@@ -16,6 +16,7 @@ from typing import Any
 from copthief_core.domain.scoring import scores_for
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
+from copthief_core.peer.sealing import live_spec_record
 from copthief_core.peer.session import PeerSession
 from copthief_core.peer.transport import queue_pair
 from copthief_core.shared.config import load_all, load_gazetteer
@@ -79,10 +80,23 @@ def run_local_minigame(
         map_area=constitution.world.map_area,
         board=constitution.board.make_board(),
     )
+    # M6-3: each session seals its step-0 declaration (probed spec is process-cached).
     police = PeerSession(
-        constitution, private, role="police", seed=police_seed, gazetteer=gazetteer
+        constitution,
+        private,
+        role="police",
+        seed=police_seed,
+        gazetteer=gazetteer,
+        spec_record=live_spec_record(private, constitution),
     )
-    thief = PeerSession(constitution, private, role="thief", seed=thief_seed, gazetteer=gazetteer)
+    thief = PeerSession(
+        constitution,
+        private,
+        role="thief",
+        seed=thief_seed,
+        gazetteer=gazetteer,
+        spec_record=live_spec_record(private, constitution),
+    )
     police_transport, thief_transport = queue_pair(wait_timeout=private.connect_timeout_seconds)
     log({"event": "provenance", "payload": {"police_seed": police_seed, "thief_seed": thief_seed}})
 

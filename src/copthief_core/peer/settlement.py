@@ -87,7 +87,10 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
 
     if session.machine.state is not GameState.GAME_OVER:
         return result(audit_ok=False, claim="", problems=(f"audit skipped: {outcome}",))
-    ours = build_audit(session.role, session.records, wire_result(outcome))
+    # M6-3: the sealed step-0 declaration leads the audit (the reference audits its
+    # own spec record the same way — M2 smoke re-verified 36/36 incl. step-0).
+    full_records = [session.spec_record] if session.spec_record is not None else []
+    ours = build_audit(session.role, full_records + session.records, wire_result(outcome))
     emit({"event": "audit", "payload": ours})
     theirs = transport.exchange_audit(ours)
     if theirs is not None:

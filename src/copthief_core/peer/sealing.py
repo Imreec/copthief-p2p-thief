@@ -10,9 +10,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from copthief_core import __version__ as code_version
 from copthief_core.domain.board import Coord
 from copthief_core.domain.crypto import commit as crypto_commit
 from copthief_core.domain.crypto import make_nonce
+from copthief_core.shared.config_model import Constitution, PrivateSettings
+from copthief_core.shared.sysinfo import collect_spec, current_commit_hash
 
 
 def state_string(grid_size: int, position: Coord, barriers: frozenset[Coord]) -> str:
@@ -44,12 +47,17 @@ def seal_turn(
     move: str,
     intent: str,
     hint: str,
+    model: str = "none",
+    tokens_step: int = 0,
+    tokens_total: int = 0,
+    response_seconds: float = 0.0,
 ) -> SealedTurn:
     """Seal one turn (Input: the turn's facts; Output: record + nonce + commit).
 
     The nonce is fresh per record (`secrets`) and withheld until the end-of-game audit;
-    only the commit travels with the TurnMessage. Richer fields (verdict, sub_game,
-    role, timing, tokens) join the payload when their features land (M3+, PRD_crypto §4).
+    only the commit travels with the TurnMessage. M6-3: model/tokens/timing are sealed
+    INSIDE the record — the 0-token fairness claim becomes cryptographically auditable
+    (defaults = the absent-accounting/template path, which charges 0 every step).
     """
     payload: dict[str, Any] = {
         "step": step,
@@ -58,6 +66,57 @@ def seal_turn(
         "move": move,
         "intent": intent,
         "hint": hint,
+        "model": model,
+        "tokens_step": tokens_step,
+        "tokens_total": tokens_total,
+        "response_seconds": response_seconds,
     }
     nonce = make_nonce()
     return SealedTurn(payload=payload, nonce=nonce, commit=crypto_commit(payload, nonce))
+
+
+def seal_spec_record(
+    *,
+    spec: dict[str, Any],
+    model: str,
+    group_name: str,
+    sub_game_number: int,
+    github_commit: str,
+    num_games_declared: int,
+) -> SealedTurn:
+    """The sealed step-0 system_spec declaration (book §6/§8; PRD_reporting §4).
+
+    Seals hardware + model + code version + the EXACT commit hash played + the
+    truthful game-count (rules 37–38). Lives BESIDE the game records — the audit
+    prepends it; step numbering and settlement math never see it. (The reference's
+    log `_schema` promises github_commit here but its code omits it — we close that
+    gap on our side; sealed payloads are self-consistent per side.)
+    """
+    payload: dict[str, Any] = {
+        "step": 0,
+        "type": "system_spec",
+        "spec": spec,
+        "model": model,
+        "code_version": code_version,
+        "group_name": group_name,
+        "sub_game_number": sub_game_number,
+        "github_commit": github_commit,
+        "num_games_declared": num_games_declared,
+    }
+    nonce = make_nonce()
+    return SealedTurn(payload=payload, nonce=nonce, commit=crypto_commit(payload, nonce))
+
+
+def live_spec_record(
+    private: PrivateSettings, constitution: Constitution, *, sub_game_number: int | None = None
+) -> SealedTurn:
+    """The real host's step-0 record: probed spec + this checkout's HEAD + the signed
+    game-count. `sub_game_number` overrides the TOML value in a series (M6-6)."""
+    return seal_spec_record(
+        spec=collect_spec(),
+        model=private.llm_model,
+        group_name=private.group_name,
+        sub_game_number=private.sub_game_number if sub_game_number is None else sub_game_number,
+        github_commit=current_commit_hash(),
+        num_games_declared=constitution.league.num_games,
+    )

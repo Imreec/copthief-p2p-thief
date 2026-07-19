@@ -39,10 +39,13 @@ def overlay_series(events: list[dict[str, Any]], *, role: str | None) -> Overlay
     revealed = revealed_records(events).get(opponent)
     if not revealed:
         raise ValueError(f"no {opponent} audit in the log - the overlay is post-audit only (FR-10)")
+    # Game turns only: the M6-3 sealed step-0 declaration has no position to plot.
     truth_by_step: dict[int, Coord] = {
         r["payload"]["step"]: (r["payload"]["position"][0], r["payload"]["position"][1])
         for r in revealed
         if isinstance(r["payload"].get("step"), int)
+        and r["payload"]["step"] >= 1
+        and isinstance(r["payload"].get("position"), list)
     }
     snapshots = [
         e["payload"] for e in events if e["event"] == "belief" and e.get("sender") == detected
