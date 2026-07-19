@@ -8,7 +8,12 @@ from copthief_core.domain.state_machine import GameState
 from copthief_core.peer.session import NegotiationError, PeerSession
 from copthief_core.shared.config import load_all
 
-CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+CONSTITUTION, _SHIPPED, _LIMITS = load_all(Path("config"), counted=False)
+# Session-behavior pins probed under the M1 walk - independent of the repo's
+# shipped [strategy] classes (PR #29 rule).
+from dataclasses import replace as _replace  # noqa: E402
+
+PRIVATE = _replace(_SHIPPED, police_class="random", thief_class="random")
 
 
 def _pair() -> tuple[PeerSession, PeerSession]:

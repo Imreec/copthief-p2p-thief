@@ -16,8 +16,8 @@ from copthief_core.peer.p2p import PeerGameResult
 from copthief_core.peer.replay import ReplaySummary, replay_from_log
 from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
 from copthief_core.shared.config import load_all
-from copthief_core.strategy.referee import RefereeGameResult, play_referee_series
-from copthief_core.strategy.scenarios import Scenario, play_scenario_series
+from copthief_core.strategy.referee import RefereeGameResult
+from copthief_core.strategy.scenarios import Scenario, play_referee_series, play_scenario_series
 
 
 class SimulationSdk:

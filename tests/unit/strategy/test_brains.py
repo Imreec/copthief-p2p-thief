@@ -107,6 +107,22 @@ def test_greedy_respects_barriers_via_the_clamp() -> None:
     assert move in {"S", "W", "STAY"}
 
 
+def test_observation_carries_the_signed_clock_with_inert_defaults() -> None:
+    board = make_board()
+    bare = observation(board, (3, 3), "thief")
+    assert (bare.survival_threshold, bare.max_moves) == (0, 0)  # legacy callers unchanged
+    timed = Observation(
+        board=board,
+        position=(3, 3),
+        move_set=MOVE_SET,
+        role="thief",
+        step=1,
+        survival_threshold=40,
+        max_moves=60,
+    )
+    assert (timed.survival_threshold, timed.max_moves) == (40, 60)
+
+
 def test_factory_builds_by_config_name_and_refuses_unknowns() -> None:
     assert isinstance(make_brain("random", seed=1), RandomBrain)
     assert isinstance(make_brain("greedy-manhattan", seed=1), GreedyManhattanBrain)

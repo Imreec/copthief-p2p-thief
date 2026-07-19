@@ -54,6 +54,7 @@ class PeerSession:
         role: str,
         seed: int,
         gazetteer: Gazetteer | None = None,
+        hint_trust: float | None = None,
     ) -> None:
         self.constitution = constitution
         self.private = private
@@ -96,6 +97,9 @@ class PeerSession:
         self.opponent_scent_model_hash: str | None = None
         # PRD_belief: the opponent's position filter, primed at THEIR signed start;
         # peer/turns runs its predict/update pipeline on every inbound message.
+        # M5-5: `hint_trust` is the profiling seam — a series runner passes the
+        # profile-shifted value for mini-game 2+; the belief math never changes.
+        self.hint_trust = private.hint_trust_default if hint_trust is None else hint_trust
         self.belief = BeliefFilter(
             board=self.board,
             move_set=constitution.movement.move_set,
@@ -105,7 +109,7 @@ class PeerSession:
             center_intensity=constitution.pheromones.center_intensity,
             decay=constitution.pheromones.decay,
             smell_trust=private.smell_trust_weight,
-            hint_trust=private.hint_trust_default,
+            hint_trust=self.hint_trust,
         )
 
     # -- handshake (PLAN §4; peer/handshake) -----------------------------------------

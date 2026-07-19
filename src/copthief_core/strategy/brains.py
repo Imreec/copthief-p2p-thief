@@ -31,7 +31,9 @@ class Observation:
     The M5-3 deception kit rides here: the (public) gazetteer, OUR OWN transmitted
     scent so far (`own_smell` — exactly the evidence the opponent has received from
     us), and the signed pheromone params — everything a self-mirror needs, nothing
-    about the opponent's truth.
+    about the opponent's truth. The signed clock (`survival_threshold`/`max_moves`)
+    lets brains anchor time-shaped knobs to the constitution instead of copying it
+    into private config (0 = unknown, legacy callers unchanged).
     """
 
     board: Board
@@ -41,6 +43,8 @@ class Observation:
     step: int
     barriers_used: int = 0
     max_barriers: int = 0
+    survival_threshold: int = 0
+    max_moves: int = 0
     gazetteer: Gazetteer | None = None
     own_smell: dict[str, float] = field(default_factory=dict)
     pheromones: PheromoneParams | None = None

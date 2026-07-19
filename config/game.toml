@@ -39,6 +39,9 @@ thief_class = "copthief_thief.brain:ThiefBrain"
 # the transmitted grid is unauthenticated - trust is a tunable, never an axiom).
 smell_trust_weight = 4.0
 hint_trust_default = 1.0
+# M5-5 profiling: the post-audit lie-rate scales the NEXT mini-game's hint trust
+# down toward (never past) this floor - distrust-but-never-eliminate.
+profile_hint_floor = 0.2
 
 [gui]
 # Live-view render knobs (PRD_gui_replay s7, police repo): display-only, never

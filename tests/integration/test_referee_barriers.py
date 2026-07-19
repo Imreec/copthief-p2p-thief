@@ -83,6 +83,35 @@ def test_ref_police_barriers_respect_the_signed_quota_and_stay_reproducible() ->
     assert outcome in (Outcome.COP_CAPTURE, Outcome.THIEF_SURVIVAL)
 
 
+class _ClockSpyBrain(BrainBase):
+    """Sits still and records every observation (pins the signed-clock fields)."""
+
+    def __init__(self, *, seed: int) -> None:
+        super().__init__(seed=seed)
+        self.seen: list[Observation] = []
+
+    def _pick_move(self, observation: Observation, belief: BeliefFilter) -> str:
+        self.seen.append(observation)
+        return "STAY"
+
+
+def test_referee_observations_carry_the_signed_clock() -> None:
+    police, thief = _ClockSpyBrain(seed=1), _ClockSpyBrain(seed=2)
+    play_referee_game(
+        CONSTITUTION,
+        police_brain=police,
+        thief_brain=thief,
+        smell_trust=PRIVATE.smell_trust_weight,
+        seed=1,
+    )
+    movement = CONSTITUTION.movement
+    assert police.seen
+    assert thief.seen
+    for seen in (*police.seen, *thief.seen):
+        assert seen.survival_threshold == movement.survival_threshold
+        assert seen.max_moves == movement.max_moves
+
+
 def test_start_overrides_relocate_the_game_without_touching_the_constitution() -> None:
     # Adjacent overridden starts + a greedy cop + a sitting thief = capture on step 1 —
     # only possible if the overrides actually moved both agents off the signed starts.

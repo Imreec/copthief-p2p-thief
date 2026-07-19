@@ -144,6 +144,9 @@ class PrivateSettings:
     # [belief] evidence-trust tuning (PRD_belief §5) — private, never negotiated.
     smell_trust_weight: float
     hint_trust_default: float
+    # M5-5 profiling floor: the shifted hint trust never drops below this
+    # (distrust-but-never-eliminate — SQ3 stance).
+    profile_hint_floor: float
     # [strategy] brain selection per role (PLAN §7) — private, never negotiated.
     # [strategy.<role>] sub-tables carry the brain's numeric knobs (M5 weights etc.):
     # config-owned per CLAUDE.md #5, tuned offline (M5-4), never on the sparring host.
@@ -151,6 +154,9 @@ class PrivateSettings:
     thief_class: str
     police_options: dict[str, float]
     thief_options: dict[str, float]
+    # M5-6: which named template bank the verbal layer speaks ("" = the default
+    # bank) — the A/B arena run ships its winner here.
+    hint_bank: str
     # [gui] live-view render knobs (PRD_gui_replay §7) — private, display-only.
     gui: GuiSettings
 

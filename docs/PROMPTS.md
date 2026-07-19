@@ -3,6 +3,19 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #23 — sync/m5-core-post-36 (post-#35/#36 core sync + GA parity)
+
+- **Driver:** Imree (session directive: build the chain, merge nothing; sync + thief GA
+  delegated) · **Author:** Claude (terminal) · **Reviewer:** Antigravity (cross-model).
+- **This PR:** the sync ritual covering the mirror lag left by design last session —
+  cop #35 (M5-4 genetic core: `strategy/genetic/`, `scripts/ga_run.py`, GA smoke suite,
+  session/facade M1-walk pins) + cop #36 (Observation signed clock: `survival_threshold`
+  + `max_moves` at the referee and peer seams), synced from the cop branch tree
+  @af400a5 (content-hashed mirror, the #21 precedent). Parity: this repo's own
+  `config/ga.json` — ThiefBrain continuous-weight gene box vs `ref-police` (the mirrored
+  GA suite loads it at module level; role-blind per the PR #29 rule). Gotcha-#9 audit:
+  full thief suite run BEFORE the sync commit — 406 passed; all gates green.
+
 ## PR #22 — feat/m5-3-thief-brain (M5-3 — ThiefBrain, the graded core ⚑)
 
 - **Driver:** Imree ("continue and build what you need for M5; merge nothing tonight" —
