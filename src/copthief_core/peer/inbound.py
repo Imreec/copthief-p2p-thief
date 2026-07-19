@@ -25,7 +25,11 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
     except WireValidationError as error:
         raise session.collapse(str(error)) from error
     expected = len(session.inbound) + 1
-    if message.step != expected:
+    # Terminal-message step convention (M5 friendly g1 live finding): the reference
+    # seals its mandatory caught final message at its CURRENT step (a caught thief
+    # does not move); ours increments. Tolerate the repeat on that message ONLY.
+    final_caught = bool(message.claim_response and message.claim_response.get("caught"))
+    if message.step != expected and not (final_caught and message.step == expected - 1):
         raise session.collapse(f"step discontinuity: expected {expected}, got {message.step}")
     session.inbound.append(message)
     # F9: a declared barrier is sealed/audited evidence — it constrains OUR OWN move

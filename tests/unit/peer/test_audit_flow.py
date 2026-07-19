@@ -48,6 +48,32 @@ def test_step_gap_is_flagged() -> None:
     assert any("continuity" in p for p in problems)
 
 
+def test_trailing_repeated_final_step_is_the_reference_caught_convention() -> None:
+    # Live finding (M5 friendly g2): a caught reference thief seals its mandatory
+    # final message at its CURRENT step - revealed steps run [1..N, N]. That single
+    # trailing repeat is legal; the records still re-hash individually.
+    records = _records(4)
+    final = seal_turn(
+        step=4,
+        grid_size=7,
+        position=(4 % 7, 3),
+        barriers=frozenset(),
+        move="STAY",
+        intent="truth",
+        hint="You got me.",
+    )
+    audit = AuditPayload.from_wire(build_audit("thief", [*records, final], "capture"))
+    assert verify_audit(audit) == []
+
+
+def test_a_mid_series_repeated_step_still_breaks_continuity() -> None:
+    records = _records(4)
+    dup = records[1]  # a second step-2 record inserted mid-series
+    wire = build_audit("thief", [*records[:2], dup, *records[2:]], "capture")
+    problems = verify_audit(AuditPayload.from_wire(wire))
+    assert any("continuity" in p for p in problems)
+
+
 def test_wire_result_speaks_the_reference_vocabulary() -> None:
     from copthief_core.peer.audit_flow import wire_result
 

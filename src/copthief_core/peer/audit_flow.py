@@ -55,6 +55,14 @@ def verify_audit(audit: AuditPayload) -> list[str]:
         if not verify(record.payload, record.nonce, record.commit):
             problems.append(f"tamper: step {step} recompute does not match the sealed commit")
     expected = list(range(1, len(game_steps) + 1))
-    if game_steps != expected:
+    # Terminal-message convention (M5 friendly g2 live finding): a caught reference
+    # thief seals its mandatory final message at its CURRENT step, so its revealed
+    # steps run [1..N, N]. Exactly one TRAILING repeat is legal; anything else breaks.
+    trailing_repeat = (
+        len(game_steps) >= 2
+        and game_steps[-1] == game_steps[-2]
+        and game_steps[:-1] == list(range(1, len(game_steps)))
+    )
+    if game_steps != expected and not trailing_repeat:
         problems.append(f"continuity: revealed game steps {game_steps} != expected {expected}")
     return problems
