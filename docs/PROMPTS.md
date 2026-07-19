@@ -3,6 +3,25 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #24 — feat/m5-thief-clock-anchors (signed-clock anchors + thief GA run, M5-4 ⚑)
+
+- **Driver:** Imree (delegated decisions: signed-clock anchors + thief GA; merge nothing) ·
+  **Author:** Claude (terminal) · **Reviewer:** Antigravity (cross-model); stacked on
+  sync PR #23.
+- **This PR:** RED anchor pins → GREEN `survival_ramp` (ramp_start_fraction × the
+  SIGNED threshold; 0.7×35 = the old step-25 behavior byte-for-byte — committed arena
+  table regenerates identically) + `trap_ceiling` (fraction of the capped REMAINING
+  clock; pockets that outlast the clock open up late game — pinned both ways). The
+  PRD §3 deviation note retired; gene box follows. **GA run honesty:** the first
+  16-seed run plateaued flat (0.688 = best random candidate, curve FLAT); widened the
+  instrument on training signal only — 32 seeds improved but validated as an off-suite
+  wash (51/64 vs default 52/64, NOT deployed); the committed 48-seed × pop-16 × 16-gen
+  run improved 0.708→0.792 and validated off-suite: **DoD 78%→84% (breaks the M5-3
+  greedy tie), holdout 84%→81%, net across suites 91/112 vs 86/112 — deployed** to
+  `arena.json` brain_options + `[strategy.thief]`. Champion pin honestly stays
+  `greedy-manhattan` (the 8-seed round-robin still ties; a tie is not a dethroning).
+  TODO M5-4 ticked.
+
 ## PR #23 — sync/m5-core-post-36 (post-#35/#36 core sync + GA parity)
 
 - **Driver:** Imree (session directive: build the chain, merge nothing; sync + thief GA

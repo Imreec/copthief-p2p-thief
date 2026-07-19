@@ -16,7 +16,13 @@ from copthief_core.strategy.decision import Decision
 from copthief_core.strategy.hints import VERDICT_LIE
 from copthief_thief.articulation import articulation_points, min_sealed_component
 from copthief_thief.deception import DeceptionClock, SelfMirror
-from copthief_thief.features import resolve_options, truncated_support, worst_case_distance
+from copthief_thief.features import (
+    resolve_options,
+    survival_ramp,
+    trap_ceiling,
+    truncated_support,
+    worst_case_distance,
+)
 from copthief_thief.regions import safe_region_size
 
 
@@ -36,14 +42,14 @@ class ThiefBrain(BrainBase):
         dest = board.apply_move(observation.position, move)
         support = truncated_support(belief, int(opts["top_k"]))
         cap = int(opts["region_cap"])
-        ramp = opts["ramp_multiplier"] if observation.step >= opts["ramp_start_step"] else 1.0
+        ramp = survival_ramp(opts, observation)
         score = opts["w_distance"] * ramp * worst_case_distance(dest, support)
         threat = belief.argmax()
         score += opts["w_region"] * safe_region_size(board, dest, threat, observation.move_set, cap)
         if observation.barriers_used < observation.max_barriers:
             cuts = articulation_points(board, observation.position, observation.move_set, cap)
             sealed = min_sealed_component(board, dest, cuts, observation.move_set, cap)
-            if sealed < opts["trap_region_min"]:
+            if sealed < trap_ceiling(opts, observation):
                 score -= opts["w_articulation"]  # a cheap seal away from imprisonment
         if dest not in self._visited:
             score += opts["w_spread"]

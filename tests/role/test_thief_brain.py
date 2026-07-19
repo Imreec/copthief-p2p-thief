@@ -37,6 +37,7 @@ def observation(
     step: int = 1,
     barriers_used: int = 0,
     max_barriers: int = 14,
+    survival_threshold: int = 35,
 ) -> Observation:
     return Observation(
         board=board,
@@ -46,6 +47,8 @@ def observation(
         step=step,
         barriers_used=barriers_used,
         max_barriers=max_barriers,
+        survival_threshold=survival_threshold,
+        max_moves=survival_threshold,
     )
 
 
@@ -102,6 +105,55 @@ def test_survival_ramp_dominates_near_the_threshold() -> None:
     late_gap = abs(late_dest[0] - 3) + abs(late_dest[1] - 1)
     assert late_gap >= abs(early_dest[0] - 3) + abs(early_dest[1] - 1)
     assert late_gap == 3  # at the clock's edge nothing beats pure flight
+
+
+def test_survival_ramp_anchors_to_the_signed_threshold_not_absolute_steps() -> None:
+    # Step 33 is endgame against the signed 35-step clock, early game against a
+    # 100-step one — the ramp keys on the SIGNED threshold, not the calendar; no
+    # clock in the observation (0) means no endgame ever.
+    from copthief_thief.features import DEFAULT_OPTIONS, survival_ramp
+
+    board = make_board()
+    on = observation(board, (3, 3), step=33, survival_threshold=35)
+    off = observation(board, (3, 3), step=33, survival_threshold=100)
+    no_clock = observation(board, (3, 3), step=33, survival_threshold=0)
+    assert survival_ramp(DEFAULT_OPTIONS, on) == DEFAULT_OPTIONS["ramp_multiplier"]
+    assert survival_ramp(DEFAULT_OPTIONS, off) == 1.0
+    assert survival_ramp(DEFAULT_OPTIONS, no_clock) == 1.0
+
+
+def test_trap_ceiling_tracks_the_remaining_clock() -> None:
+    # A pocket is a trap only while the clock outlasts it: the ceiling shrinks as
+    # steps burn down (capped by the BFS region cap; no clock = the cap itself).
+    from copthief_thief.features import DEFAULT_OPTIONS, trap_ceiling
+
+    board = make_board()
+    early = observation(board, (3, 3), step=1, survival_threshold=35)
+    late = observation(board, (3, 3), step=33, survival_threshold=35)
+    no_clock = observation(board, (3, 3), step=1, survival_threshold=0)
+    capped = DEFAULT_OPTIONS["trap_size_fraction"] * DEFAULT_OPTIONS["region_cap"]
+    assert trap_ceiling(DEFAULT_OPTIONS, early) == capped  # 34 remaining, capped at 30
+    assert trap_ceiling(DEFAULT_OPTIONS, late) < trap_ceiling(DEFAULT_OPTIONS, early)
+    assert trap_ceiling(DEFAULT_OPTIONS, no_clock) == capped
+
+
+def test_trap_opens_when_the_pocket_outlasts_the_clock() -> None:
+    # The sealable row-6 pocket from the articulation pin: with 34 steps still to
+    # survive it is a trap; two steps from the survival threshold it holds more
+    # cells than the clock has steps left — the same pocket is now safe ground.
+    walls = frozenset({(5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 6), (4, 4), (4, 6)})
+    board = make_board(barriers=walls)
+    belief = make_belief(board, (3, 5))
+    early = ThiefBrain(seed=1).decide(
+        observation(board, (4, 5), step=1, barriers_used=len(walls), survival_threshold=35),
+        belief,
+    )
+    assert board.apply_move((4, 5), early.move) != (5, 5)  # long clock: refuse the trap
+    late = ThiefBrain(seed=1).decide(
+        observation(board, (4, 5), step=33, barriers_used=len(walls), survival_threshold=35),
+        belief,
+    )
+    assert board.apply_move((4, 5), late.move) == (5, 5)  # clock beats the seal: dive in
 
 
 def test_decisions_are_deterministic_and_factory_resolvable() -> None:
