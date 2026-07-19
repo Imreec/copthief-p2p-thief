@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from copthief_core.domain.board import Coord
 from copthief_core.shared.config_model import Constitution
 from copthief_core.strategy.brains import make_brain
+from copthief_core.strategy.info_feed import BeliefFeed
 from copthief_core.strategy.referee import RefereeGameResult, play_referee_game
 
 
@@ -88,6 +89,7 @@ def play_scenario_series(
     scenarios: Iterable[Scenario],
     police_options: Mapping[str, float] | None = None,
     thief_options: Mapping[str, float] | None = None,
+    belief_feed: BeliefFeed | None = None,
 ) -> list[RefereeGameResult]:
     """A seeded series over scenarios: fresh brains per game, two RNG streams per seed
     (police 2n, thief 2n+1) so pairings never share a stream."""
@@ -104,6 +106,7 @@ def play_scenario_series(
             seed=scenario.seed,
             cop_start=scenario.cop_start,
             thief_start=scenario.thief_start,
+            belief_feed=belief_feed,
         )
         for scenario in scenarios
     ]

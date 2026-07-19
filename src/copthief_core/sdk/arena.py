@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 from copthief_core.domain.rules import Outcome
 from copthief_core.domain.scoring import scores_for
 from copthief_core.sdk.arena_config import ArenaConfig
+from copthief_core.strategy.info_feed import BeliefFeed
 from copthief_core.strategy.referee import RefereeGameResult
 
 if TYPE_CHECKING:
@@ -90,10 +91,13 @@ def build_report(
     return ArenaReport(series=tuple(series), standings=standings)
 
 
-def run_round_robin(sdk: SimulationSdk, *, config: ArenaConfig) -> ArenaReport:
+def run_round_robin(
+    sdk: SimulationSdk, *, config: ArenaConfig, belief_feed: BeliefFeed | None = None
+) -> ArenaReport:
     """Every police-roster brain plays every thief-roster brain over the config's
     scenario suite (M5-2 per-role rosters — a role-specific brain only ever enters
-    its own side). Standings carry the roster display aliases."""
+    its own side). Standings carry the roster display aliases; `belief_feed` selects
+    the wire-shape information structure (default hidden — the shipped arena)."""
     from copthief_core.strategy.scenarios import scenario_suite
 
     scenarios = scenario_suite(
@@ -110,6 +114,7 @@ def run_round_robin(sdk: SimulationSdk, *, config: ArenaConfig) -> ArenaReport:
                     scenarios=scenarios,
                     police_options=config.options_for(police.name),
                     thief_options=config.options_for(thief.name),
+                    belief_feed=belief_feed,
                 )
             ),
         )
