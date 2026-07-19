@@ -77,3 +77,17 @@ opponent_url = ""
 turn_timeout_seconds = 180
 poll_interval_seconds = 0.5
 connect_timeout_seconds = 60
+
+[email]
+# M6-4 draft/arming rail (constraint #16; PRD_reporting s5). The resting state is
+# disabled+draft; a send additionally requires the per-invocation arming retype of
+# the exact game_uid - no email ever leaves without Imree's explicit per-send word.
+# Recipient is per-run (lecturer for counted series, a peer team for an authorized
+# friendly report exchange); sender = the dedicated team Gmail account (OI-5).
+# KEEP THIS SECTION LAST: the settings tests derive the "absent section" case by
+# cutting the file at the [email] header.
+enabled = false
+mode = "draft"
+recipient = ""
+sender = ""
+token_path = "token.json"

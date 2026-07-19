@@ -11,7 +11,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from copthief_core.shared.config_model import GuiSettings, PrivateSettings
+from copthief_core.shared.config_model import EmailSettings, GuiSettings, PrivateSettings
 
 _VERSION_FORM = re.compile(r"^\d+\.\d{2}$")
 
@@ -34,7 +34,7 @@ def load_private_settings(path: Path) -> PrivateSettings:
     raw = tomllib.loads(path.read_text(encoding="utf-8"))
     game, network = raw.get("game", {}), raw.get("network", {})
     belief, strategy = raw.get("belief", {}), raw.get("strategy", {})
-    gui = raw.get("gui", {})
+    gui, email = raw.get("gui", {}), raw.get("email", {})
     return PrivateSettings(
         version=validated_version(raw, path.name),
         group_name=str(game["group_name"]),
@@ -69,5 +69,14 @@ def load_private_settings(path: Path) -> PrivateSettings:
             theme_panel=str(gui["theme_panel"]),
             theme_fg=str(gui["theme_fg"]),
             accent=str(gui["accent"]),
+        ),
+        # M6-4 (constraint #16): omission of [email] still yields the safe resting
+        # state — disabled + draft; the interlock cannot be weakened by absence.
+        email=EmailSettings(
+            enabled=bool(email.get("enabled", False)),
+            mode=str(email.get("mode", "draft")),
+            recipient=str(email.get("recipient", "")),
+            sender=str(email.get("sender", "")),
+            token_path=str(email.get("token_path", "token.json")),
         ),
     )
