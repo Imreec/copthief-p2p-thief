@@ -27,6 +27,9 @@ thief = "https://thief.imreeyal.com/mcp"
 # generic brain - tuned weights never deploy there (CLAUDE.md s9).
 police_class = "random"
 thief_class = "copthief_thief.brain:ThiefBrain"
+# M5-6 A/B winner (docs/evidence/m5-template-ab.md): banks measured identical
+# against our closed-vocabulary parser - classic retained on the survivals tiebreak.
+hint_bank = "classic"
 
 [strategy.thief]
 # ThiefBrain knobs: the canonical defaults live in copthief_thief/features.py
