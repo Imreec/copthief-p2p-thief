@@ -40,6 +40,7 @@ def run_peer_game(
     turn_timeout: float,
     poll_interval: float,
     log: LogFn | None = None,
+    heartbeat: LogFn | None = None,
 ) -> PeerGameResult:
     """Play ONE mini-game as `session`'s role over `transport` (Input: a fresh session +
     a connected transport + the private timing budget; Output: this side's result).
@@ -59,6 +60,8 @@ def run_peer_game(
         _send_own_turn(session, transport, emit)
     deadline = time.time() + turn_timeout
     while not session.machine.is_terminal:
+        if heartbeat is not None:  # M6-7: the watchdog's liveness signal (FR-8)
+            heartbeat({"event": "heartbeat"})
         incoming = transport.poll_turn(poll_interval)
         if incoming is None:
             if time.time() > deadline:

@@ -61,6 +61,24 @@ def run_peer_flow(
         spec_record=live_spec_record(sdk.private, sdk.constitution),
     )
     sink = JsonlEventLogger(log_path).log if log_path is not None else None
+    # M6-7 (FR-8): a hung live loop is never a silent freeze — the watchdog persists
+    # the session snapshot (git-ignored logs/) and exits loudly after logging.
+    from copthief_core.peer.watchdog import Watchdog, session_snapshot
+
+    def stall(reason: str) -> None:  # pragma: no cover - the live stall path
+        import os
+
+        if sink is not None:
+            sink({"event": "watchdog_stall", "sender": role, "payload": {"reason": reason}})
+        os._exit(1)  # controlled: state persisted by the watchdog before this call
+
+    state_dir = log_path.parent if log_path is not None else Path("logs")
+    watchdog = Watchdog(
+        timeout_sec=sdk.constitution.league.watchdog_timeout_sec,
+        snapshot=lambda: session_snapshot(session),
+        persist_path=state_dir / f"state_{role}.json",
+        on_stall=stall,
+    )
 
     def play(extra: Any = None) -> PeerGameResult:  # noqa: ANN401 - optional LogFn tee
         def fan(event: dict[str, Any]) -> None:
@@ -69,13 +87,19 @@ def run_peer_flow(
             if extra is not None:
                 extra(event)
 
-        return run_peer_game(
-            session,
-            transport,
-            turn_timeout=sdk.private.turn_timeout_seconds,
-            poll_interval=sdk.private.poll_interval_seconds,
-            log=fan,
-        )
+        watchdog.beat()
+        watchdog.start(poll_interval=sdk.private.poll_interval_seconds)
+        try:
+            return run_peer_game(
+                session,
+                transport,
+                turn_timeout=sdk.private.turn_timeout_seconds,
+                poll_interval=sdk.private.poll_interval_seconds,
+                log=fan,
+                heartbeat=lambda _event: watchdog.beat(),
+            )
+        finally:
+            watchdog.stop()
 
     if not gui:
         return play()
