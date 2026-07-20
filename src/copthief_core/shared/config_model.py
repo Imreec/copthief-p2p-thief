@@ -136,6 +136,9 @@ class EmailSettings:
     recipient: tuple[str, ...]
     sender: str
     token_path: str
+    # The book's sole binding reporting address (§9.3). Config-owned, never in code
+    # (#5); naming it is what lets the interlock refuse it outside a counted series.
+    lecturer: str = ""
 
 
 @dataclass(frozen=True)

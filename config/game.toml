@@ -96,3 +96,9 @@ mode = "send"
 recipient = []
 sender = ""
 token_path = "token.json"
+# The book's sole binding reporting address (s9.3). Naming it here is what ARMS the
+# guard: the interlock refuses this address whenever `counted` is false, and an
+# unnamed lecturer is an unprotected one. `counted` cannot be set by accident - it
+# arms the App F counted rows, so a counted constitution will not load unless it is a
+# genuine six-mini-game match. Friendlies are unaffected.
+lecturer = "rmisegal+uoh26finalgame@gmail.com"

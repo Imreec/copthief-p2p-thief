@@ -21,6 +21,12 @@ def test_shipped_toml_ships_disabled_with_no_recipient() -> None:
     assert private.email.token_path  # a concrete git-ignored path, never empty
 
 
+def test_the_shipped_toml_names_the_lecturer_so_the_guard_can_refuse_him() -> None:
+    """The guard is only armed if the address is configured — an unnamed lecturer is an
+    unprotected one, so the shipped config must carry the book's binding address."""
+    assert load_private_settings(SHIPPED).email.lecturer == "rmisegal+uoh26finalgame@gmail.com"
+
+
 def test_toml_without_an_email_section_gets_the_safe_defaults(tmp_path: Path) -> None:
     # The shipped file keeps [email] as its LAST section, so "absent" is a clean cut.
     text = SHIPPED.read_text(encoding="utf-8").split("\n[email]")[0]
