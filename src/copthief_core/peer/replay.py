@@ -20,6 +20,14 @@ VERDICT_OK = "Verified OK"
 VERDICT_TAMPERED = "TAMPERED"
 
 
+# The result event is named per log shape: `result` is the local two-sided match
+# (peer/match), `peer_result` is a live peer's own settlement (peer/settlement). Reading
+# only the former blanked the banner on EVERY live game — M7-7(4). Order is PRECEDENCE,
+# not preference: a local log carries BOTH, and each side's `peer_result` counts only
+# its OWN steps, so the two-sided event must win wherever it exists.
+RESULT_EVENTS = ("result", "peer_result")
+
+
 @dataclass(frozen=True)
 class ReplaySummary:
     """The re-derived truth of one logged mini-game."""
@@ -30,6 +38,7 @@ class ReplaySummary:
     outcome: str
     game_uid: str
     moves: dict[str, list[str]]
+    records_verified: int
 
 
 def verdict_for(summary: ReplaySummary) -> str:
@@ -78,6 +87,27 @@ def wire_turns(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return turns
 
 
+def result_payload(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """The authoritative result payload of a log (Input: the events; Output: the payload,
+    or {} when the game never settled). RESULT_EVENTS order is precedence: a local log
+    holds the two-sided `result` AND both sides' `peer_result`, and the latter counts
+    only its own side's steps."""
+    for name in RESULT_EVENTS:
+        payload = next((e["payload"] for e in events if e["event"] == name), None)
+        if payload is not None:
+            return dict(payload)
+    return {}
+
+
+def negotiated_uid(events: list[dict[str, Any]]) -> str:
+    """The game_uid a live log carries (Input: the events; Output: the uid, or "").
+
+    A live `peer_result` payload has no uid: it is derived from the signed terms at the
+    handshake and logged there, so `negotiated` is where a one-sided log records it.
+    """
+    return next((str(e.get("game_uid", "")) for e in events if e["event"] == "negotiated"), "")
+
+
 def _check_turn(turn: dict[str, Any], revealed: list[dict[str, Any]]) -> str | None:
     """One traveled TurnMessage against its revealed record; None when consistent."""
     sender, step = turn["sender"], turn["message"]["step"]
@@ -119,7 +149,7 @@ def replay_from_log(path: Path) -> ReplaySummary:
     ]
     for sender, records in revealed.items():
         problems.extend(_check_unpaired(sender, records))
-    result: dict[str, Any] = next((e["payload"] for e in events if e["event"] == "result"), {})
+    result = result_payload(events)
     # Game turns only (step >= 1): the M6-3 step-0 declaration seals no move.
     moves = {
         sender: [
@@ -131,11 +161,17 @@ def replay_from_log(path: Path) -> ReplaySummary:
         ]
         for sender, records in revealed.items()
     }
+    checked = sum(len(records) for records in revealed.values())
     return ReplaySummary(
-        verified=not problems,
+        # A verdict must never be vacuously green: `not problems` is TRUE over an empty
+        # log, so a truncated file used to print the book's "Verified OK" while having
+        # verified nothing at all. Fail-closed, like every other rule-19 surface.
+        verified=not problems and checked >= 1,
         problems=problems,
         steps=int(result.get("steps", 0)),
         outcome=str(result.get("outcome", "unknown")),
-        game_uid=str(result.get("game_uid", "")),
+        # A live result payload carries no game_uid — it is settled at the handshake.
+        game_uid=str(result.get("game_uid") or negotiated_uid(events)),
         moves=moves,
+        records_verified=checked,
     )

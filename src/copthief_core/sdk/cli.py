@@ -85,6 +85,9 @@ def main(argv: list[str] | None = None) -> int:
                     "steps": summary.steps,
                     "outcome": summary.outcome,
                     "game_uid": summary.game_uid,
+                    # M7-7(4): the work behind the verdict, on the face of it — a
+                    # "Verified OK" over zero records is what the guard now refuses.
+                    "records_verified": summary.records_verified,
                 },
                 ensure_ascii=False,
             )

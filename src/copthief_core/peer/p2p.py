@@ -20,17 +20,39 @@ from copthief_core.peer.settlement import (
     settle,
     validate_opponent_audit,
 )
-from copthief_core.peer.transport import PeerTransport
+from copthief_core.peer.transport import PeerTransport, TransportError
 
 __all__ = ["LogFn", "PeerGameResult", "run_peer_game", "validate_opponent_audit"]
 
 
-def _send_own_turn(session: PeerSession, transport: PeerTransport, emit: LogFn) -> None:
-    """Take, log and push one of our turns (the turn token travels with it)."""
+def _send_own_turn(session: PeerSession, transport: PeerTransport, emit: LogFn) -> bool:
+    """Take, log and push one of our turns (the turn token travels with it).
+
+    Returns True on delivery. On transport EXHAUSTION (M7-7) it classifies our own
+    technical loss and returns False — an undeliverable in-game turn is symmetric with a
+    silent opponent (App E), never a naked crash into a live match and never a claim
+    that the opponent lost. Any non-transport error still propagates: only a real
+    delivery failure is absorbed here.
+    """
     message = session.take_turn(now=time.time())
     events.decision(emit, session)
     emit({"event": "turn", "sender": session.role, "message": message})
-    transport.send_turn(message)
+    try:
+        transport.send_turn(message)
+    except TransportError as error:
+        emit(
+            {
+                "event": "transport_error",
+                "sender": session.role,
+                "payload": {"reason": f"receive_turn: {error}"},
+            }
+        )
+        session.outcome = "timeout"  # OUR technical loss — no unilateral outcome claim
+        session.machine.advance(
+            GameState.TECHNICAL_LOSS, trigger="outbound turn undeliverable past the turn budget"
+        )
+        return False
+    return True
 
 
 def run_peer_game(
@@ -56,8 +78,10 @@ def run_peer_game(
     events.inbound(emit, "agreement_received", session.role, theirs)
     session.handle_negotiate(theirs)
     emit({"event": "negotiated", "sender": session.role, "game_uid": session.game_uid})
-    if session.role == "thief":
-        _send_own_turn(session, transport, emit)
+    # The thief's opening push happens before the loop — an undeliverable first turn is
+    # classified too (M7-7), so we settle straight into the technical-loss path.
+    if session.role == "thief" and not _send_own_turn(session, transport, emit):
+        return settle(session, transport, emit)
     deadline = time.time() + turn_timeout
     while not session.machine.is_terminal:
         if heartbeat is not None:  # M6-7: the watchdog's liveness signal (FR-8)
@@ -72,6 +96,7 @@ def run_peer_game(
         events.inbound(emit, "turn_received", session.role, incoming)
         session.handle_receive_turn(incoming)
         events.belief_snapshot(emit, session)
-        if not session.machine.is_terminal:
-            _send_own_turn(session, transport, emit)
+        # A reply we cannot deliver ends the game as OUR loss, not as a crash (M7-7).
+        if not session.machine.is_terminal and not _send_own_turn(session, transport, emit):
+            break
     return settle(session, transport, emit)
