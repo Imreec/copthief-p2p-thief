@@ -14,6 +14,7 @@ from typing import Any
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer import events
 from copthief_core.peer.audit_flow import build_audit, verify_audit, wire_result
+from copthief_core.peer.scent_check import emit_scent_physics
 from copthief_core.peer.session import PeerSession
 from copthief_core.peer.transport import PeerTransport
 from copthief_core.strategy.profiling import profile_records, shifted_hint_trust
@@ -34,6 +35,9 @@ class PeerGameResult:
     audit_ok: bool
     opponent_claim: str
     problems: tuple[str, ...]
+    # M6-6: how many revealed records the opponent's audit carried (their steps +
+    # step-0) — the summary's `verified_steps` when the verification passed.
+    opponent_records: int = 0
 
 
 def validate_opponent_audit(
@@ -74,7 +78,9 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     steps = len(session.records)
     uid = session.game_uid or ""
 
-    def result(*, audit_ok: bool, claim: str, problems: tuple[str, ...]) -> PeerGameResult:
+    def result(
+        *, audit_ok: bool, claim: str, problems: tuple[str, ...], opponent_records: int = 0
+    ) -> PeerGameResult:
         return PeerGameResult(
             role=session.role,
             outcome=outcome,
@@ -83,6 +89,7 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
             audit_ok=audit_ok,
             opponent_claim=claim,
             problems=problems,
+            opponent_records=opponent_records,
         )
 
     if session.machine.state is not GameState.GAME_OVER:
@@ -100,6 +107,9 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     claim, problems = validate_opponent_audit(
         theirs, survival_threshold=session.constitution.movement.survival_threshold
     )
+    # M6-7 (FR-11, evidence-grade only): diff their transmitted grids against the
+    # trail their revealed moves imply — a loud event, never a verdict change (SQ3).
+    emit_scent_physics(session, theirs, emit)
     if not problems:  # M5-5: a VERIFIED audit is profiling evidence for the series
         profile = profile_records(theirs["records"])
         emit(
@@ -128,4 +138,10 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
             "payload": {"outcome": outcome, "steps": steps, "audit_ok": not problems},
         }
     )
-    return result(audit_ok=not problems, claim=claim, problems=tuple(problems))
+    theirs_records = theirs.get("records")
+    return result(
+        audit_ok=not problems,
+        claim=claim,
+        problems=tuple(problems),
+        opponent_records=len(theirs_records) if isinstance(theirs_records, list) else 0,
+    )
