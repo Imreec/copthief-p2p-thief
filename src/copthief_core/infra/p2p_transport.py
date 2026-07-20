@@ -13,11 +13,11 @@ import time
 from typing import Any
 
 from copthief_core.infra.mcp_client import McpToolClient
-from copthief_core.peer.transport import PeerQueues, take_one
+from copthief_core.peer.transport import PeerQueues, TransportError, take_one
 
-
-class TransportError(RuntimeError):
-    """The opponent's endpoint stayed unreachable past the connect budget."""
+# M7-7: TransportError moved to the protocol seam (peer/transport) so the peer loop can
+# classify a delivery failure transport-blind. Re-exported here for existing callers.
+__all__ = ["McpTransport", "TransportError"]
 
 
 class McpTransport:
@@ -30,15 +30,19 @@ class McpTransport:
         *,
         connect_timeout: float,
         retry_interval: float,
+        turn_push_timeout: float,
     ) -> None:
         self._client = client
         self._inboxes = inboxes
         self._connect_timeout = connect_timeout
         self._retry_interval = retry_interval
+        # M7-7: an in-game turn push retries on the TURN budget, not the connect budget —
+        # a mid-push flap must tolerate as long as a silent-opponent flap does.
+        self._turn_push_timeout = turn_push_timeout
 
-    def _push_with_retry(self, tool: str, payload: dict[str, Any]) -> None:
-        """Deliver one push, retrying until the opponent answers or the budget ends."""
-        deadline = time.time() + self._connect_timeout
+    def _push_with_retry(self, tool: str, payload: dict[str, Any], *, budget: float) -> None:
+        """Deliver one push, retrying until the opponent answers or `budget` ends."""
+        deadline = time.time() + budget
         while True:
             try:
                 self._client.call(tool, payload)
@@ -50,11 +54,11 @@ class McpTransport:
                 return
 
     def exchange_agreement(self, signed: dict[str, Any]) -> dict[str, Any] | None:
-        self._push_with_retry("negotiate", signed)
+        self._push_with_retry("negotiate", signed, budget=self._connect_timeout)
         return take_one(self._inboxes.agreements, self._connect_timeout)
 
     def send_turn(self, message: dict[str, Any]) -> None:
-        self._push_with_retry("receive_turn", message)
+        self._push_with_retry("receive_turn", message, budget=self._turn_push_timeout)
 
     def poll_turn(self, timeout: float) -> dict[str, Any] | None:
         return take_one(self._inboxes.turns, timeout)
@@ -63,5 +67,5 @@ class McpTransport:
         # Best-effort send: the opponent may already be gone; THEIR audit may still be
         # sitting in OUR inbox — always check it.
         with contextlib.suppress(TransportError):
-            self._push_with_retry("submit_audit", payload)
+            self._push_with_retry("submit_audit", payload, budget=self._connect_timeout)
         return take_one(self._inboxes.audits, self._connect_timeout)

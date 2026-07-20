@@ -23,6 +23,9 @@ def make_watchdog(tmp_path: Path, *, timeout: float = 10.0) -> tuple[Watchdog, l
     stalls: list[str] = []
     dog = Watchdog(
         timeout_sec=timeout,
+        # The I/O budget is exercised by test_watchdog_io_window (M7-7(1)); these cases
+        # never enter a window, so the loop-liveness budget is the one under test.
+        io_timeout_sec=timeout * 4,
         snapshot=lambda: {"role": "police", "step": 3},
         persist_path=tmp_path / "state" / "state_uid-1.json",
         on_stall=stalls.append,

@@ -29,6 +29,9 @@ build/
 
 # Runtime logs & per-game scratch (committed evidence lives under docs/ or tests/fixtures/)
 logs/
+# Watchdog state snapshots (PRD_gatekeeper §7 D4) — repo-wide, not just under logs/:
+# M7-7(2), a drill that logged into docs/evidence/ left one in a TRACKED directory.
+state_*.json
 *.log
 games/scratch/
 artifacts/scratch/

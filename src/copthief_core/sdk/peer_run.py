@@ -12,11 +12,24 @@ from typing import TYPE_CHECKING, Any
 
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
 from copthief_core.peer.session import PeerSession
+from copthief_core.shared.budgets import io_stall_timeout
 from copthief_core.shared.config import load_gazetteer
 from copthief_core.shared.jsonl_logger import JsonlEventLogger
 
 if TYPE_CHECKING:
     from copthief_core.sdk.simulation import SimulationSdk
+
+# M7-7(2): the snapshot is an operational artifact (PRD_gatekeeper §7 D4) and is pinned
+# to the git-ignored logs/ — it used to follow `log_path.parent`, so logging into a
+# TRACKED directory (the kill drill logged into docs/evidence/) left a committable
+# state file there. No log path can steer it now.
+SNAPSHOT_DIR = Path("logs")
+
+
+def snapshot_path(role: str) -> Path:
+    """Where this peer's watchdog snapshot lands (Input: our wire role; Output: the
+    git-ignored path — role-derived, never log-derived)."""
+    return SNAPSHOT_DIR / f"state_{role}.json"
 
 
 def run_peer_flow(
@@ -43,6 +56,8 @@ def run_peer_flow(
         inboxes,
         connect_timeout=sdk.private.connect_timeout_seconds,
         retry_interval=sdk.private.poll_interval_seconds,
+        # M7-7: an in-game turn push tolerates a flap as long as a silent-opponent flap.
+        turn_push_timeout=sdk.private.turn_timeout_seconds,
     )
     gazetteer = load_gazetteer(
         sdk.config_dir / "gazetteer.json",
@@ -63,20 +78,21 @@ def run_peer_flow(
     sink = JsonlEventLogger(log_path).log if log_path is not None else None
     # M6-7 (FR-8): a hung live loop is never a silent freeze — the watchdog persists
     # the session snapshot (git-ignored logs/) and exits loudly after logging.
-    from copthief_core.peer.watchdog import Watchdog, session_snapshot
+    from copthief_core.peer.watchdog import Watchdog, announce_stall, session_snapshot
+    from copthief_core.peer.watchdog_transport import watched
 
     def stall(reason: str) -> None:  # pragma: no cover - the live stall path
         import os
+        import sys
 
-        if sink is not None:
-            sink({"event": "watchdog_stall", "sender": role, "payload": {"reason": reason}})
+        announce_stall(reason, role=role, sink=sink, stream=sys.stdout)
         os._exit(1)  # controlled: state persisted by the watchdog before this call
 
-    state_dir = log_path.parent if log_path is not None else Path("logs")
     watchdog = Watchdog(
         timeout_sec=sdk.constitution.league.watchdog_timeout_sec,
+        io_timeout_sec=io_stall_timeout(sdk.constitution, sdk.private),
         snapshot=lambda: session_snapshot(session),
-        persist_path=state_dir / f"state_{role}.json",
+        persist_path=snapshot_path(role),
         on_stall=stall,
     )
 
@@ -92,7 +108,10 @@ def run_peer_flow(
         try:
             return run_peer_game(
                 session,
-                transport,
+                # M7-7(1): every blocking wire call is a declared I/O window, so a dead
+                # edge is measured against the I/O budget — which sits behind our own
+                # turn deadline — instead of self-terminating a perfectly live loop.
+                watched(transport, watchdog),
                 turn_timeout=sdk.private.turn_timeout_seconds,
                 poll_interval=sdk.private.poll_interval_seconds,
                 log=fan,

@@ -14,6 +14,15 @@ import queue
 from typing import Any, Protocol
 
 
+class TransportError(RuntimeError):
+    """The opponent's endpoint stayed unreachable past a push's retry budget.
+
+    Defined at the protocol seam (M7-7) so the peer loop can classify an undeliverable
+    OUTBOUND turn as its own technical loss without importing any concrete transport
+    (PLAN §12). The in-process QueueTransport never raises it; the FastMCP adapter does.
+    """
+
+
 class PeerQueues:
     """One peer's thread-safe inboxes, filled by inbound tool calls, drained by its loop."""
 

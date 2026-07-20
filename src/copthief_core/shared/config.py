@@ -14,6 +14,7 @@ from typing import Any
 
 from copthief_core.domain.scoring import ScoringTable
 from copthief_core.shared.appf_guard import AppFTable, validate_constitution
+from copthief_core.shared.budgets import reconcile_budgets
 from copthief_core.shared.config_model import (
     BoardParams,
     Constitution,
@@ -96,4 +97,8 @@ def load_all(
     registry = load_locked_models(config_dir / "locked_models.json")
     private = load_private_settings(config_dir / "game.toml", locked_models=registry)
     limits = load_rate_limits(config_dir / "rate_limits.json", constitution.gatekeeper)
+    # M7-7(1): the signed watchdog budget and the private turn budget only ever met at
+    # runtime, and the wrong one won a live game. Their ordering is now a load-time
+    # assertion — startup is where a self-terminating config must surface.
+    reconcile_budgets(constitution, private)
     return constitution, private, limits
