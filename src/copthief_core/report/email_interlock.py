@@ -32,20 +32,44 @@ class EmailDecision:
     reason: str  # empty on draft/send; the loud, logged explanation on refuse
 
 
-def decide_email_action(*, enabled: bool, mode: str, recipients: Sequence[str]) -> EmailDecision:
-    """The interlock (Input: `[email]` state + the run's configured recipients; Output:
-    the one permitted action).
+def decide_email_action(
+    *,
+    enabled: bool,
+    mode: str,
+    recipients: Sequence[str],
+    counted: bool = False,
+    lecturer: str = "",
+) -> EmailDecision:
+    """The interlock (Input: `[email]` state, the run's configured recipients, whether
+    this is a counted series, and the lecturer's address; Output: the one permitted
+    action).
 
-    No email is ever sent to an address Imree has not configured for that run —
-    mechanically: an empty or blank recipient list can reach no transport at all.
+    Two guarantees, both mechanical. **No email is ever sent to an address Imree has not
+    configured for that run** — an empty or blank recipient list reaches no transport at
+    all. And **the lecturer is addressable only from a counted run**: `counted` arms the
+    App F counted-series rows, so a counted constitution refuses to load unless it is a
+    genuine six-mini-game match (PRD_engine §6.1) — the flag cannot be set by accident,
+    which makes it the honest place to hang Imree's standing rule. Friendlies pay no
+    ceremony for it.
     """
     if not enabled:
         return EmailDecision(action="refuse", reason="email disabled (email.enabled=false)")
     if mode not in (MODE_DRAFT, MODE_SEND):
         return EmailDecision(action="refuse", reason=f"unknown email.mode {mode!r}")
-    if not [address for address in recipients if address.strip()]:
+    addresses = [address.strip() for address in recipients if address.strip()]
+    if not addresses:
         return EmailDecision(
             action="refuse",
             reason="no recipient configured for this run (email.recipient is empty)",
         )
+    if lecturer.strip() and not counted:
+        wanted = lecturer.strip().casefold()
+        if any(address.casefold() == wanted for address in addresses):
+            return EmailDecision(
+                action="refuse",
+                reason=(
+                    f"the lecturer ({lecturer.strip()}) is addressable only from a counted "
+                    "series — this run is not counted"
+                ),
+            )
     return EmailDecision(action=mode, reason="")

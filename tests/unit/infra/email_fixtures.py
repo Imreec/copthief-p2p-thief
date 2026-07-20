@@ -19,6 +19,7 @@ from copthief_core.shared.rate_limiter import QueueLimits, RateLimiter
 UID = "uid-1234"
 LECTURER = ("lecturer@example.test",)
 FRIENDLY = ("team@example.test", "peer.team@example.test")
+LECTURER_ADDRESS = "rmisegal+uoh26finalgame@gmail.com"  # the book's sole binding address
 
 
 class FakeTransport:
@@ -52,7 +53,11 @@ def result_file(tmp_path: Path, *, winner: str | None = "team-a") -> Path:
 
 
 def settings(
-    *, enabled: bool = True, mode: str = "send", recipient: tuple[str, ...] = LECTURER
+    *,
+    enabled: bool = True,
+    mode: str = "send",
+    recipient: tuple[str, ...] = LECTURER,
+    lecturer: str = "",
 ) -> EmailSettings:
     return EmailSettings(
         enabled=enabled,
@@ -60,6 +65,7 @@ def settings(
         recipient=recipient,
         sender="team@example.test",
         token_path="token.json",
+        lecturer=lecturer,
     )
 
 
@@ -87,11 +93,14 @@ def make_sender(
     mode: str = "send",
     recipient: tuple[str, ...] = LECTURER,
     quota: int = 5,
+    lecturer: str = "",
+    counted: bool = False,
 ) -> tuple[EmailSender, FakeTransport]:
     transport = FakeTransport()
     sender = EmailSender(
-        settings=settings(enabled=enabled, mode=mode, recipient=recipient),
+        settings=settings(enabled=enabled, mode=mode, recipient=recipient, lecturer=lecturer),
         gatekeeper=keeper(quota),
         transport=transport,
+        counted=counted,
     )
     return sender, transport

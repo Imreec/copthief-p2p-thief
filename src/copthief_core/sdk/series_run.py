@@ -140,6 +140,7 @@ def run_local_series(
         settings=private.email,
         gatekeeper=build_gatekeeper("email", limits, quota_units=limits.email_daily_cap),
         transport=email_transport,
+        counted=False,  # local self-play: the lecturer is unreachable from here by design
     )
     email = sender.send_report(
         result_path=out_root / private.group_id / result_filename(result["game_id"]),

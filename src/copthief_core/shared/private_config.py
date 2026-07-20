@@ -88,5 +88,6 @@ def load_private_settings(path: Path) -> PrivateSettings:
             recipient=_recipients(email.get("recipient", ())),
             sender=str(email.get("sender", "")),
             token_path=str(email.get("token_path", "token.json")),
+            lecturer=str(email.get("lecturer", "")),
         ),
     )
