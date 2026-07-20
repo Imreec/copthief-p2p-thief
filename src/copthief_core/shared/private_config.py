@@ -20,6 +20,14 @@ class ConfigError(Exception):
     """A config file is unloadable: guard violation, bad version, or broken precedence."""
 
 
+def _recipients(raw: Any) -> tuple[str, ...]:  # noqa: ANN401 - raw TOML value
+    """`email.recipient` as a tuple (Input: a list, a bare string, or nothing; Output:
+    the non-blank addresses). A bare string stays valid so a single-recipient config
+    needs no brackets; blanks are dropped here so the interlock sees a clean list."""
+    values = raw if isinstance(raw, list | tuple) else [raw]
+    return tuple(str(v).strip() for v in values if str(v).strip())
+
+
 def validated_version(raw: dict[str, Any], source: str) -> str:
     """Validated `version` field (CLAUDE.md §1 #9: starts 1.00, checked at startup)."""
     value = raw.get("version")
@@ -70,12 +78,14 @@ def load_private_settings(path: Path) -> PrivateSettings:
             theme_fg=str(gui["theme_fg"]),
             accent=str(gui["accent"]),
         ),
-        # M6-4 (constraint #16): omission of [email] still yields the safe resting
-        # state — disabled + draft; the interlock cannot be weakened by absence.
+        # M7-6 (ADR-0008): omission of [email] still yields the safe resting state —
+        # disabled with NO recipient, so the interlock cannot be weakened by absence.
+        # `recipient` accepts a list (friendly = us + the opponent) or a bare string
+        # (one address), because the authorization IS the configured recipient.
         email=EmailSettings(
             enabled=bool(email.get("enabled", False)),
-            mode=str(email.get("mode", "draft")),
-            recipient=str(email.get("recipient", "")),
+            mode=str(email.get("mode", "send")),
+            recipient=_recipients(email.get("recipient", ())),
             sender=str(email.get("sender", "")),
             token_path=str(email.get("token_path", "token.json")),
         ),

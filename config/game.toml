@@ -79,15 +79,20 @@ poll_interval_seconds = 0.5
 connect_timeout_seconds = 60
 
 [email]
-# M6-4 draft/arming rail (constraint #16; PRD_reporting s5). The resting state is
-# disabled+draft; a send additionally requires the per-invocation arming retype of
-# the exact game_uid - no email ever leaves without Imree's explicit per-send word.
-# Recipient is per-run (lecturer for counted series, a peer team for an authorized
-# friendly report exchange); sender = the dedicated team Gmail account (OI-5).
+# M7-6 automatic report rail (ADR-0008, police repo; PRD_reporting s5a). App E rule
+# 32 requires automatic reporting and rule 35 zeroes BOTH teams when one side fails to
+# report, so there is no post-game human step. THE AUTHORIZATION IS THE RECIPIENT: with
+# none configured nothing can leave, whatever else is set. Resting state = disabled, no
+# recipient. Per run: the lecturer alone for a counted series
+# (rmisegal+uoh26finalgame@gmail.com - the book's sole binding address, and never set
+# before the friendlies have proven the format on both sides), or us + the opponent team
+# for a friendly report exchange. sender = the dedicated team Gmail account, SHARED with
+# the police repo (one identity, one consent, OI-5). Runaway protection is the
+# gatekeeper (rule 28, rate_limits.json).
 # KEEP THIS SECTION LAST: the settings tests derive the "absent section" case by
 # cutting the file at the [email] header.
 enabled = false
-mode = "draft"
-recipient = ""
+mode = "send"
+recipient = []
 sender = ""
 token_path = "token.json"

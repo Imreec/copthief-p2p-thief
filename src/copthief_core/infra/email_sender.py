@@ -9,6 +9,7 @@ breaker, M6-5); a refusal touches no transport at all and names its reason.
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -20,9 +21,13 @@ from copthief_core.shared.gatekeeper import ApiGatekeeper
 class EmailTransport(Protocol):
     """What the sender needs from a mail backend (GmailTransport or a test fake)."""
 
-    def create_draft(self, *, to: str, subject: str, body: str) -> None: ...
+    def create_draft(
+        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+    ) -> None: ...
 
-    def send(self, *, to: str, subject: str, body: str) -> None: ...
+    def send(
+        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+    ) -> None: ...
 
 
 def report_subject(result: dict[str, Any], role: str) -> str:
@@ -51,26 +56,39 @@ class EmailSender:
             else GmailTransport(sender=settings.sender, token_path=settings.token_path)
         )
 
-    def send_report(
-        self, *, result_path: Path, role: str, armed: str | None = None
-    ) -> dict[str, Any]:
-        """One report email attempt (Input: result artifact path + our role + the
-        operator's arming retype; Output: `{action, reason, game_uid}` — action is
-        what actually happened: "draft" | "send" | "refuse")."""
+    def send_report(self, *, result_path: Path, role: str) -> dict[str, Any]:
+        """One report email attempt (Input: result artifact path + our role; Output:
+        `{action, reason, game_uid, recipients}` — action is what actually happened:
+        "send" | "draft" | "refuse").
+
+        Automatic by design (App E rule 32; rule 35 zeroes both teams on a missing
+        report). The authorization is the configured recipient, so a run with none
+        refuses before any transport is touched; every act logs where it went.
+        """
         raw = result_path.read_bytes()  # FileNotFoundError is the loud refusal
         result = json.loads(raw.decode("utf-8"))
         game_uid = str(result.get("game_uid", ""))
+        recipients = self._settings.recipient
         decision = decide_email_action(
             enabled=self._settings.enabled,
             mode=self._settings.mode,
-            armed=armed,
-            game_uid=game_uid,
+            recipients=recipients,
         )
-        outcome = {"action": decision.action, "reason": decision.reason, "game_uid": game_uid}
+        outcome = {
+            "action": decision.action,
+            "reason": decision.reason,
+            "game_uid": game_uid,
+            "recipients": list(recipients),
+        }
         if decision.action == "refuse":
             return outcome
         body = raw.decode("utf-8")  # body bytes == file bytes (PLAN §4 pin)
-        subject = report_subject(result, role)
         call = self._transport.create_draft if decision.action == "draft" else self._transport.send
-        self._gatekeeper.execute(call, to=self._settings.recipient, subject=subject, body=body)
+        self._gatekeeper.execute(
+            call,
+            to=recipients,
+            subject=report_subject(result, role),
+            body=body,
+            attachment_name=result_path.name,  # App E rule 34: attached JSON file
+        )
         return outcome

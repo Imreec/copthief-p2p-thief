@@ -5,9 +5,11 @@ PR #43), after downloading a Desktop OAuth client as `client_secret.json`:
 
     uv run --group email-live python scripts/gmail_auth.py
 
-Grants the `gmail.compose` scope (create/send drafts, no mailbox read) and writes
-the authorized-user credentials to `token.json` for GmailTransport. Re-run to
-refresh or replace. Reads GOOGLE_CLIENT_SECRET_FILE (default `client_secret.json`)
+Grants the `gmail.send` scope (send only — no drafts, no mailbox read; App E rule 30
++ App A §1.3/§3, per ADR-0008) and writes the authorized-user credentials to
+`token.json` for GmailTransport. Re-run to refresh or replace — and note that a
+Testing-mode OAuth app issues refresh tokens valid for **7 days**, so re-run this
+before any counted series. Reads GOOGLE_CLIENT_SECRET_FILE (default `client_secret.json`)
 and writes GOOGLE_TOKEN_FILE (default `token.json`) - BOTH git-ignored, never
 committed (CLAUDE.md constraint #6). The scope is imported from the transport so
 consent and use can never disagree.

@@ -38,7 +38,7 @@ Sections marked **[TIGHTENED]** exceed the course minimum; **[FP]** are final-pr
 | 13 | **Kit CORE conformance** [FP] | kit vectors green in CI; **any change touching wire format, canonicalization, or hashing regenerates the conformance checks and re-verifies against the kit before merge** |
 | 14 | **Core-mirror integrity** [FP] | `sync_manifest.json` hash verified in CI; ⚑ core edits only in the police repo |
 | 15 | **App F guard** [FP] | config loader rejects any agreement altering a fixed value or lowering a minimum |
-| 16 | **Email interlock** [FP] | `email.mode="draft"` default; the send path requires the operator arming step; **no email is ever sent without Imree's explicit per-send word** |
+| 16 | **Email interlock** [FP] (ADR-0008, police repo) | Reporting is **automatic** (App E rule 32; rule 35 zeroes BOTH teams on a missing report). Resting state = `enabled=false` with **no recipient**; **no email is ever sent to an address Imree has not configured for that run**, and **never to the lecturer without his explicit word** — authorization is the recipient, set before the match, never inside it. Runaway protection = the gatekeeper (rule 28) |
 | 17 | **EULA posture** [FP] | no reference-implementation code beyond ADR-attributed micro-snippets; reference used as running oracle only; repo stays private-shared |
 
 ## 2. Mandatory workflow — gates
@@ -77,9 +77,11 @@ output before reporting "done"; ticks TODO checkboxes as work lands, never as as
 | Secrets (OAuth, tokens) | `os.environ` / git-ignored files only |
 
 JSON overlays TOML on shared keys; per-game config files committed (`config_<game_id>_g<NN>.json`).
-Gmail scope is **compose-only** (`gmail.compose`: create/send drafts, no mailbox read — the
-least privilege supporting the draft rail; D1=A ruling, cop PR #43; sending identity = the
-dedicated team account, OI-5); nonces from `secrets`, withheld until audit; per-game step-0
+Gmail scope is **send-only** (`gmail.send` — App E rule 30 + App A §1.3/§3, sanction: security
+deviation → code disqualification; the D1=A compose amendment is **reverted by ADR-0008** (cop
+repo), which dropped the draft posture so the mandated scope holds literally; sending identity =
+the dedicated team account `imreeyal.copthief@gmail.com`, shared with the police repo — one
+identity, one consent, OI-5); nonces from `secrets`, withheld until audit; per-game step-0
 declaration records the exact commit hash played.
 
 ## 5. Testing — TDD + keyless layers
@@ -119,8 +121,10 @@ conservative (target 92–93, cap 95); `SELF_GRADE.md` == `self_grade.py` output
 
 ## 9. League operations [FP]
 
-Friendlies: reports stay in draft; format-free. Counted series: exactly one per opponent, armed by
-Imree, full interlock path, artifacts + config + commit hash recorded. Game-count declared
+Friendlies: format-free; reports go to **ourselves and the opponent team** (never the lecturer) —
+the format is proven on both sides before any counted game, because rule 35 punishes contradictory
+reports as harshly as missing ones. Counted series: exactly one per opponent, recipient set to the
+lecturer alone by Imree before the match, artifacts + config + commit hash recorded. Game-count declared
 truthfully at every game start (rules 37–38). Sparring host runs the generic brain only — tuned
 weights never deploy there. **Nothing is announced to the league unless true of the tree.**
 
@@ -130,5 +134,6 @@ Aspirational README · mock classes shadowing real imports · `NotImplementedErr
 tests without implementation · single mass-commit · leaked local paths · `"AI Agent"` in authors ·
 prompt-log entries for uncommitted work · stale TODO · treating an illustrative book value as
 binding (only App F binds) · committing OAuth secrets/tokens · editing `copthief_core/` in the
-thief repo ⚑ · sending any email without arming + Imree's word · deploying tuned strategy weights
+thief repo ⚑ · configuring any recipient Imree has not set for that run (above all: the lecturer
+before the friendlies have proven the format) · deploying tuned strategy weights
 to the sparring host · trusting a reviewer citation without opening the cited file.

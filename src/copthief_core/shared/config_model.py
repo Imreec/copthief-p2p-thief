@@ -126,12 +126,14 @@ class GuiSettings:
 
 @dataclass(frozen=True)
 class EmailSettings:
-    """`[email]` (M6-4): draft default + disabled default — the interlock's resting
-    state survives section omission (constraint #16); recipient is per-run."""
+    """`[email]` (M7-6, ADR-0008): disabled with NO recipient is the resting state, and
+    it survives section omission. `recipient` is a tuple because the authorization IS
+    the configured recipient (friendly = us + the opponent; counted = the lecturer
+    alone) — an empty tuple can reach no transport."""
 
     enabled: bool
     mode: str
-    recipient: str
+    recipient: tuple[str, ...]
     sender: str
     token_path: str
 
