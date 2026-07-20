@@ -1,15 +1,23 @@
-"""The email arming interlock (M6-4; constraint #16): mechanical, not vigilance.
+"""The email interlock (M7-6; ADR-0008): authorization IS the configured recipient.
 
-A pure total function over (enabled × mode × arming): across the WHOLE space
-exactly one combination sends — enabled, mode="send", and the operator retyped
-the exact game_uid of the series being reported. Draft mode never sends
-regardless of arming; the recipient is not consulted (arming gates WHETHER a
-send happens, never WHERE — PRD_reporting §5). Nothing here talks to Gmail:
-`infra/email_sender` acts on the decision, through the email gatekeeper.
+A pure total function over (enabled × mode × recipients). The M6-4 per-send arming
+retype is deliberately gone: App E **rule 32** requires automatic reporting (absence
+voids that game's points) and **rule 35** disqualifies the game for BOTH teams when one
+side fails to report, so a post-game human step is a sanction rather than a safety —
+book §9.3 states outright that at game end "there is no longer room for human
+intervention". Runaway protection is the gatekeeper (rule 28, M6-5), which is the book's
+own answer to the flood scenario it raises in that same section.
+
+What survives is more specific than the boolean it replaces: **nothing acts without an
+address the operator configured for that run**. A generic "sending is allowed" flag says
+only that sending may happen; a recipient says who receives it, and nobody types the
+lecturer's address by accident. Nothing here talks to Gmail — `infra/email_sender` acts
+on the decision, through the email gatekeeper.
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 MODE_DRAFT = "draft"
@@ -24,26 +32,20 @@ class EmailDecision:
     reason: str  # empty on draft/send; the loud, logged explanation on refuse
 
 
-def decide_email_action(
-    *, enabled: bool, mode: str, armed: str | None, game_uid: str
-) -> EmailDecision:
-    """The interlock (Input: [email] state + the arming retype + the reported
-    series' game_uid; Output: the one permitted action).
+def decide_email_action(*, enabled: bool, mode: str, recipients: Sequence[str]) -> EmailDecision:
+    """The interlock (Input: `[email]` state + the run's configured recipients; Output:
+    the one permitted action).
 
-    No email ever leaves without Imree's explicit per-send word — mechanically:
-    the word IS the retyped game_uid arriving as `armed`.
+    No email is ever sent to an address Imree has not configured for that run —
+    mechanically: an empty or blank recipient list can reach no transport at all.
     """
     if not enabled:
         return EmailDecision(action="refuse", reason="email disabled (email.enabled=false)")
-    if mode == MODE_DRAFT:
-        return EmailDecision(action="draft", reason="")
-    if mode != MODE_SEND:
+    if mode not in (MODE_DRAFT, MODE_SEND):
         return EmailDecision(action="refuse", reason=f"unknown email.mode {mode!r}")
-    if armed is None:
-        return EmailDecision(action="refuse", reason="send requires the arming retype (--arm)")
-    if armed != game_uid:
+    if not [address for address in recipients if address.strip()]:
         return EmailDecision(
             action="refuse",
-            reason=f"arming mismatch: armed {armed!r} != reported game_uid {game_uid!r}",
+            reason="no recipient configured for this run (email.recipient is empty)",
         )
-    return EmailDecision(action="send", reason="")
+    return EmailDecision(action=mode, reason="")
