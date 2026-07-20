@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Any
 
 from copthief_core.shared.config_model import EmailSettings, GuiSettings, PrivateSettings
+from copthief_core.shared.locked_models import (
+    DEFAULT_SCENT_MODEL,
+    LockedModelRegistry,
+    load_locked_models,
+)
 
 _VERSION_FORM = re.compile(r"^\d+\.\d{2}$")
 
@@ -36,13 +41,28 @@ def validated_version(raw: dict[str, Any], source: str) -> str:
     return value
 
 
-def load_private_settings(path: Path) -> PrivateSettings:
-    """Load the per-peer TOML (Input: game.toml path; Output: typed PrivateSettings;
-    Raises: ConfigError on a malformed version)."""
+def load_private_settings(
+    path: Path, *, locked_models: LockedModelRegistry | None = None
+) -> PrivateSettings:
+    """Load the per-peer TOML (Input: game.toml path, optionally the already-loaded
+    locked-model registry; Output: typed PrivateSettings; Raises: ConfigError on a
+    malformed version).
+
+    The registry is a property of the config TREE, not of this file, so `load_all`
+    passes it in and requires it. Called bare — parsing a TOML in isolation — we fall
+    back to the sibling file and then to an empty registry: a handshake still refuses to
+    declare an unregistered model, so nothing can be silently declared wrong.
+    """
+    if locked_models is None:
+        sibling = path.parent / "locked_models.json"
+        locked_models = (
+            load_locked_models(sibling) if sibling.is_file() else LockedModelRegistry("", {})
+        )
     raw = tomllib.loads(path.read_text(encoding="utf-8"))
     game, network = raw.get("game", {}), raw.get("network", {})
     belief, strategy = raw.get("belief", {}), raw.get("strategy", {})
     gui, email = raw.get("gui", {}), raw.get("email", {})
+    scent = raw.get("scent", {})
     return PrivateSettings(
         version=validated_version(raw, path.name),
         group_name=str(game["group_name"]),
@@ -65,6 +85,12 @@ def load_private_settings(path: Path) -> PrivateSettings:
         police_options={str(k): float(v) for k, v in strategy.get("police", {}).items()},
         thief_options={str(k): float(v) for k, v in strategy.get("thief", {}).items()},
         hint_bank=str(strategy.get("hint_bank", "")),
+        # M3-8 (ADR-0004 v2): omission keeps the reference form, so a config that never
+        # heard of named models plays exactly what M3-2 shipped. The registry lives
+        # beside the TOML because its docs are hashed, not interpreted.
+        scent_model=str(scent.get("model", DEFAULT_SCENT_MODEL)),
+        scent_physics_tolerance=float(scent.get("physics_tolerance", 0.0)),
+        locked_models=locked_models,
         gui=GuiSettings(
             refresh_ms=int(gui["refresh_ms"]),
             cell_px=int(gui["cell_px"]),

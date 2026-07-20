@@ -16,6 +16,7 @@ from collections.abc import Iterable
 from copthief_core.domain.belief_baseline import LastKnownTracker
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.rules import legal_moves
+from copthief_core.domain.scent_models import ScentModel, SubtractiveChebyshevV1
 
 __all__ = ["BeliefFilter", "LastKnownTracker"]
 
@@ -35,12 +36,23 @@ class BeliefFilter:
         decay: float,
         smell_trust: float,
         hint_trust: float,
+        scent_model: ScentModel | None = None,
     ) -> None:
         self._board = board
         self._move_set = move_set
-        # The locked model's transmitted fresh-center value (PRD_scent §2).
-        self._fresh = round(center_intensity - decay, 3)
-        self._decay = decay
+        # M3-8: the OBSERVATION MODEL is the selected scent model (PRD_scent §9.3) — the
+        # filter reads the falloff shape rather than assuming the reference's linear one.
+        # Omitted, it is the reference form built from the signed terms, so every M3-3
+        # measurement stands unchanged.
+        self._scent = scent_model or SubtractiveChebyshevV1(
+            {
+                "field_size": 1,
+                "emit_intensity": center_intensity,
+                "min_center_intensity": 0.0,
+                "decay_per_step": decay,
+                "rounding_decimals": 3,
+            }
+        )
         self._smell_trust = smell_trust
         self._hint_trust = hint_trust
         self._probs: dict[Coord, float] = {start: 1.0}  # §2.1: the signed-start delta
@@ -71,8 +83,8 @@ class BeliefFilter:
         self._normalize()
 
     def update_scent(self, grid: dict[str, float]) -> None:
-        """§2.3: each received cell implies an age under the subtractive model (every
-        missing `decay` of intensity ≈ one turn older), so it vouches for the opponent
+        """§2.3: each cell implies an age under the SELECTED model's falloff (linear for
+        the reference form, logarithmic for the book's), so it vouches for the opponent
         being within that many moves of it. The voucher's weight spreads over its
         Manhattan age-ball (`value / ball_size`) — a fresh center is a sharp spike,
         aged scent a wide whisper. Multiplies `1 + smell_trust * strongest_voucher`;
@@ -84,7 +96,7 @@ class BeliefFilter:
             if value <= 0.0:
                 continue
             row, col = (int(part) for part in key.split(","))
-            age = max(0, round((self._fresh - value) / self._decay)) if self._decay else 0
+            age = self._scent.age_of(value)
             ball_size = 2 * age * age + 2 * age + 1  # Manhattan ball, boundary-blind
             vouchers.append(((row, col), value / ball_size, age))
         if not vouchers:

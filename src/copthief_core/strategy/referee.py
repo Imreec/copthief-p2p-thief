@@ -88,8 +88,7 @@ def play_referee_game(
             thief_belief,
         )
         thief = board.apply_move(thief, thief_decision.move)
-        thief_trail.deposit(thief, intensity)
-        thief_trail.decay()
+        thief_trail.advance(thief, intensity)
         police_belief = feed.observe(police_belief, trail=thief_trail, truth=thief, board=board)
         if gazetteer is not None:  # M5-6: the verbal layer, peer-order (scent→hint)
             apply_thief_hint(
@@ -134,8 +133,7 @@ def play_referee_game(
             thief_belief.note_barrier(decision.barrier)
         else:
             cop = board.apply_move(cop, decision.move)
-        cop_trail.deposit(cop, intensity)
-        cop_trail.decay()
+        cop_trail.advance(cop, intensity)
         thief_belief = feed.observe(thief_belief, trail=cop_trail, truth=cop, board=board)
         outcome = check_end(
             board,

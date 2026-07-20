@@ -10,6 +10,10 @@ generator — on a kit revision, re-copy and re-verify (PRD_crypto §7).
 - Copied at M1-3: `canonical_json.json`, `commit_reveal.json` (incl. `divergent_forms`),
   `terms_signature.json`, `game_uid.json`
 - Copied at M3-2 (with `domain/scent`): `pheromone.json` (LF-rewritten per repo convention)
+- Copied at M3-8 from kit commit `c12e4e9` (main, "Merge pull request #8 —
+  feat/promote-book-v1"): `locked_model.json` (SPEC §7 doc schema, six registrations, the
+  five-row refusal truth table), `scent_book_v3.json` (SPEC §5.1 `multiplicative_book_v1`,
+  **PROMOTED** — anrbj666's independent implementation reproduced every case byte-exact)
 - Not copied (ENH, opt-in only): `joint_seed.json`, `derive_starts.json`
 
 The JSON files under `sample_run/` are copied **verbatim** (LF-rewritten) from the reference

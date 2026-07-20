@@ -27,6 +27,7 @@ from copthief_core.shared.config_model import (
 )
 from copthief_core.shared.gazetteer_loader import load_gazetteer as load_gazetteer
 from copthief_core.shared.limits_loader import load_rate_limits as load_rate_limits
+from copthief_core.shared.locked_models import load_locked_models
 from copthief_core.shared.private_config import ConfigError as ConfigError
 from copthief_core.shared.private_config import load_private_settings as load_private_settings
 
@@ -90,6 +91,9 @@ def load_all(
     """One-call startup load of the whole config tree, guard-gated and version-checked."""
     table = AppFTable.load(config_dir / "app_f_table.json")
     constitution = load_constitution(config_dir / "game.json", table, counted=counted)
-    private = load_private_settings(config_dir / "game.toml")
+    # The locked-model registry is required of a real config TREE (kit SPEC §7):
+    # startup is where an unusable registration must surface, not mid-handshake.
+    registry = load_locked_models(config_dir / "locked_models.json")
+    private = load_private_settings(config_dir / "game.toml", locked_models=registry)
     limits = load_rate_limits(config_dir / "rate_limits.json", constitution.gatekeeper)
     return constitution, private, limits

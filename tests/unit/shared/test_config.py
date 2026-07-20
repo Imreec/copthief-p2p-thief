@@ -15,7 +15,13 @@ def _copy_config(tmp_path: Path, **json_edits: object) -> Path:
     """Clone the shipped config/ into tmp_path, optionally editing game.json sections."""
     clone = tmp_path / "config"
     clone.mkdir()
-    for name in ("game.json", "game.toml", "rate_limits.json", "app_f_table.json"):
+    for name in (
+        "game.json",
+        "game.toml",
+        "rate_limits.json",
+        "app_f_table.json",
+        "locked_models.json",
+    ):
         clone.joinpath(name).write_bytes(CONFIG_DIR.joinpath(name).read_bytes())
     if json_edits:
         raw = json.loads(clone.joinpath("game.json").read_text(encoding="utf-8"))

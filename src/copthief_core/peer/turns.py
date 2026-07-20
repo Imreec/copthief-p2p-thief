@@ -100,9 +100,10 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         response_seconds=response_seconds,
     )
     session.records.append(sealed)
-    # SQ1: deposit after the move at the NEW position, then decay the whole trail once.
-    session.own_trail.deposit(session.position, session.constitution.pheromones.center_intensity)
-    session.own_trail.decay()
+    # SQ1 / M3-8 cadence policy: ONE full-turn update of our own trail at the NEW
+    # position. The order lives in the named model (ADR-0004 v2) — the reference form
+    # deposits then decays, the book model does both in one clamped expression.
+    session.own_trail.advance(session.position, session.constitution.pheromones.center_intensity)
     session.machine.advance(GameState.COMMITTING)
     session.machine.advance(GameState.AWAITING_REVEAL)
     message = TurnMessage(

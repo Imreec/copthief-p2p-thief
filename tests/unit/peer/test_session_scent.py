@@ -9,11 +9,13 @@ mandatory final caught message included (its send() path is unconditional).
 
 from pathlib import Path
 
-from copthief_core.domain.crypto import canonical_hash
-from copthief_core.domain.scent import locked_model_document
+import pytest
+
 from copthief_core.domain.state_machine import GameState
+from copthief_core.peer.handshake import NegotiationError
 from copthief_core.peer.session import PeerSession
 from copthief_core.shared.config import load_all
+from copthief_core.shared.locked_models import SCENT_MODEL, LockedModelRegistry
 
 CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 
@@ -89,31 +91,42 @@ def test_receiver_absorbs_then_decays_its_known_field() -> None:
     assert police.known_field.intensity_at((cell[0], cell[1])) == expected
 
 
-def test_negotiate_payload_carries_the_locked_scent_model() -> None:
+DECLARED = LockedModelRegistry.declared_key(SCENT_MODEL)
+
+
+def test_negotiate_declares_the_model_hash_and_never_the_document() -> None:
+    """Kit SPEC §7: the doc stays home; only `<family>_sha256` crosses the wire."""
     police, _thief = _pair()
     payload = police.negotiate_payload()
-    expected = locked_model_document(
-        center_intensity=CONSTITUTION.pheromones.center_intensity,
-        decay=CONSTITUTION.pheromones.decay,
-        grid_size=CONSTITUTION.pheromones.grid_size,
-        min_center_intensity=CONSTITUTION.pheromones.min_center_intensity,
-    )
-    assert payload["scent_model"] == expected
+    expected = PRIVATE.locked_models.hash(SCENT_MODEL, PRIVATE.scent_model)
+    assert payload[DECLARED] == expected
+    assert "scent_model" not in payload  # the pre-M3-8 full-document key is gone
 
 
 def test_handshake_records_both_scent_model_hashes() -> None:
     police, thief = _pair()  # _pair already ran the mutual handshake
-    ours = canonical_hash(police.negotiate_payload()["scent_model"])
+    ours = PRIVATE.locked_models.hash(SCENT_MODEL, PRIVATE.scent_model)
     assert police.scent_model_hash == ours
     assert police.opponent_scent_model_hash == ours  # same shipped config both sides
     assert thief.opponent_scent_model_hash == police.scent_model_hash
 
 
-def test_handshake_tolerates_a_missing_scent_model_reference_compat() -> None:
+def test_handshake_tolerates_a_missing_declaration_reference_compat() -> None:
+    """Omission is never refusal — the unmodified reference peer declares nothing."""
     police = PeerSession(CONSTITUTION, PRIVATE, role="police", seed=1)
     thief = PeerSession(CONSTITUTION, PRIVATE, role="thief", seed=2)
     payload = thief.negotiate_payload()
-    del payload["scent_model"]  # the reference sends only {terms, nonce, signature, identity}
+    del payload[DECLARED]  # the reference sends only {terms, nonce, signature, identity}
     police.handle_negotiate(payload)
     assert police.opponent_scent_model_hash is None
     assert police.game_uid is not None  # the handshake itself still completes
+
+
+def test_both_declare_and_differ_refuses_the_game() -> None:
+    """The one refusing row of the kit's five-row truth table."""
+    police = PeerSession(CONSTITUTION, PRIVATE, role="police", seed=1)
+    thief = PeerSession(CONSTITUTION, PRIVATE, role="thief", seed=2)
+    payload = thief.negotiate_payload()
+    payload[DECLARED] = PRIVATE.locked_models.hash(SCENT_MODEL, "multiplicative_book_v1")
+    with pytest.raises(NegotiationError, match="locked scent model mismatch"):
+        police.handle_negotiate(payload)

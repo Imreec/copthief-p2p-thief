@@ -43,6 +43,24 @@ w_distance = 5.2704
 w_region = 1.8097
 w_spread = 1.0655
 
+[scent]
+# Which NAMED scent model we play (M3-8, ADR-0004 v2; registrations in
+# config/locked_models.json, kit SPEC s7). Private until the handshake, which declares
+# only the model's HASH - the doc itself never crosses the wire.
+#   subtractive_chebyshev_v1 = the reference form, our default. Byte-identical to what
+#                              M3-2 shipped; this is what plays against the reference peer.
+#   multiplicative_book_v1   = the book ch.4 model. Set this ONLY for a pair that has
+#                              agreed to lock it - a peer that declares a different model
+#                              refuses the game (both-declare-and-differ, rule s7).
+model = "subtractive_chebyshev_v1"
+# M6-7 audit sensitivity: how far a re-derived cell may sit from the transmitted one
+# before the scent-physics check calls it a mismatch. IGNORED for a model that rounds
+# (the reference form is round-3 exact, so any difference is a difference). It binds
+# only for a no-rounding model like multiplicative_book_v1, where two HONEST peers
+# differ in the last IEEE-754 bit because each side recomputes rather than receives.
+# Private, evidence-grade only (SQ3) - never negotiated, never flips a result.
+physics_tolerance = 1e-9
+
 [belief]
 # Private evidence-trust tuning (PRD_belief s5): how sharply the scent/hint likelihoods
 # multiply into the Bayes filter. Never signed, never crosses the wire (SQ3 stance:

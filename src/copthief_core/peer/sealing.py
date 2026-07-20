@@ -15,6 +15,7 @@ from copthief_core.domain.board import Coord
 from copthief_core.domain.crypto import commit as crypto_commit
 from copthief_core.domain.crypto import make_nonce
 from copthief_core.shared.config_model import Constitution, PrivateSettings
+from copthief_core.shared.locked_models import SCENT_MODEL
 from copthief_core.shared.sysinfo import collect_spec, current_commit_hash
 
 
@@ -83,6 +84,7 @@ def seal_spec_record(
     sub_game_number: int,
     github_commit: str,
     num_games_declared: int,
+    scent_model_sha256: str,
 ) -> SealedTurn:
     """The sealed step-0 system_spec declaration (book §6/§8; PRD_reporting §4).
 
@@ -102,6 +104,11 @@ def seal_spec_record(
         "sub_game_number": sub_game_number,
         "github_commit": github_commit,
         "num_games_declared": num_games_declared,
+        # M3-8 (ADR-0004 v2 decision 4): the locked model becomes TAMPER-EVIDENT here.
+        # The signed 14-key terms cannot carry it — the key set is reference-frozen and
+        # adding a key breaks the terms signature against every reference-derived peer —
+        # so the step-0 commit chain is where the declaration binds.
+        "scent_model_sha256": scent_model_sha256,
     }
     nonce = make_nonce()
     return SealedTurn(payload=payload, nonce=nonce, commit=crypto_commit(payload, nonce))
@@ -119,4 +126,5 @@ def live_spec_record(
         sub_game_number=private.sub_game_number if sub_game_number is None else sub_game_number,
         github_commit=current_commit_hash(),
         num_games_declared=constitution.league.num_games,
+        scent_model_sha256=private.locked_models.hash(SCENT_MODEL, private.scent_model),
     )

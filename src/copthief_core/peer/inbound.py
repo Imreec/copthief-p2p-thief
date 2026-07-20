@@ -49,9 +49,15 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         )
         if landmark is not None:
             session.belief.update_hint(session.gazetteer.cells_for(landmark))
-    # SQ1 receive side: absorb their transmitted trail, then one per-message decay.
-    session.known_field.absorb(message.smell_grid)
-    session.known_field.decay()
+    # SQ1 receive side, M3-8 cadence policy: absorb their transmitted trail, then one
+    # per-message decay — BOTH gated on the named model. Under the book model nothing is
+    # transmitted (each side recomputes the rival's field) and there is no received copy
+    # to decay, so this whole pass is skipped (kit SPEC §7 `transmitted` /
+    # `receiver_side_decay`; ADR-0004 v2's side-by-side table).
+    if session.known_field.transmitted:
+        session.known_field.absorb(message.smell_grid)
+    if session.known_field.receiver_side_decay:
+        session.known_field.decay()
     if message.capture_claim is not None:  # SQ2: answer honestly on our next turn
         session.caught = tuple(message.capture_claim) == tuple(session.position)
         session.pending_claim_response = {
