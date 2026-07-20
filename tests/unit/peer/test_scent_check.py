@@ -16,7 +16,7 @@ from copthief_core.domain.scent import ScentField
 from copthief_core.peer.scent_check import scent_physics_mismatches
 from copthief_core.shared.config import load_all
 
-CONSTITUTION, _SHIPPED, _LIMITS = load_all(Path("config"), counted=False)
+CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
 
 
 def _honest_walk(positions: list[tuple[int, int]]) -> tuple[list[dict], list[dict]]:
@@ -41,7 +41,10 @@ def _honest_walk(positions: list[tuple[int, int]]) -> tuple[list[dict], list[dic
 def test_an_honest_trail_produces_zero_mismatches() -> None:
     records, inbound = _honest_walk([(3, 3), (4, 3), (4, 4)])
     assert (
-        scent_physics_mismatches(records=records, inbound=inbound, constitution=CONSTITUTION) == []
+        scent_physics_mismatches(
+            records=records, inbound=inbound, constitution=CONSTITUTION, private=PRIVATE
+        )
+        == []
     )
 
 
@@ -49,7 +52,7 @@ def test_a_fabricated_grid_is_flagged_at_its_step_with_cell_counts() -> None:
     records, inbound = _honest_walk([(3, 3), (4, 3), (4, 4)])
     inbound[1]["smell_grid"] = {"0,0": 0.9}  # a planted trail far from the walk
     mismatches = scent_physics_mismatches(
-        records=records, inbound=inbound, constitution=CONSTITUTION
+        records=records, inbound=inbound, constitution=CONSTITUTION, private=PRIVATE
     )
     assert [m["step"] for m in mismatches] == [2]
     assert mismatches[0]["cells"] >= 1
@@ -59,7 +62,10 @@ def test_steps_without_a_transmitted_grid_are_skipped_not_flagged() -> None:
     records, inbound = _honest_walk([(3, 3), (4, 3)])
     del inbound[0]  # we never archived a message for step 1 (e.g. pre-v1.1 log)
     assert (
-        scent_physics_mismatches(records=records, inbound=inbound, constitution=CONSTITUTION) == []
+        scent_physics_mismatches(
+            records=records, inbound=inbound, constitution=CONSTITUTION, private=PRIVATE
+        )
+        == []
     )
 
 
@@ -68,5 +74,8 @@ def test_spec_and_malformed_records_never_crash_the_check() -> None:
     records.insert(0, {"payload": {"step": 0, "type": "system_spec"}})
     records.append({"payload": {"step": 9}})  # no position revealed
     assert (
-        scent_physics_mismatches(records=records, inbound=inbound, constitution=CONSTITUTION) == []
+        scent_physics_mismatches(
+            records=records, inbound=inbound, constitution=CONSTITUTION, private=PRIVATE
+        )
+        == []
     )

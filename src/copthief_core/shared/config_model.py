@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.scoring import ScoringTable
 from copthief_core.shared.gatekeeper import BreakerLimits
+from copthief_core.shared.locked_models import LockedModelRegistry
 from copthief_core.shared.rate_limiter import QueueLimits
 
 
@@ -176,6 +177,15 @@ class PrivateSettings:
     # M5-6: which named template bank the verbal layer speaks ("" = the default
     # bank) — the A/B arena run ships its winner here.
     hint_bank: str
+    # [scent] which named model we are willing to play (ADR-0004 v2). Private until the
+    # handshake declares its HASH; the default is the reference form, so a peer that
+    # never touches this section plays exactly what M3-2 shipped.
+    scent_model: str
+    # M6-7 audit slack, binding only for a model that does not round (M3-8).
+    scent_physics_tolerance: float
+    # The committed locked-model registrations (config/locked_models.json, kit SPEC §7):
+    # verbatim kit docs, because the declared value is a hash over their bytes.
+    locked_models: LockedModelRegistry
     # [gui] live-view render knobs (PRD_gui_replay §7) — private, display-only.
     gui: GuiSettings
     # [email] draft/arming rail (M6-4) — private; safe defaults when absent.

@@ -15,6 +15,7 @@ from typing import Any
 from copthief_core.domain.belief import BeliefFilter
 from copthief_core.domain.gazetteer import Gazetteer
 from copthief_core.domain.scent import ScentField
+from copthief_core.domain.scent_models import make_scent_model
 from copthief_core.domain.state_machine import GameState, GameStateMachine
 from copthief_core.peer import handshake, inbound, turns
 from copthief_core.peer.handshake import NegotiationError
@@ -22,6 +23,7 @@ from copthief_core.peer.policy import SkeletonPolicy
 from copthief_core.peer.sealing import SealedTurn
 from copthief_core.peer.turns import FINAL_CAUGHT_HINT
 from copthief_core.shared.config_model import Constitution, PrivateSettings
+from copthief_core.shared.locked_models import SCENT_MODEL, assert_agrees_with
 from copthief_core.strategy.brains import make_brain
 from copthief_core.wire.turn import TurnMessage
 
@@ -32,14 +34,19 @@ class ProtocolViolationError(RuntimeError):
     """An inbound message broke the protocol; the session is already in TECHNICAL_LOSS."""
 
 
-def _make_scent_field(constitution: Constitution) -> ScentField:
-    """One scent field under the signed pheromone params + board axis contract."""
+def _make_scent_field(constitution: Constitution, private: PrivateSettings) -> ScentField:
+    """One scent field under the selected named model + board axis contract (ADR-0004 v2).
+
+    The model's params come from the committed registry — the same bytes we hash and
+    declare — and `assert_agrees_with` refuses any registration that contradicts the
+    signed pheromone terms, so we can never declare physics we do not play.
+    """
+    doc = private.locked_models.doc(SCENT_MODEL, private.scent_model)
+    assert_agrees_with(doc, constitution.pheromones)
     return ScentField(
         board_size=constitution.board.grid_size,
-        window=constitution.pheromones.grid_size,
-        decay=constitution.pheromones.decay,
-        min_center_intensity=constitution.pheromones.min_center_intensity,
         origin=constitution.board.axis_start_index,
+        model=make_scent_model(private.scent_model, params=doc["params"]),
     )
 
 
@@ -95,8 +102,8 @@ class PeerSession:
         self.caught = False
         # PRD_scent §3: two fields — own_trail's snapshot crosses the wire (never a
         # coordinate); known_field stores what the opponent transmitted (belief input).
-        self.own_trail = _make_scent_field(constitution)
-        self.known_field = _make_scent_field(constitution)
+        self.own_trail = _make_scent_field(constitution, private)
+        self.known_field = _make_scent_field(constitution, private)
         # Locked scent-model hashes (PRD_scent §4), recorded by the handshake.
         self.scent_model_hash: str | None = None
         self.opponent_scent_model_hash: str | None = None
@@ -115,6 +122,9 @@ class PeerSession:
             decay=constitution.pheromones.decay,
             smell_trust=private.smell_trust_weight,
             hint_trust=self.hint_trust,
+            # M3-8: one selected model, so the physics we emit and the falloff the
+            # filter inverts can never drift apart (PRD_scent §9.3).
+            scent_model=self.own_trail.model,
         )
 
     # -- handshake (PLAN §4; peer/handshake) -----------------------------------------

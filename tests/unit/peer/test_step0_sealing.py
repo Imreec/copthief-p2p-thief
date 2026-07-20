@@ -40,6 +40,7 @@ def _spec_record() -> SealedTurn:
         sub_game_number=1,
         github_commit="ab" * 20,
         num_games_declared=2,
+        scent_model_sha256="deadbeef",
     )
 
 
@@ -55,6 +56,7 @@ def test_spec_record_seals_the_declaration_key_set() -> None:
         "sub_game_number",
         "github_commit",
         "num_games_declared",
+        "scent_model_sha256",
     }
     assert record.payload["step"] == 0
     assert record.payload["type"] == "system_spec"

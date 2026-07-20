@@ -25,6 +25,7 @@ def _played_thief() -> PeerSession:
         sub_game_number=1,
         github_commit="ab" * 20,
         num_games_declared=2,
+        scent_model_sha256="deadbeef",
     )
     thief = PeerSession(CONSTITUTION, PRIVATE, role="thief", seed=2, spec_record=spec)
     police = PeerSession(CONSTITUTION, PRIVATE, role="police", seed=1)

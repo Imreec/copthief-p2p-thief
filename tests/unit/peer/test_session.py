@@ -37,7 +37,9 @@ def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
     payload = police.negotiate_payload()
     # M3-2 adds the locked scent-model extra (PRD_scent §4) — safe against the
     # reference because its verify_peer indexes only its own four keys (source-pinned).
-    assert set(payload) == {"terms", "nonce", "signature", "identity", "scent_model"}
+    # M3-8 (kit SPEC §7): the locked model rides as a HASH under `scent_model_sha256`;
+    # the pre-M3-8 full-document `scent_model` key is gone. The reference ignores both.
+    assert set(payload) == {"terms", "nonce", "signature", "identity", "scent_model_sha256"}
     # F8b (observed live): the reference's declaration writer group_block() KeyErrors
     # unless the identity carries all seven reference keys.
     assert set(payload["identity"]) == {
