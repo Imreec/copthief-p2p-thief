@@ -4,6 +4,7 @@ Commands:
   copthief run local-match   one command, full mini-game, both peers in-process (queues)
   copthief run p2p-match     one command, full mini-game, TWO processes over localhost HTTP
   copthief run peer          play one full standalone peer (own server + symmetric loop)
+                             --sparring refuses a config carrying tuned weights or mail
   copthief replay            re-verify a JSONL log -> Verified OK / TAMPERED (M4-3)
 
 `replay` exits 0 on Verified OK and 1 on TAMPERED (script/CI-friendly).
@@ -17,6 +18,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from copthief_core.sdk.simulation import SimulationSdk
+from copthief_core.shared.sparring import sparring_problems
 
 _LOCALHOST = "127.0.0.1"
 
@@ -49,6 +51,12 @@ def _parser() -> argparse.ArgumentParser:
     peer.add_argument("--port", type=int, default=None, help="default: game.toml my_port")
     peer.add_argument(
         "--opponent-url", default=None, help="default: game.toml network.opponent_url"
+    )
+    peer.add_argument(
+        "--sparring",
+        action="store_true",
+        help="refuse to play unless the config is safe for a standing host "
+        "(no tuned weights, no mail) -- CLAUDE.md s9, ADR-0008 s6",
     )
     replay = commands.add_parser("replay", help="re-verify a JSONL log (Verified OK / TAMPERED)")
     replay.add_argument("--log", type=Path, required=True, help="the JSONL game log to verify")
@@ -115,6 +123,16 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(asdict(p2p_result)))
         return 0
+    if args.sparring:
+        # M7-1: the standing-host rules are asserted at the moment of use, not
+        # remembered — a peer stood up for an opponent to practise against may not carry
+        # tuned weights (CLAUDE.md §9) and may not be able to send mail (ADR-0008 §6).
+        # The refusal is a normal JSON result, not a traceback: this is an expected
+        # answer to a wrong config, and it must be readable in an ops window.
+        problems = sparring_problems(sdk.private)
+        if problems:
+            print(json.dumps({"refused": "sparring-unsafe config", "problems": problems}))
+            return 2
     port = args.port if args.port is not None else sdk.private.my_port
     opponent_url = args.opponent_url if args.opponent_url is not None else sdk.private.opponent_url
     peer_result = sdk.run_peer(
