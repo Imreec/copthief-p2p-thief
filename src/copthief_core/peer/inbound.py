@@ -11,11 +11,23 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from copthief_core.domain.state_machine import GameState
+from copthief_core.peer import inbox_order
 from copthief_core.wire.turn import TurnMessage
 from copthief_core.wire.validation import WireValidationError
 
 if TYPE_CHECKING:  # annotation-only: the session imports THIS module at runtime
     from copthief_core.peer.session import PeerSession
+
+
+def _tolerated(step: int, disposition: str) -> dict[str, Any]:
+    """The ack for a message the transport layer absorbed (M7-8).
+
+    `status` stays "ok" on purpose: a redelivery is not an error to report back — the
+    sender did nothing wrong, and answering anything else would make an honest retry
+    look like a protocol failure. The caller reads `disposition` to know that nothing
+    advanced, so our turn deadline is NOT renewed.
+    """
+    return {"status": "ok", "step": step, "disposition": disposition}
 
 
 def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any]:
@@ -29,8 +41,19 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
     # seals its mandatory caught final message at its CURRENT step (a caught thief
     # does not move); ours increments. Tolerate the repeat on that message ONLY.
     final_caught = bool(message.claim_response and message.claim_response.get("caught"))
-    if message.step != expected and not (final_caught and message.step == expected - 1):
-        raise session.collapse(f"step discontinuity: expected {expected}, got {message.step}")
+    # M7-8: at-least-once delivery is decided BEFORE any state change, exactly like
+    # validation — a redelivery must leave this session bit-identical to before it.
+    verdict = session.sequencer.classify(
+        step=message.step, commit=message.commit, expected=expected, final_caught=final_caught
+    )
+    if verdict.disposition == inbox_order.ILLEGAL:
+        raise session.collapse(verdict.reason)
+    if verdict.disposition == inbox_order.DUPLICATE:
+        return _tolerated(message.step, inbox_order.DUPLICATE)
+    if verdict.disposition == inbox_order.BUFFERED:
+        session.sequencer.hold(step=message.step, commit=message.commit, raw=raw)
+        return _tolerated(message.step, inbox_order.BUFFERED)
+    session.sequencer.record(message.commit)
     session.inbound.append(message)
     # F9: a declared barrier is sealed/audited evidence — it constrains OUR OWN move
     # legality (the M2 gap) and the belief motion model, before anything else reads it.
@@ -78,4 +101,4 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
             session.machine.advance(GameState.WAITING_FOR_OPPONENT)
     else:
         raise session.collapse(f"turn arrived in state {session.machine.state.name}")
-    return {"status": "ok", "step": message.step}
+    return {"status": "ok", "step": message.step, "disposition": inbox_order.ACCEPTED}

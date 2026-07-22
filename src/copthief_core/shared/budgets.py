@@ -17,6 +17,9 @@ The four rules, in the order they bite:
 4. `io_stall_timeout > turn_timeout_seconds` — the blocker itself: whatever a stalled
    transport does, OUR OWN turn deadline expires first, so a silent opponent is
    classified by rule (technical loss, App E) and never by suicide.
+5. `inbound_buffer_limit >= 1` (M7-8) — a receiver with no reorder window turns an
+   at-least-once retry race into a protocol violation; zero tolerance is not a
+   tightening here, it is a self-inflicted technical loss.
 
 Nothing here changes a signed value: rule 4 is satisfied by making the I/O budget
 *derived* (turn budget + the signed watchdog budget as grace), which is why the fix is
@@ -59,6 +62,11 @@ def reconcile_budgets(constitution: Constitution, private: PrivateSettings) -> N
     if io_stall_timeout(constitution, private) <= turn:
         problems.append(
             f"the I/O stall budget must sit strictly behind turn_timeout_seconds ({turn})"
+        )
+    if private.inbound_buffer_limit < 1:
+        problems.append(
+            f"inbound_buffer_limit ({private.inbound_buffer_limit}) must be at least 1: "
+            "at-least-once delivery can put two of the opponent's pushes in flight"
         )
     if problems:
         raise ConfigError("timing budgets are not reconciled:\n" + "\n".join(problems))
