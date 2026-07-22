@@ -72,3 +72,8 @@ scratch/
 patch.txt
 review_payload.json
 summary_review.md
+
+# Sparring-host config, DERIVED not authored (M7-1): regenerate with
+# `uv run python scripts/make_sparring_config.py`. Never committed - a second copy of
+# the constitution is a drift hazard, and the recipe is what carries the guarantee.
+config-sparring/

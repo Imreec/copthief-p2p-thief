@@ -17,6 +17,7 @@
     "scripts/deception_ab.py": "06087ef032df61ca8f5981e037b6e6a85f7803d561aa8ab371ad367db9b2c302",
     "scripts/ga_run.py": "bd04f8e16cc35d4ff335e2e00e9b06488be1ac0f57014e80987e528951284174",
     "scripts/gmail_auth.py": "7ce3a74688983dfaaf824a4c80445fb7095b2e9fa440b181e364744476ee3e45",
+    "scripts/make_sparring_config.py": "99c851b11923e29478ab089ce896ea7bd66023af8ea23c2da9a95b4a7d79222f",
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
     "scripts/sync_core.py": "3c8ca23345d0d0ab1382c12edc876754180249eb3efa5d74cbd15deb9900edac",
     "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
@@ -84,7 +85,7 @@
     "src/copthief_core/sdk/__init__.py": "08391357f7d33dd4be7b1d2229ed1052b03e19c3a4f2aec06a00aeb6cbe1d258",
     "src/copthief_core/sdk/arena.py": "764b5bbd10b84bab1d2e71100eba017887650f71a74b5215ad6a17b872e2dbf5",
     "src/copthief_core/sdk/arena_config.py": "9f6b8723881f345d0e520c49756b964ae825156217440ac32e2e1303cc8bfaf9",
-    "src/copthief_core/sdk/cli.py": "cb13084959086044fea10598ab89e9bdf4738d96688c7fbc85c3f8d9dbe438b7",
+    "src/copthief_core/sdk/cli.py": "018172fb011fec265d5bb68d8e2542a81ea35a70c62cfc6cd5c0d43b3bec1ae8",
     "src/copthief_core/sdk/identity.py": "eadb59e45a390189389182bbd50cf558d2387959e0cb7f5c83ebac86932bce92",
     "src/copthief_core/sdk/p2p_match.py": "59b95d35833ef996d5e54295dc58417f5194e1d218aeecb6ce289c9b94065f24",
     "src/copthief_core/sdk/peer_run.py": "8c22e3b14eaf46d5f858e91215da33f4ba7c97688a0642a0e2fc80766d8a8f09",
@@ -104,6 +105,7 @@
     "src/copthief_core/shared/private_config.py": "59c4cd674e9ab566fd32cad581a14bb58730ca96a7ccb17d544a89e188815b97",
     "src/copthief_core/shared/private_model.py": "e1a60b3823ecfe4a58c80d26be08aae11ac8a311336d104a1ab5f3a2f71c26ad",
     "src/copthief_core/shared/rate_limiter.py": "616a4c591e9355786d5d983fae76d4edaf8879717d709bc9a2f4879f95af2058",
+    "src/copthief_core/shared/sparring.py": "4f9e770adff6ac33ed8431a89c40dd2507d9eb9c8b20d232d0c6ee3ffc5bceeb",
     "src/copthief_core/shared/sysinfo.py": "deda36d41d7efccd089465d2361df0437a6b192a4cfc1b66f949b18cbf4eb2fb",
     "src/copthief_core/strategy/__init__.py": "daa0543013737e235af6734345208121d65387d76b0f9e80db7ca02f059c336d",
     "src/copthief_core/strategy/belief_eval.py": "0b5c3390e76015e08759051f29f4459e4ee5a3cd33732e8eb82d4f16b115f00a",
@@ -164,6 +166,7 @@
     "tests/integration/test_replay_live_shape.py": "0a5a914a0eee2113efc57eaefd6e5088a7372154405a2948deebb53ba51ff33f",
     "tests/integration/test_replay_verdict.py": "583181841165487d944aa82ec700a71ffc91cca9616527261a94e0726ed3ee29",
     "tests/integration/test_scent_transmission.py": "6e8c42444a267a94aa1eea012dbc137ecab7a29b0d950e99894dada13e8c5c70",
+    "tests/integration/test_sparring_config.py": "40a699de098b0cc6cb2d56b108e9a3c2fd27d2cc7811f445718c080418f6869b",
     "tests/integration/test_symmetric_loop.py": "adf645b5dd91992fc1a6f2d5dd076c3ff39ae7b3100a0d2848bff80ab7ec2bb5",
     "tests/integration/test_zero_tokens.py": "b6aae707210b81360ea245a24ae981c8ed2983c30a450cf95a6dc05dfdcf789e",
     "tests/unit/domain/test_belief.py": "17087c3b784d6aba049360c4a2607bf32b52b9d7ed7d376b6f5814861a30c8cf",
@@ -229,6 +232,7 @@
     "tests/unit/shared/test_locked_models.py": "dc718c9cebfb73725916c4181b0c84d94068de185bc382118bf672153f698428",
     "tests/unit/shared/test_rate_limiter.py": "3562c6dcc10a74d8c3edaba9f3d2d1482579ba9fcaf9f2d490dee00926df21d7",
     "tests/unit/shared/test_rate_limits_v101.py": "a9beff3a1f1408c953cdaed5e34274dd7241552fa467b308949211aaaf17500f",
+    "tests/unit/shared/test_sparring.py": "21e784ba5d5f3440230a28e092ea0d31ae5102dae4f10bd69d1b27188c06a7a2",
     "tests/unit/shared/test_sysinfo.py": "ff508e3a852785420e442882ef76edda6f2aef14815ebb673a560ef4c85df120",
     "tests/unit/strategy/test_brains.py": "49ee560181fa404a633075a5154bc59d444a125876e96da915cc9ec1fb6e4359",
     "tests/unit/strategy/test_deception_eval.py": "0e771b32639496574ebdab3654519c68237cd3ae34e8ce5ec64345dfbafac229",
@@ -242,7 +246,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "c5d5132",
+  "source_commit": "30e1aab",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "b46fa69bd184a6405d7686658a4398eccbe85372ad4c52b6d90ecf6878c5046d"
+  "tree_hash": "fbd740455717ddef242b90977b085f2c963d65b347808843adebd6ef5d95d799"
 }
