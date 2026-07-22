@@ -19,6 +19,7 @@ from copthief_core.domain.scent_models import make_scent_model
 from copthief_core.domain.state_machine import GameState, GameStateMachine
 from copthief_core.peer import handshake, inbound, turns
 from copthief_core.peer.handshake import NegotiationError
+from copthief_core.peer.inbox_order import InboundSequencer
 from copthief_core.peer.policy import SkeletonPolicy
 from copthief_core.peer.sealing import SealedTurn
 from copthief_core.peer.turns import FINAL_CAUGHT_HINT
@@ -95,6 +96,9 @@ class PeerSession:
         self.spec_record = spec_record
         self.tokens_total = 0  # template path charges 0; an LLM seam would add here
         self.inbound: list[TurnMessage] = []
+        # M7-8: at-least-once delivery tolerance in front of the strict machine — a
+        # redelivered push is transport noise, not a rules violation (peer/inbox_order).
+        self.sequencer = InboundSequencer(buffer_limit=private.inbound_buffer_limit)
         self.game_uid: str | None = None
         self.opponent_group: str | None = None
         self.outcome: str | None = None  # set by protocol events, cross-checked at audit
@@ -144,8 +148,18 @@ class PeerSession:
         return turns.take_turn(self, now=now)
 
     def handle_receive_turn(self, raw: dict[str, Any]) -> dict[str, Any]:
-        """Validate, absorb scent, advance the machine (delegates to peer/inbound)."""
+        """Validate, absorb scent, advance the machine (delegates to peer/inbound).
+
+        The ack carries `disposition` (M7-8): only "accepted" advanced the game — a
+        "duplicate" or "buffered" message changed nothing here and must not renew the
+        caller's turn deadline.
+        """
         return inbound.handle_receive_turn(self, raw)
+
+    def release_buffered(self) -> dict[str, Any] | None:
+        """The out-of-order message now due, if any (M7-8; feed it back through
+        `handle_receive_turn` — the loop replays it exactly like a fresh arrival)."""
+        return self.sequencer.release(expected=len(self.inbound) + 1)
 
     def collapse(self, reason: str) -> ProtocolViolationError:
         """Record the violation as TECHNICAL_LOSS, then hand back the error to raise."""

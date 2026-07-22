@@ -43,6 +43,19 @@ def inbound(emit: LogFn, kind: str, receiver: str, raw: dict[str, Any]) -> None:
     emit({"event": kind, "receiver": receiver, "raw": raw})
 
 
+def tolerated(emit: LogFn, session: PeerSession, disposition: str, step: int) -> None:
+    """One inbound message the transport layer absorbed (M7-8: a redelivery or an
+    early arrival). Logged loudly on purpose — a warm-up drill has to be able to SHOW
+    that the duplicates arrived and that none of them advanced the game."""
+    emit(
+        {
+            "event": "inbound_tolerated",
+            "receiver": session.role,
+            "payload": {"disposition": disposition, "step": step},
+        }
+    )
+
+
 def belief_snapshot(emit: LogFn, session: PeerSession) -> None:
     """One post-update belief snapshot (Input: session after its inbound pipeline ran;
     Output: none — the `belief` event feeds the M4-2 heatmap and the M4-4 overlay)."""

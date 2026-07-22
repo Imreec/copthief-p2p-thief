@@ -185,10 +185,11 @@ def test_turn_arriving_mid_computation_collapses_to_technical_loss() -> None:
     _handshake(police, thief)
     outbound = thief.take_turn(now=1.0)
     police.handle_receive_turn(outbound)  # police now COMPUTING_MOVE
-    duplicate = dict(outbound)
-    duplicate["step"] = 2  # passes continuity, arrives in a state that cannot accept it
+    # Continuity-clean and genuinely NEW (M7-8: a re-used commit is now absorbed as a
+    # redelivery, so this fixture must carry its own seal to reach the state wall).
+    early = dict(outbound) | {"step": 2, "commit": "9" * 64}
     with pytest.raises(Exception, match="arrived in state"):
-        police.handle_receive_turn(duplicate)
+        police.handle_receive_turn(early)
     assert police.machine.state is GameState.TECHNICAL_LOSS
 
 

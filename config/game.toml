@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.00"
+version = "1.01"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -95,6 +95,12 @@ opponent_url = ""
 turn_timeout_seconds = 180
 poll_interval_seconds = 0.5
 connect_timeout_seconds = 60
+# M7-8 at-least-once tolerance: how many steps AHEAD of the awaited one we hold before
+# calling it a flood. A lost HTTP ack makes the sender retry, so two of the opponent's
+# pushes can be in flight at once and land out of order; anything past this window is
+# a protocol violation, not a tunnel artifact. 1 covers the realistic race (one step
+# ahead) - raise it only with a drill that shows a deeper reorder actually happening.
+inbound_buffer_limit = 1
 
 [email]
 # M7-6 automatic report rail (ADR-0008, police repo; PRD_reporting s5a). App E rule

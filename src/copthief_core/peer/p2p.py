@@ -12,7 +12,7 @@ from __future__ import annotations
 import time
 
 from copthief_core.domain.state_machine import GameState
-from copthief_core.peer import events
+from copthief_core.peer import events, inbox_order
 from copthief_core.peer.session import NegotiationError, PeerSession
 from copthief_core.peer.settlement import (
     LogFn,
@@ -86,17 +86,25 @@ def run_peer_game(
     while not session.machine.is_terminal:
         if heartbeat is not None:  # M6-7: the watchdog's liveness signal (FR-8)
             heartbeat({"event": "heartbeat"})
-        incoming = transport.poll_turn(poll_interval)
-        if incoming is None:
-            if time.time() > deadline:
-                session.outcome = "timeout"  # opponent silent past the budget
-                session.machine.advance(GameState.TECHNICAL_LOSS, trigger="turn deadline exhausted")
-            continue
-        deadline = time.time() + turn_timeout
-        events.inbound(emit, "turn_received", session.role, incoming)
-        session.handle_receive_turn(incoming)
-        events.belief_snapshot(emit, session)
-        # A reply we cannot deliver ends the game as OUR loss, not as a crash (M7-7).
-        if not session.machine.is_terminal and not _send_own_turn(session, transport, emit):
-            break
+        # M7-8: a message held out of order outranks the wire — it is the step we are
+        # waiting for, and it is already here.
+        incoming = session.release_buffered() or transport.poll_turn(poll_interval)
+        if incoming is not None:
+            events.inbound(emit, "turn_received", session.role, incoming)
+            ack = session.handle_receive_turn(incoming)
+            if ack["disposition"] == inbox_order.ACCEPTED:
+                deadline = time.time() + turn_timeout
+                events.belief_snapshot(emit, session)
+                # A reply we cannot deliver ends the game as OUR loss, not as a crash.
+                if session.machine.is_terminal or _send_own_turn(session, transport, emit):
+                    continue
+                break
+            events.tolerated(emit, session, ack["disposition"], ack["step"])
+        # M7-8: ONE CLOCK PER EXPECTED MESSAGE. A redelivered or early push proves the
+        # opponent is alive but does not discharge what it owes us, so it renews
+        # nothing — and the deadline is judged here, on every lap, so that a flood of
+        # junk cannot keep us in the loop past our own budget either.
+        if time.time() > deadline:
+            session.outcome = "timeout"  # opponent silent past the budget
+            session.machine.advance(GameState.TECHNICAL_LOSS, trigger="turn deadline exhausted")
     return settle(session, transport, emit)
