@@ -57,9 +57,19 @@ def test_guard_violation_refuses_the_load_loudly(tmp_path: Path) -> None:
 
 
 def test_counted_flag_arms_the_num_games_rule(tmp_path: Path) -> None:
-    clone = copy_config(tmp_path)
+    # The shipped constitution IS the league one (six) since 2026-07-24, so the
+    # single-sample value is injected here — the rule under test is that arming the
+    # counted rows refuses anything but a genuine six-mini-game match.
+    clone = copy_config(tmp_path, network_and_league__num_games=1)
     with pytest.raises(ConfigError, match="num_games"):
         load_all(clone, counted=True)
+
+
+def test_the_shipped_constitution_is_a_counted_league_match(tmp_path: Path) -> None:
+    """What we ship is what we play: the committed constitution must load with the App F
+    counted rows ARMED, because it is the file whose bytes the opponent counter-signs."""
+    constitution, _private, _limits = load_all(copy_config(tmp_path), counted=True)
+    assert constitution.league.num_games == 6
 
 
 def test_private_toml_can_never_override_a_signed_term(tmp_path: Path) -> None:

@@ -37,16 +37,29 @@ def series_artifact_from_logs(
     opponent_group: str,
     out_root: Path,
     opponent_identity: dict[str, Any] | None = None,
+    durations: dict[int, float] | None = None,
 ) -> dict[str, Any]:
     """Write the whole-series artifact set from `logs` in sub-game order (Input: one
-    settled log per sub-game + the signed constitution + our private identity; Output:
-    the result dict; Raises: SummaryRebuildError if any sub-game never settled).
+    settled log per sub-game + the signed constitution + our private identity + how long
+    each sub-game took where the caller measured it; Output: the result dict; Raises:
+    SummaryRebuildError if any sub-game never settled).
 
     `game_uid` is taken from the sub-games themselves — it is derived from the terms and
     both group ids, so every sub-game of one pairing shares it by construction.
+
+    `durations` is what turns each sub-game's `ended_at` into a real end time; a caller
+    that never measured (rebuilding from archived logs long afterwards) leaves it out and
+    the entry says the game ended when it started, which is visibly a non-claim rather
+    than an invented one.
     """
+    measured = durations or {}
     summaries = [
-        summary_from_log(path, sub_game_number=n, group_name=private.group_name)
+        summary_from_log(
+            path,
+            sub_game_number=n,
+            group_name=private.group_name,
+            duration_seconds=measured.get(n, 0.0),
+        )
         for n, path in enumerate(logs, start=1)
     ]
     shared_terms = json.loads((config_dir / "game.json").read_text(encoding="utf-8"))

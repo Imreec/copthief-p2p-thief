@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from copthief_core.report.email_interlock import decide_email_action
-from copthief_core.shared.config_model import EmailSettings
+from copthief_core.shared.config_model import EmailSettings, PrivateSettings, RateLimits
 from copthief_core.shared.gatekeeper import ApiGatekeeper
 
 
@@ -28,6 +28,31 @@ class EmailTransport(Protocol):
     def send(
         self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
     ) -> None: ...
+
+
+def build_report_sender(
+    *,
+    private: PrivateSettings,
+    limits: RateLimits,
+    transport: EmailTransport | None = None,
+    lecturer_addressable: bool = False,
+) -> EmailSender:
+    """Assemble the report rail the one way (Input: the private settings carrying
+    `[email]`, the operational limits, and whether this run may address the lecturer;
+    Output: a sender whose gatekeeper holds the daily cap).
+
+    Extracted so the self-play series and the live series build the identical rail
+    (CLAUDE.md §1 #11): the quota is the signed daily cap, and `lecturer_addressable`
+    defaults closed so a caller that forgets cannot reach him (M7-9).
+    """
+    from copthief_core.shared.gatekeeper_build import build_gatekeeper
+
+    return EmailSender(
+        settings=private.email,
+        gatekeeper=build_gatekeeper("email", limits, quota_units=limits.email_daily_cap),
+        transport=transport,
+        lecturer_addressable=lecturer_addressable,
+    )
 
 
 def report_subject(result: dict[str, Any], role: str) -> str:

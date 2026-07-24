@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from copthief_core.domain.terms import terms_from_config
-from copthief_core.infra.email_sender import EmailSender, EmailTransport
+from copthief_core.infra.email_sender import EmailTransport, build_report_sender
 from copthief_core.peer.match import _locked_log
 from copthief_core.peer.sealing import live_spec_record
 from copthief_core.peer.series import run_peer_series
@@ -29,7 +29,6 @@ from copthief_core.report.schemas import result_filename
 from copthief_core.sdk.identity import identity_block
 from copthief_core.shared.config import load_all, load_gazetteer
 from copthief_core.shared.config_model import Constitution, PrivateSettings
-from copthief_core.shared.gatekeeper_build import build_gatekeeper
 
 
 def _side(
@@ -136,9 +135,9 @@ def run_local_series(
         table=constitution.scoring,
         out_root=out_root,
     )
-    sender = EmailSender(
-        settings=private.email,
-        gatekeeper=build_gatekeeper("email", limits, quota_units=limits.email_daily_cap),
+    sender = build_report_sender(
+        private=private,
+        limits=limits,
         transport=email_transport,
         # M7-9: self-play is never a counted series, so the lecturer is unreachable from
         # here by construction rather than by remembering to say so.

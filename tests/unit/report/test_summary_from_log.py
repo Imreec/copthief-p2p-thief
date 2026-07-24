@@ -114,3 +114,12 @@ def test_a_log_without_a_result_cannot_be_summarised(tmp_path: Path) -> None:
     log = _write(tmp_path, rows)
     with pytest.raises(SummaryRebuildError, match="result"):
         summary_from_log(log, sub_game_number=1, group_name="G")
+
+
+def test_a_sub_game_that_left_no_log_at_all_refuses_the_same_way(tmp_path: Path) -> None:
+    """Found in the first live run of the series driver: a child that died before
+    writing anything raised a bare FileNotFoundError out of the aggregation, so an
+    operator saw a traceback where the design promises a named refusal. A missing log
+    is the emptiest case of the same fact — this game has no honest summary."""
+    with pytest.raises(SummaryRebuildError, match="no log"):
+        summary_from_log(tmp_path / "never_written.jsonl", sub_game_number=1, group_name="G")
