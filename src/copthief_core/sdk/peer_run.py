@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from copthief_core.peer.p2p import PeerGameResult, run_peer_game
+from copthief_core.peer.port_guard import (
+    PeerAlreadyRunningError,
+    assert_role_port_free,
+    await_listening,
+)
 from copthief_core.peer.session import PeerSession
 from copthief_core.shared.budgets import io_stall_timeout
 from copthief_core.shared.config import load_gazetteer
@@ -50,8 +55,25 @@ def run_peer_flow(
     from copthief_core.infra.p2p_transport import McpTransport
     from copthief_core.peer.transport import PeerQueues
 
+    # M7-10: one live peer per role. Refusing to start is better than starting and
+    # starving behind an orphan — the starving peer consumes a sub-game and reports a
+    # timeout it did not cause (the 2026-07-24 phantom sub-game 6).
+    assert_role_port_free(host, port, role=role, timeout=sdk.private.poll_interval_seconds)
     inboxes = PeerQueues()
     start_server(role, inboxes, host=host, port=port)
+    # ...and the server really has to be up. It runs on a daemon thread, so a failed bind
+    # raises where nobody is looking, and the peer would play a whole game with an inbox
+    # the opponent cannot reach.
+    if not await_listening(
+        host,
+        port,
+        poll_interval=sdk.private.poll_interval_seconds,
+        budget=sdk.private.connect_timeout_seconds,
+    ):
+        raise PeerAlreadyRunningError(
+            f"our own {role} server never began accepting on {host}:{port} — refusing to "
+            "play a game whose inbox the opponent cannot reach"
+        )
     transport = McpTransport(
         McpToolClient(opponent_url),
         inboxes,
@@ -113,7 +135,7 @@ def run_peer_flow(
         watchdog.beat()
         watchdog.start(poll_interval=sdk.private.poll_interval_seconds)
         try:
-            return run_peer_game(
+            return run_peer_game(  # noqa: TRY300 - the finally below is the point
                 session,
                 # M7-7(1): every blocking wire call is a declared I/O window, so a dead
                 # edge is measured against the I/O budget — which sits behind our own
@@ -126,6 +148,13 @@ def run_peer_flow(
             )
         finally:
             watchdog.stop()
+            # M7-10: this process keeps listening from settlement until it exits, and in
+            # that window the opponent's NEXT sub-game peer greets us. Accepting there
+            # swallows the greeting into a queue nobody will drain — they burn their whole
+            # connect budget on a message we acked, and run ahead of us for the rest of
+            # the series. Refusing makes it an ordinary transport failure, which their
+            # existing retry resolves by delivering to our next peer.
+            inboxes.close()
 
     if not gui:
         return play()

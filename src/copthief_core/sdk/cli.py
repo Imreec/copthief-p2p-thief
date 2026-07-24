@@ -21,6 +21,7 @@ import argparse
 import json
 from dataclasses import asdict
 
+from copthief_core.peer.p2p import PeerGameResult
 from copthief_core.sdk.cli_args import build_parser, run_mode_from_args
 from copthief_core.sdk.simulation import SimulationSdk
 from copthief_core.shared.sparring import sparring_problems
@@ -125,7 +126,25 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     port = args.port if args.port is not None else sdk.private.my_port
     opponent_url = args.opponent_url if args.opponent_url is not None else sdk.private.opponent_url
-    peer_result = sdk.run_peer(
+    from copthief_core.peer.port_guard import PeerAlreadyRunningError
+
+    try:
+        peer_result = _play_peer(sdk, args, port=port, opponent_url=opponent_url)
+    except PeerAlreadyRunningError as refusal:
+        # M7-10: an expected answer to a contended port, so it reads like the --sparring
+        # refusal — one JSON object and exit 2, never a traceback in an ops window. The
+        # series driver parses this and records WHICH sub-game did not start, and why.
+        print(json.dumps({"refused": "another live peer holds this role", "why": str(refusal)}))
+        return 2
+    print(json.dumps(asdict(peer_result)))
+    return 0
+
+
+def _play_peer(
+    sdk: SimulationSdk, args: argparse.Namespace, *, port: int, opponent_url: str
+) -> PeerGameResult:
+    """One standalone peer, with the CLI's defaults already resolved."""
+    return sdk.run_peer(
         role=args.role,
         seed=args.seed,
         host=args.host,
@@ -135,8 +154,6 @@ def main(argv: list[str] | None = None) -> int:
         gui=args.gui,
         sub_game_number=args.sub_game,
     )
-    print(json.dumps(asdict(peer_result)))
-    return 0
 
 
 if __name__ == "__main__":

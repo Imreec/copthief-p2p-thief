@@ -10,6 +10,7 @@ the protocol seam so the peer loop can classify a delivery failure transport-bli
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import pytest
@@ -66,16 +67,28 @@ def test_send_turn_retries_on_the_turn_budget() -> None:
     assert budgets == [("receive_turn", 180.0)]
 
 
-def test_the_handshake_and_audit_keep_the_connect_budget() -> None:
+def test_the_audit_keeps_the_connect_budget() -> None:
     client = RecordingClient()
     transport, budgets = make_transport(client)
-    transport._inboxes.agreements.put({"terms": {}})
     transport._inboxes.audits.put({"records": []})
-    transport.exchange_agreement({"terms": {}})
     transport.exchange_audit({"sender": "police"})
-    assert ("negotiate", 60.0) in budgets
     assert ("submit_audit", 60.0) in budgets
     assert all(b != 180.0 for _tool, b in budgets)  # nothing else borrows the turn budget
+
+
+def test_the_handshake_is_bounded_by_the_connect_budget_too() -> None:
+    """M7-10 gave the handshake its own re-pushing loop rather than one bounded push
+    (a greeting can be swallowed by the opponent's previous sub-game peer), so the
+    budget is asserted on the loop's own deadline — the guarantee is unchanged: the
+    handshake never borrows the turn budget."""
+    client = RecordingClient(fail_tools=("negotiate",))
+    transport = McpTransport(
+        client, PeerQueues(), connect_timeout=0.05, retry_interval=0.001, turn_push_timeout=180.0
+    )
+    started = time.monotonic()
+    with pytest.raises(TransportError, match="negotiate"):
+        transport.exchange_agreement({"terms": {}})
+    assert time.monotonic() - started < 1.0  # the connect budget, nowhere near 180
 
 
 def test_an_exhausted_push_raises_the_shared_transport_error() -> None:
