@@ -4,6 +4,7 @@ Commands:
   copthief run local-match   one command, full mini-game, both peers in-process (queues)
   copthief run p2p-match     one command, full mini-game, TWO processes over localhost HTTP
   copthief run peer          play one full standalone peer (own server + symmetric loop)
+                             --sub-game N seals the real series index (rules 37-38)
                              --sparring refuses a config carrying tuned weights or mail
   copthief replay            re-verify a JSONL log -> Verified OK / TAMPERED (M4-3)
 
@@ -51,6 +52,13 @@ def _parser() -> argparse.ArgumentParser:
     peer.add_argument("--port", type=int, default=None, help="default: game.toml my_port")
     peer.add_argument(
         "--opponent-url", default=None, help="default: game.toml network.opponent_url"
+    )
+    peer.add_argument(
+        "--sub-game",
+        type=int,
+        default=None,
+        help="which sub-game of the series this is; sealed into the step-0 declaration "
+        "(rules 37-38). Omit for a one-off game -- a SERIES must pass the real index.",
     )
     peer.add_argument(
         "--sparring",
@@ -143,6 +151,7 @@ def main(argv: list[str] | None = None) -> int:
         opponent_url=opponent_url,
         log_path=args.log,
         gui=args.gui,
+        sub_game_number=args.sub_game,
     )
     print(json.dumps(asdict(peer_result)))
     return 0
