@@ -24,33 +24,37 @@ US = "imreeyal.copthief@gmail.com"
 PEER = "peer.team@example.test"
 
 
-def decide(recipients: tuple[str, ...], *, counted: bool) -> str:
+def decide(recipients: tuple[str, ...], *, lecturer_addressable: bool) -> str:
     return decide_email_action(
-        enabled=True, mode="send", recipients=recipients, counted=counted, lecturer=LECTURER
+        enabled=True,
+        mode="send",
+        recipients=recipients,
+        lecturer_addressable=lecturer_addressable,
+        lecturer=LECTURER,
     ).action
 
 
 def test_a_friendly_may_never_address_the_lecturer() -> None:
     """The whole point: policy becomes mechanism."""
-    assert decide((LECTURER,), counted=False) == "refuse"
+    assert decide((LECTURER,), lecturer_addressable=False) == "refuse"
 
 
 def test_the_lecturer_cannot_ride_along_beside_a_friendly_recipient() -> None:
     """Hiding him in a list must not work either — the book calls his address the SOLE
     binding one, so a counted report never CCs a peer and a friendly never includes him."""
-    assert decide((US, PEER, LECTURER), counted=False) == "refuse"
+    assert decide((US, PEER, LECTURER), lecturer_addressable=False) == "refuse"
 
 
 def test_a_counted_run_addresses_the_lecturer_normally() -> None:
-    """counted=True cannot be reached by accident: the App F guard refuses to load a
+    """lecturer_addressable=True cannot be reached by accident: the App F guard refuses to load a
     constitution that is not a genuine counted series."""
-    assert decide((LECTURER,), counted=True) == "send"
+    assert decide((LECTURER,), lecturer_addressable=True) == "send"
 
 
 def test_friendlies_are_untouched_by_the_guard() -> None:
     """No new ceremony for the common case — us + the opponent team, automatic."""
-    assert decide((US, PEER), counted=False) == "send"
-    assert decide((US,), counted=False) == "send"
+    assert decide((US, PEER), lecturer_addressable=False) == "send"
+    assert decide((US,), lecturer_addressable=False) == "send"
 
 
 @pytest.mark.parametrize(
@@ -63,12 +67,16 @@ def test_friendlies_are_untouched_by_the_guard() -> None:
 )
 def test_the_guard_is_not_fooled_by_case_or_whitespace(written: str) -> None:
     """An address that reaches the same mailbox must be caught however it was typed."""
-    assert decide((written,), counted=False) == "refuse"
+    assert decide((written,), lecturer_addressable=False) == "refuse"
 
 
 def test_the_refusal_names_the_lecturer_gate() -> None:
     decision = decide_email_action(
-        enabled=True, mode="send", recipients=(LECTURER,), counted=False, lecturer=LECTURER
+        enabled=True,
+        mode="send",
+        recipients=(LECTURER,),
+        lecturer_addressable=False,
+        lecturer=LECTURER,
     )
     assert "lecturer" in decision.reason
     assert "counted" in decision.reason
@@ -78,7 +86,7 @@ def test_an_unconfigured_lecturer_address_disables_the_guard_not_the_rail() -> N
     """With no lecturer configured there is nobody to protect; ordinary sending stands."""
     assert (
         decide_email_action(
-            enabled=True, mode="send", recipients=(US,), counted=False, lecturer=""
+            enabled=True, mode="send", recipients=(US,), lecturer_addressable=False, lecturer=""
         ).action
         == "send"
     )
