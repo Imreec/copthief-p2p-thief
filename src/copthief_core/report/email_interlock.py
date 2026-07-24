@@ -37,20 +37,22 @@ def decide_email_action(
     enabled: bool,
     mode: str,
     recipients: Sequence[str],
-    counted: bool = False,
+    lecturer_addressable: bool = False,
     lecturer: str = "",
 ) -> EmailDecision:
     """The interlock (Input: `[email]` state, the run's configured recipients, whether
-    this is a counted series, and the lecturer's address; Output: the one permitted
-    action).
+    whether the lecturer may be addressed at all, and his address; Output: the one
+    permitted action).
 
     Two guarantees, both mechanical. **No email is ever sent to an address Imree has not
     configured for that run** — an empty or blank recipient list reaches no transport at
-    all. And **the lecturer is addressable only from a counted run**: `counted` arms the
-    App F counted-series rows, so a counted constitution refuses to load unless it is a
-    genuine six-mini-game match (PRD_engine §6.1) — the flag cannot be set by accident,
-    which makes it the honest place to hang Imree's standing rule. Friendlies pay no
-    ceremony for it.
+    all. And **the lecturer is addressable only from a counted series**:
+    `lecturer_addressable` comes from `RunMode.counted_series` (M7-9), which cannot exist
+    without `strict_rules` — so he is reachable only from a constitution the App F rows
+    have vetted as a genuine six-mini-game match (PRD_engine §6.1). The parameter is named
+    for what it PERMITS rather than for the run type, because handing this layer the rules
+    flag by mistake is precisely the defect M7-9 removes: a rehearsal arms the full
+    rulebook and still cannot reach him. Friendlies pay no ceremony for it.
     """
     if not enabled:
         return EmailDecision(action="refuse", reason="email disabled (email.enabled=false)")
@@ -62,7 +64,7 @@ def decide_email_action(
             action="refuse",
             reason="no recipient configured for this run (email.recipient is empty)",
         )
-    if lecturer.strip() and not counted:
+    if lecturer.strip() and not lecturer_addressable:
         wanted = lecturer.strip().casefold()
         if any(address.casefold() == wanted for address in addresses):
             return EmailDecision(

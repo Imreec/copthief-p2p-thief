@@ -16,6 +16,7 @@ from copthief_core.peer.p2p import PeerGameResult
 from copthief_core.peer.replay import ReplaySummary, replay_from_log
 from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
 from copthief_core.shared.config import load_all
+from copthief_core.shared.run_mode import RunMode
 from copthief_core.strategy.info_feed import BeliefFeed
 from copthief_core.strategy.referee import RefereeGameResult
 from copthief_core.strategy.scenarios import Scenario, play_referee_series, play_scenario_series
@@ -24,9 +25,17 @@ from copthief_core.strategy.scenarios import Scenario, play_referee_series, play
 class SimulationSdk:
     """One config tree, all flows (Input: config dir; see method docstrings)."""
 
-    def __init__(self, config_dir: Path, *, counted: bool = False) -> None:
+    def __init__(
+        self, config_dir: Path, *, counted: bool = False, mode: RunMode | None = None
+    ) -> None:
         self.config_dir = config_dir
-        self.constitution, self.private, self.rate_limits = load_all(config_dir, counted=counted)
+        # M7-9: `mode` declares the run's governance on two axes. `counted` remains
+        # the legacy spelling of "arm the App F rows" for callers that predate RunMode;
+        # it can no longer imply the lecturer is reachable, which is the whole point.
+        self.mode = mode if mode is not None else RunMode(strict_rules=counted)
+        self.constitution, self.private, self.rate_limits = load_all(
+            config_dir, counted=self.mode.strict_rules
+        )
 
     def run_local_match(
         self,

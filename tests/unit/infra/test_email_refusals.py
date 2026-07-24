@@ -60,7 +60,7 @@ def test_the_lecturer_is_unreachable_from_an_uncounted_run(tmp_path: Path) -> No
 
 def test_a_counted_run_reaches_the_lecturer(tmp_path: Path) -> None:
     sender, transport = make_sender(
-        recipient=(LECTURER_ADDRESS,), lecturer=LECTURER_ADDRESS, counted=True
+        recipient=(LECTURER_ADDRESS,), lecturer=LECTURER_ADDRESS, lecturer_addressable=True
     )
     outcome = sender.send_report(result_path=result_file(tmp_path), role="police")
     assert outcome["action"] == "send"

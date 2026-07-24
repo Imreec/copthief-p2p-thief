@@ -45,14 +45,15 @@ class EmailSender:
         settings: EmailSettings,
         gatekeeper: ApiGatekeeper,
         transport: EmailTransport | None = None,
-        counted: bool = False,
+        lecturer_addressable: bool = False,
     ) -> None:
         from copthief_core.infra.gmail import GmailTransport
 
         self._settings = settings
         self._gatekeeper = gatekeeper
         # Defaults to False so a caller that forgets to say cannot address the lecturer.
-        self._counted = counted
+        # M7-9: this is RunMode.lecturer_addressable, NOT the rules flag.
+        self._lecturer_addressable = lecturer_addressable
         self._transport: EmailTransport = (
             transport
             if transport is not None
@@ -76,7 +77,7 @@ class EmailSender:
             enabled=self._settings.enabled,
             mode=self._settings.mode,
             recipients=recipients,
-            counted=self._counted,
+            lecturer_addressable=self._lecturer_addressable,
             lecturer=self._settings.lecturer,
         )
         outcome = {

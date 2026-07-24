@@ -94,13 +94,13 @@ def make_sender(
     recipient: tuple[str, ...] = LECTURER,
     quota: int = 5,
     lecturer: str = "",
-    counted: bool = False,
+    lecturer_addressable: bool = False,
 ) -> tuple[EmailSender, FakeTransport]:
     transport = FakeTransport()
     sender = EmailSender(
         settings=settings(enabled=enabled, mode=mode, recipient=recipient, lecturer=lecturer),
         gatekeeper=keeper(quota),
         transport=transport,
-        counted=counted,
+        lecturer_addressable=lecturer_addressable,
     )
     return sender, transport
