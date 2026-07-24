@@ -42,6 +42,7 @@ def run_peer_flow(
     opponent_url: str,
     log_path: Path | None = None,
     gui: bool = False,
+    sub_game_number: int | None = None,
 ) -> PeerGameResult:
     """Play ONE full mini-game as a standalone peer (blocking until it settles)."""
     from copthief_core.infra.mcp_client import McpToolClient
@@ -73,7 +74,13 @@ def run_peer_flow(
         seed=seed,
         gazetteer=gazetteer,
         # M6-3: the live peer declares its sealed step-0 (real HEAD + game-count).
-        spec_record=live_spec_record(sdk.private, sdk.constitution),
+        # M7-4: the sub-game index must be the REAL one. It is sealed into the step-0
+        # commit, so a wrong index cannot be repaired in the report afterwards — the
+        # game itself carries the false claim (rules 37-38). Omitted => the configured
+        # value, which is right for a one-off game and wrong for a series.
+        spec_record=live_spec_record(
+            sdk.private, sdk.constitution, sub_game_number=sub_game_number
+        ),
     )
     sink = JsonlEventLogger(log_path).log if log_path is not None else None
     # M6-7 (FR-8): a hung live loop is never a silent freeze — the watchdog persists
