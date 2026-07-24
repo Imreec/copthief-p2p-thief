@@ -8,10 +8,10 @@ table doing the arithmetic and the step-0 declarations riding along as evidence.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
+from series_fixtures import six_logs
 
 from copthief_core.report.series_from_logs import series_artifact_from_logs
 from copthief_core.report.summary_from_log import SummaryRebuildError
@@ -20,81 +20,10 @@ from copthief_core.shared.config import load_all
 CONFIG = Path("config")
 
 
-def _inbound(step: int) -> dict:
-    """One archived inbound turn, in the wire's exact ten-key shape."""
-    from copthief_core.wire.turn import TurnMessage
-
-    return TurnMessage(
-        step=step,
-        sender="x",
-        hint="",
-        smell_grid={},
-        commit=f"{step:064x}",
-        timestamp=f"2026-07-24T12:30:{step:02d}+00:00",
-    ).to_wire()
-
-
-def _record(step: int, **payload: object) -> dict:
-    return {"payload": {"step": step, **payload}, "nonce": f"{step:064d}", "commit": f"{step:064x}"}
-
-
-def _log(path: Path, *, role: str, claim: str, outcome: str, steps: int, sub: int) -> Path:
-    rows = [
-        {"event": "negotiated", "sender": role, "game_uid": "uid-1"},
-        {
-            "event": "turn",
-            "sender": role,
-            "message": {"step": 1, "timestamp": "2026-07-24T12:30:00+00:00"},
-        },
-        *[
-            # Built through the real TurnMessage so the archived shape is the wire's
-            # ten keys by construction, not a hand-listed approximation that drifts.
-            {"event": "turn_received", "receiver": role, "raw": _inbound(i)}
-            for i in range(1, steps + 1)
-        ],
-        {
-            "event": "audit",
-            "payload": {
-                "sender": role,
-                "result_claim": claim,
-                "records": [
-                    _record(0, type="system_spec", num_games_declared=6, sub_game_number=sub),
-                    *[_record(i, move="N") for i in range(1, steps + 1)],
-                ],
-            },
-        },
-        {
-            "event": "peer_result",
-            "sender": role,
-            "payload": {"outcome": outcome, "steps": steps, "audit_ok": True},
-        },
-    ]
-    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
-    return path
-
-
-def _six_logs(tmp_path: Path) -> list[Path]:
-    """Alon's alternation: ODD sub-games we are thief, EVEN we are police."""
-    logs = []
-    for n in range(1, 7):
-        role = "thief" if n % 2 else "police"
-        logs.append(
-            _log(
-                tmp_path / f"sg{n}.jsonl",
-                role=role,
-                claim="survival",
-                outcome="thief_survival",
-                steps=3,
-                sub=n,
-            )
-        )
-    return logs
-
-
 def test_six_logs_become_one_series_artifact(tmp_path: Path) -> None:
     constitution, private, _ = load_all(CONFIG, counted=False)
     result = series_artifact_from_logs(
-        logs=_six_logs(tmp_path),
+        logs=six_logs(tmp_path),
         constitution=constitution,
         private=private,
         config_dir=CONFIG,
@@ -122,16 +51,33 @@ def test_roles_alternate_across_the_rebuilt_series(tmp_path: Path) -> None:
 
     roles = [
         summary_from_log(p, sub_game_number=i + 1, group_name="G")["role"]
-        for i, p in enumerate(_six_logs(tmp_path))
+        for i, p in enumerate(six_logs(tmp_path))
     ]
     assert roles == ["thief", "police", "thief", "police", "thief", "police"]
+
+
+def test_measured_durations_give_each_sub_game_a_real_end_time(tmp_path: Path) -> None:
+    """A caller that TIMED the series says so, and the entry stops claiming the game
+    ended at the instant it began (the live driver measures; a late rebuild cannot)."""
+    constitution, private, _ = load_all(CONFIG, counted=False)
+    result = series_artifact_from_logs(
+        logs=six_logs(tmp_path),
+        constitution=constitution,
+        private=private,
+        config_dir=CONFIG,
+        opponent_group="anrbj666",
+        out_root=tmp_path / "out",
+        durations=dict.fromkeys(range(1, 7), 42.0),
+    )
+    entry = result["sub_games"][0]
+    assert entry["ended_at"] != entry["started_at"]
 
 
 def test_an_unsettled_log_refuses_the_whole_series(tmp_path: Path) -> None:
     """One hollow sub-game must not silently become a series artifact — a report that
     quietly drops a game is exactly the contradictory report rule 35 punishes."""
     constitution, private, _ = load_all(CONFIG, counted=False)
-    logs = _six_logs(tmp_path)
+    logs = six_logs(tmp_path)
     logs[3].write_text('{"event": "negotiated", "sender": "police"}\n', encoding="utf-8")
     with pytest.raises(SummaryRebuildError):
         series_artifact_from_logs(

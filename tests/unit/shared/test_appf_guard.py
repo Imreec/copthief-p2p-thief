@@ -60,7 +60,10 @@ def test_missing_parameter_is_refused(table: AppFTable, game: dict[str, Any]) ->
 def test_sample_num_games_allowed_only_outside_counted_series(
     table: AppFTable, game: dict[str, Any]
 ) -> None:
-    assert game["network_and_league"]["num_games"] != 6  # the App B single-sample default
+    # Set explicitly rather than read from the shipped file: the committed constitution
+    # is the LEAGUE one (six, App F) since 2026-07-24, and this test pins the RULE — a
+    # single-sample constitution is legal outside a counted series and illegal inside it.
+    game["network_and_league"]["num_games"] = 1  # the App B single-sample default
     assert validate_constitution(game, table, counted=False) == []
     violations = validate_constitution(game, table, counted=True)
     assert any("num_games" in v for v in violations)

@@ -30,6 +30,11 @@ class SummaryRebuildError(RuntimeError):
 
 
 def _events(log_path: Path) -> list[dict[str, Any]]:
+    # A sub-game whose process died before writing anything is the emptiest case of "no
+    # honest summary", not a different kind of problem: it refuses through the same door
+    # so an operator sees the named refusal the design promises, never a traceback.
+    if not log_path.is_file():
+        raise SummaryRebuildError(f"{log_path.name}: no log — the game left no record at all")
     text = log_path.read_text(encoding="utf-8")
     return [json.loads(line) for line in text.splitlines() if line.strip()]
 
