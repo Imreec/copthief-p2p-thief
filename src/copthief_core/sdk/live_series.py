@@ -25,7 +25,12 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from copthief_core.infra.email_sender import EmailSender, EmailTransport, build_report_sender
+from copthief_core.infra.email_sender import (
+    EmailSender,
+    EmailTransport,
+    ReportUndeliverableError,
+    build_report_sender,
+)
 from copthief_core.peer.series import opposite_role
 from copthief_core.report.schemas import result_filename
 from copthief_core.report.series_from_logs import series_artifact_from_logs
@@ -70,6 +75,31 @@ def run_live_series(
     is a negotiated term, and App F fixes it at six for counted play.
     """
     game_id = f"{sdk.private.group_id}-vs-{opponent_group}"
+    sender = build_report_sender(
+        private=sdk.private,
+        limits=sdk.rate_limits,
+        transport=email_transport,
+        # M7-9: the run's OWN governance decides this, not the recipient list.
+        lecturer_addressable=sdk.mode.lecturer_addressable,
+    )
+    # M7-10b: a run that OWES a report refuses to START if it cannot deliver one. A
+    # rehearsal is a counted game minus the counting — the auto-fired report is part of
+    # the format — so an empty recipient or a stale token is caught here, before six games
+    # are played, rather than after the sixth settles (rule 35 makes the late discovery
+    # the costliest). A dev run owes nothing and skips this.
+    if sdk.mode.strict_rules:
+        try:
+            sender.preflight()
+        except ReportUndeliverableError as problem:
+            return {
+                "game_id": game_id,
+                "sub_games": [],
+                "logs": [],
+                "email": None,
+                "refused": "the report cannot be delivered — refusing to start a series "
+                "that would play out and then fail to report",
+                "problems": [str(problem)],
+            }
     log_dir.mkdir(parents=True, exist_ok=True)
     logs: list[Path] = []
     played: list[dict[str, Any]] = []
@@ -109,14 +139,6 @@ def run_live_series(
         return record
 
     result_path = out_root / sdk.private.group_id / result_filename(game_id)
-    sender = build_report_sender(
-        private=sdk.private,
-        limits=sdk.rate_limits,
-        transport=email_transport,
-        # M7-9: the run's OWN governance decides this, not the recipient list. A
-        # rehearsal arms the whole rulebook and still cannot reach the lecturer.
-        lecturer_addressable=sdk.mode.lecturer_addressable,
-    )
     record["result"] = result
     record["result_path"] = str(result_path)
     record["email"] = _report(

@@ -18,6 +18,15 @@ from copthief_core.shared.config_model import EmailSettings, PrivateSettings, Ra
 from copthief_core.shared.gatekeeper import ApiGatekeeper
 
 
+class ReportUndeliverableError(RuntimeError):
+    """A report-owing run cannot deliver its report (M7-10b).
+
+    Raised by `preflight` BEFORE any sub-game plays, so a rehearsal or counted series
+    that could not report — empty recipient, disabled rail, stale OAuth token — refuses
+    to start rather than playing six games and then failing to report (App E rule 35).
+    """
+
+
 class EmailTransport(Protocol):
     """What the sender needs from a mail backend (GmailTransport or a test fake)."""
 
@@ -84,6 +93,36 @@ class EmailSender:
             if transport is not None
             else GmailTransport(sender=settings.sender, token_path=settings.token_path)
         )
+
+    def preflight(self) -> dict[str, Any]:
+        """Prove a report COULD be sent, without sending one (Output: `{action,
+        recipients}`; Raises: ReportUndeliverableError).
+
+        Runs the same interlock the send runs — so an empty recipient, a disabled rail,
+        or the lecturer configured for a rehearsal all refuse here — then probes the
+        transport's credentials (`verify_ready`, when it has one) so a stale OAuth token
+        is caught before the first sub-game, not after the sixth. What must be decided is
+        decided before the series (App E rule 32; rule 35 makes the late discovery
+        costliest).
+        """
+        decision = decide_email_action(
+            enabled=self._settings.enabled,
+            mode=self._settings.mode,
+            recipients=self._settings.recipient,
+            lecturer_addressable=self._lecturer_addressable,
+            lecturer=self._settings.lecturer,
+        )
+        if decision.action == "refuse":
+            raise ReportUndeliverableError(decision.reason)
+        verify = getattr(self._transport, "verify_ready", None)
+        if callable(verify):
+            try:
+                verify()
+            except Exception as failure:  # noqa: BLE001 - any credential failure is one outcome
+                raise ReportUndeliverableError(
+                    f"the report transport is not ready: {type(failure).__name__}: {failure}"
+                ) from failure
+        return {"action": decision.action, "recipients": list(self._settings.recipient)}
 
     def send_report(self, *, result_path: Path, role: str) -> dict[str, Any]:
         """One report email attempt (Input: result artifact path + our role; Output:

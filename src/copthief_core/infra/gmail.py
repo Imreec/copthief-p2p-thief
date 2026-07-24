@@ -62,6 +62,21 @@ class GmailTransport:
             message.attach(part)
         return base64.urlsafe_b64encode(message.as_bytes()).decode()
 
+    def verify_ready(self) -> None:  # pragma: no cover - live
+        """Prove the token can deliver, WITHOUT sending (M7-10b preflight).
+
+        Loads the credentials and, if the access token has lapsed, refreshes it against
+        the OAuth token endpoint — which exercises the *refresh* token, the thing that
+        expires after 7 days in testing mode. No Gmail scope is touched, so a send-only
+        token passes; a dead refresh token raises here, before any sub-game plays.
+        """
+        from google.auth.transport.requests import Request
+        from google.oauth2.credentials import Credentials
+
+        creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)  # type: ignore[no-untyped-call, unused-ignore]
+        if not creds.valid:
+            creds.refresh(Request())  # token-endpoint call only; raises if it cannot
+
     def _service(self) -> Any:  # noqa: ANN401 - google client is untyped  # pragma: no cover - live
         from google.oauth2.credentials import Credentials
         from googleapiclient.discovery import build
