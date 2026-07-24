@@ -21,25 +21,25 @@ def build_server(role: str, inboxes: PeerQueues) -> FastMCP:
     @mcp.tool
     def negotiate(message: dict[str, Any]) -> dict[str, Any]:
         """Receive the opponent's signed game agreement."""
-        inboxes.agreements.put(message)
+        inboxes.put("agreements", message)
         return {"ok": True}
 
     @mcp.tool
     def receive_turn(message: dict[str, Any]) -> dict[str, Any]:
         """Receive the opponent's turn message (the turn token travels with it)."""
-        inboxes.turns.put(message)
+        inboxes.put("turns", message)
         return {"ok": True}
 
     @mcp.tool
     def submit_audit(payload: dict[str, Any]) -> dict[str, Any]:
         """Receive the opponent's end-of-game audit reveal (records + nonces)."""
-        inboxes.audits.put(payload)
+        inboxes.put("audits", payload)
         return {"ok": True}
 
     @mcp.tool
     def receive_control(message: dict[str, Any]) -> dict[str, Any]:
         """Receive an opponent control signal (opt-in channel; never sealed)."""
-        inboxes.controls.put(message)
+        inboxes.put("controls", message)
         return {"ok": True}
 
     return mcp

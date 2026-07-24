@@ -17,6 +17,7 @@ from copthief_core.domain.crypto import (
     terms_signature,
 )
 from copthief_core.domain.terms import terms_from_config
+from copthief_core.peer.pairing import pairing_declaration, pairing_problem
 from copthief_core.shared.locked_models import (
     SCENT_MODEL,
     LockedModelRegistry,
@@ -43,6 +44,9 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
         "terms": terms,
         "nonce": nonce,
         "signature": terms_signature(terms, nonce),
+        # M7-10: which game, and which side. Outside `terms` on purpose — that is the
+        # byte-identical signed constitution, so a per-sub-game value cannot live there.
+        **pairing_declaration(sub_game_number=declared_sub_game(session), role=session.role),
         # M3-8 (kit SPEC §7): the DOC never crosses the wire — only its hash, under
         # `<family>_sha256`. The reference reads only its four keys (verify_peer
         # indexes them), so the extra key is ignored by it and compared by us.
@@ -64,6 +68,18 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
     }
 
 
+def declared_sub_game(session: PeerSession) -> int:
+    """The sub-game index we declare (Input: the session; Output: the SEALED index when
+    a step-0 record exists, the configured one otherwise).
+
+    Read from the sealed record rather than the config so the handshake and the step-0
+    commit cannot disagree: the whole point is that one game cannot carry two indices.
+    """
+    if session.spec_record is not None:
+        return int(session.spec_record.payload["sub_game_number"])
+    return session.private.sub_game_number
+
+
 def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any]:
     """Verify value-equal terms + the opponent's signature; lock the game_uid."""
     ours = terms_from_config(session.constitution)
@@ -72,6 +88,14 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
         raise NegotiationError("terms mismatch: opponent terms do not value-equal ours")
     if terms_signature(ours, str(raw.get("nonce"))) != raw.get("signature"):
         raise NegotiationError("signature verification failed over our terms")
+    # M7-10: BEFORE the game_uid is locked. Identical terms give identical game_uids, so
+    # by the time an artifact exists a mispairing is already invisible — the handshake is
+    # the only place it can still be seen.
+    mispairing = pairing_problem(
+        sub_game_number=declared_sub_game(session), role=session.role, declared=raw
+    )
+    if mispairing is not None:
+        raise NegotiationError(mispairing)
     identity = raw.get("identity") or {}
     # F8: the reference carries the group id inside `identity`; "unknown-group"
     # mirrors its own default so both sides degrade identically if it is absent.

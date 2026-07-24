@@ -54,8 +54,38 @@ class McpTransport:
                 return
 
     def exchange_agreement(self, signed: dict[str, Any]) -> dict[str, Any] | None:
-        self._push_with_retry("negotiate", signed, budget=self._connect_timeout)
-        return take_one(self._inboxes.agreements, self._connect_timeout)
+        """Greet the opponent, re-greeting until the game actually starts (M7-10).
+
+        A single push is not enough on the rolling-window protocol: the two sides finish
+        a sub-game milliseconds apart, so our greeting can land in their PREVIOUS peer,
+        which is still listening and exits without draining its queue. The message is
+        acked, gone, and the peer waiting for it burns its whole budget — then runs ahead
+        of its opponent, because failing takes less time than playing.
+
+        So each lap pushes once and waits one retry interval for theirs. The
+        classification is unchanged: never delivered is a `TransportError` (transport,
+        not the peer), delivered but unanswered is `None` (their silence, which the peer
+        loop judges). The cost of re-greeting a healthy-but-slow opponent is a few extra
+        agreements in a queue they read once — cheap against a desynchronised series.
+        """
+        deadline = time.time() + self._connect_timeout
+        delivered = False
+        failure: Exception | None = None
+        while True:
+            try:
+                self._client.call("negotiate", signed)
+            except Exception as error:  # noqa: BLE001 - transport-layer soup, bounded
+                failure = error
+            else:
+                delivered = True
+            theirs = take_one(self._inboxes.agreements, self._retry_interval)
+            if theirs is not None:
+                return theirs
+            if time.time() >= deadline:
+                break
+        if not delivered:
+            raise TransportError(f"negotiate: opponent unreachable: {failure}")
+        return None
 
     def send_turn(self, message: dict[str, Any]) -> None:
         self._push_with_retry("receive_turn", message, budget=self._turn_push_timeout)

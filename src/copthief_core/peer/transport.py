@@ -23,6 +23,14 @@ class TransportError(RuntimeError):
     """
 
 
+class InboxClosedError(RuntimeError):
+    """A message arrived after this peer's own game settled (M7-10).
+
+    Raised so the sender sees a transport failure and retries — which delivers to our
+    NEXT sub-game peer — instead of an ack for a message nobody will ever read.
+    """
+
+
 class PeerQueues:
     """One peer's thread-safe inboxes, filled by inbound tool calls, drained by its loop."""
 
@@ -31,6 +39,28 @@ class PeerQueues:
         self.turns: queue.Queue[dict[str, Any]] = queue.Queue()
         self.audits: queue.Queue[dict[str, Any]] = queue.Queue()
         self.controls: queue.Queue[dict[str, Any]] = queue.Queue()
+        self.closed = False
+
+    def put(self, kind: str, message: dict[str, Any]) -> None:
+        """Enqueue one inbound message (Input: the channel name + the payload; Raises:
+        InboxClosedError once this peer has settled).
+
+        Every inbound tool goes through here so the refusal is one decision rather than
+        four: a peer that still took turns but refused greetings would be a peer the
+        opponent could not reason about.
+        """
+        if self.closed:
+            raise InboxClosedError(f"{kind}: this peer's game has settled; it accepts nothing more")
+        inbox: queue.Queue[dict[str, Any]] = getattr(self, kind)
+        inbox.put(message)
+
+    def close(self) -> None:
+        """Stop accepting new arrivals (idempotent — it is called from a `finally`).
+
+        What is already queued stays readable: an audit that landed a moment before
+        settlement still has to be verified.
+        """
+        self.closed = True
 
 
 class PeerTransport(Protocol):
