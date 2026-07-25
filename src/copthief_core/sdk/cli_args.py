@@ -119,6 +119,18 @@ def _series_options(series: argparse.ArgumentParser) -> None:
     series.add_argument(
         "--seed", type=int, default=22, help="base seed; each sub-game adds its index"
     )
+    series.add_argument(
+        "--opponent-police-url",
+        default=None,
+        help="role-split opponent (M7-11): the service THEIR police plays from; "
+        "dialed on the sub-games where they are police. Requires --opponent-thief-url.",
+    )
+    series.add_argument(
+        "--opponent-thief-url",
+        default=None,
+        help="role-split opponent (M7-11): the service THEIR thief plays from. "
+        "Requires --opponent-police-url.",
+    )
     series.add_argument("--log-dir", type=Path, default=Path("logs"))
     series.add_argument(
         "--out", type=Path, default=Path("reports"), help="where the artifact set is written"

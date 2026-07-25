@@ -12,6 +12,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 from copthief_core.sdk.subgame_process import subgame_command
 from copthief_core.shared.run_mode import RunMode
 
@@ -66,6 +68,37 @@ def test_a_dev_run_carries_no_governance_flag_at_all() -> None:
     command = _command()
     assert "--rehearsal" not in command
     assert "--counted" not in command
+
+
+def test_the_player_dials_the_service_of_the_opponents_role(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """M7-11: against a role-split opponent (Alon's shape — two services, each owning
+    its role's sub-games) the URL must follow THEIR role each game; one fixed URL is
+    wrong half the time, and the wrong service burns the whole connect budget."""
+    from copthief_core.sdk import subgame_process
+    from copthief_core.sdk.series_endpoints import SeriesEndpoints
+
+    dialed: list[list[str]] = []
+    monkeypatch.setattr(
+        subgame_process,
+        "play_subgame",
+        lambda command: dialed.append(command) or {"outcome": "unknown"},
+    )
+    play = subgame_process.subgame_player(
+        config_dir=Path("config"),
+        host="127.0.0.1",
+        port=8802,
+        endpoints=SeriesEndpoints(
+            police_url="https://cop-mcp.example.test/mcp",
+            thief_url="https://thief-mcp.example.test/mcp",
+        ),
+        mode=DEV,
+    )
+    play(sub_game_number=1, role="thief", log_path=Path("logs/g01.jsonl"), seed=23)
+    play(sub_game_number=2, role="police", log_path=Path("logs/g02.jsonl"), seed=24)
+    assert _value(dialed[0], "--opponent-url") == "https://cop-mcp.example.test/mcp"
+    assert _value(dialed[1], "--opponent-url") == "https://thief-mcp.example.test/mcp"
 
 
 def test_a_child_that_dies_records_its_exit_code_and_why(tmp_path: Path) -> None:
