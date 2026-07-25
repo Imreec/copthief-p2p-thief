@@ -22,7 +22,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from copthief_core.peer.series import opposite_role
 from copthief_core.sdk.live_series import PlaySubGame
+from copthief_core.sdk.series_endpoints import SeriesEndpoints
 from copthief_core.shared.run_mode import RunMode
 
 __all__ = ["play_subgame", "subgame_command", "subgame_player"]
@@ -123,13 +125,16 @@ def _tail(stderr: str | None) -> str:
 
 
 def subgame_player(
-    *, config_dir: Path, host: str, port: int, opponent_url: str, mode: RunMode
+    *, config_dir: Path, host: str, port: int, endpoints: SeriesEndpoints, mode: RunMode
 ) -> PlaySubGame:
     """Bind the network settings once and hand the driver a player (Input: the peer's
-    fixed settings + the run's governance; Output: a `PlaySubGame`).
+    fixed settings, the opponent's endpoints and the run's governance; Output: a
+    `PlaySubGame`).
 
     Keeps `sdk/live_series` free of transport knowledge — it decides WHICH sub-game is
-    played next, never how a peer reaches the wire.
+    played next, never how a peer reaches the wire. The URL follows the OPPONENT'S
+    role each sub-game (M7-11): a role-split opponent serves two services, and dialing
+    the wrong one burns the whole connect budget before failing.
     """
 
     def play(*, sub_game_number: int, role: str, log_path: Path, seed: int) -> dict[str, Any]:
@@ -140,7 +145,7 @@ def subgame_player(
                 seed=seed,
                 host=host,
                 port=port,
-                opponent_url=opponent_url,
+                opponent_url=endpoints.for_opponent_role(opposite_role(role)),
                 log_path=log_path,
                 sub_game_number=sub_game_number,
                 mode=mode,

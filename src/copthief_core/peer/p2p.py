@@ -13,6 +13,7 @@ import time
 
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer import events, inbox_order
+from copthief_core.peer.handshake import PairingRefusalError
 from copthief_core.peer.session import NegotiationError, PeerSession
 from copthief_core.peer.settlement import (
     LogFn,
@@ -72,11 +73,36 @@ def run_peer_game(
     """
     emit = log or (lambda event: None)
     events.wire_observability(session, emit)
-    theirs = transport.exchange_agreement(session.negotiate_payload())
-    if theirs is None:
-        raise NegotiationError("opponent never sent its agreement")
-    events.inbound(emit, "agreement_received", session.role, theirs)
-    session.handle_negotiate(theirs)
+    signed = session.negotiate_payload()
+    # M7-11b: a bystander's agreement — the opponent's OTHER window pushing early at
+    # our one port on a role-split wire — carries the identical signed terms and fails
+    # only the pairing check; it belongs to a different game. Refuse it ON THE RECORD
+    # and keep waiting for our real counterpart, bounded by the turn budget (the same
+    # bound the opponent's own negotiate wait declares). Terms drift and bad
+    # signatures still raise on the first offense.
+    handshake_deadline = time.time() + turn_timeout
+    while True:
+        theirs = transport.exchange_agreement(signed)
+        if theirs is None:
+            raise NegotiationError("opponent never sent its agreement")
+        events.inbound(emit, "agreement_received", session.role, theirs)
+        try:
+            session.handle_negotiate(theirs)
+        except PairingRefusalError as refusal:
+            emit(
+                {
+                    "event": "agreement_refused",
+                    "sender": session.role,
+                    "payload": {"reason": str(refusal)},
+                }
+            )
+            if time.time() > handshake_deadline:
+                raise NegotiationError(
+                    "handshake budget exhausted refusing bystander agreements: "
+                    "our counterpart never arrived"
+                ) from refusal
+            continue
+        break
     emit({"event": "negotiated", "sender": session.role, "game_uid": session.game_uid})
     # The thief's opening push happens before the loop — an undeliverable first turn is
     # classified too (M7-7), so we settle straight into the technical-loss path.

@@ -32,10 +32,16 @@ _parser = build_parser  # kept as the historical spelling used by the CLI tests
 def _run_series(sdk: SimulationSdk, args: argparse.Namespace) -> int:
     """Play and report one live series; exit 2 if it has no honest report to send."""
     from copthief_core.sdk.live_series import run_live_series
+    from copthief_core.sdk.series_endpoints import endpoints_from_flags
     from copthief_core.sdk.subgame_process import subgame_player
 
     port: int = args.port if args.port is not None else sdk.private.my_port
-    opponent_url: str = args.opponent_url or sdk.private.opponent_url
+    endpoints = endpoints_from_flags(
+        single=args.opponent_url,
+        police_url=args.opponent_police_url,
+        thief_url=args.opponent_thief_url,
+        config_default=sdk.private.opponent_url,
+    )
     record = run_live_series(
         sdk,
         natural_role=args.role,
@@ -47,7 +53,7 @@ def _run_series(sdk: SimulationSdk, args: argparse.Namespace) -> int:
             config_dir=sdk.config_dir,
             host=args.host,
             port=port,
-            opponent_url=opponent_url,
+            endpoints=endpoints,
             mode=sdk.mode,
         ),
     )

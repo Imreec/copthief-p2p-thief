@@ -32,6 +32,15 @@ class NegotiationError(RuntimeError):
     """The pre-game gate refused: terms drift or a bad signature (kit §4)."""
 
 
+class PairingRefusalError(NegotiationError):
+    """The agreement belongs to a DIFFERENT game: wrong sub-game index or our own
+    role (M7-10). Distinct from its parent because the caller's response differs —
+    against a role-split opponent their next window's peer pushes early at our one
+    port, and its agreement carries the identical signed terms with a valid
+    signature; it fails only here. That is a bystander to refuse and outwait, not
+    a reason to die (M7-11b). Terms drift and bad signatures stay fatal."""
+
+
 def negotiate_payload(session: PeerSession) -> dict[str, Any]:
     """Our side of the gate: terms + fresh-nonce signature + identity (F8: the
     reference's exact message shape — identity is a dict, NOT signed, and the
@@ -95,7 +104,7 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
         sub_game_number=declared_sub_game(session), role=session.role, declared=raw
     )
     if mispairing is not None:
-        raise NegotiationError(mispairing)
+        raise PairingRefusalError(mispairing)
     identity = raw.get("identity") or {}
     # F8: the reference carries the group id inside `identity`; "unknown-group"
     # mirrors its own default so both sides degrade identically if it is absent.
