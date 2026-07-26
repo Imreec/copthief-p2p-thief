@@ -55,7 +55,7 @@
     "src/copthief_core/peer/__init__.py": "7bc8a9ac80f79a600200f7195d729a89715758f426d4c7834941707f6afb5427",
     "src/copthief_core/peer/audit_flow.py": "24c40482c10c287002180736276d3b0e53a1e7d93e11b16a07424757a779ab17",
     "src/copthief_core/peer/events.py": "abb5b3bff3e6b8affdf282878274b850048a1f93a482a31f34d1a95bddd73a1e",
-    "src/copthief_core/peer/handshake.py": "bdeab55967a21e334c3675f772ff268cd024ed4ea3f2d3817ef42b24b2b96ff9",
+    "src/copthief_core/peer/handshake.py": "64f45d604975a4c84db63ac0eb925134bc6689ecdceadb73a96c97b67c2272c2",
     "src/copthief_core/peer/inbound.py": "161f658d3247e997df4eb646802c4b64124ece8ac54d88f517779b58ad163ab6",
     "src/copthief_core/peer/inbox_order.py": "806abba1cbe6c5f19285c83227a22af36343a77ddf587d8dd9c5e48c5d825f37",
     "src/copthief_core/peer/match.py": "89c719224436d9fd206c461090ff6c11e11181dddc1090418c98bfff2a092968",
@@ -207,7 +207,7 @@
     "tests/unit/infra/test_transport_budgets.py": "36c61a1acfb464ce55b42b3374a7631030849a135b67380abd5fb122d5f3a137",
     "tests/unit/peer/test_audit_flow.py": "b8c08045914cbd39734fe5e90aee24aa237b2e7f07781dfd661d8f0d0b25a1f9",
     "tests/unit/peer/test_claims.py": "c753f2d83264a72d70c2eec8fb3477e5687de54c34011059cd57d5b0dab5c34c",
-    "tests/unit/peer/test_handshake_pairing.py": "7c4fdb17720eb2a2853b19f9de48688c33aaa381c75b784cd29540ef6539f6ce",
+    "tests/unit/peer/test_handshake_pairing.py": "9edb14f960457bab5b680eef32245fff0bed93add580cc71276fcb2285ba11d8",
     "tests/unit/peer/test_hint_seam.py": "8031c1ed0412f278fe2a3fcf0e45a36fe1ffae4300347eba0e6bce88c135121c",
     "tests/unit/peer/test_inbox_closing.py": "d03fe25aa03daf1deeb6adb2a7cbdca16b006efb26a2a5ceb8331098caea7eaf",
     "tests/unit/peer/test_inbox_order.py": "09edcdd4f2a3cd165aad2bc93b8f96b94c0ed48235b9a49bb692544eb9ceb874",
@@ -273,7 +273,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "129c3ff",
+  "source_commit": "e96bbae",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "c9ce45c6bca2b31432835b5c48514fb8375aa4714b0a6cd27dd936b092acb369"
+  "tree_hash": "530b3009a0f2185ec92d048f6580e4e4c625ee7fcbf91d735fb7c2155d1f0f4a"
 }
