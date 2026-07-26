@@ -85,7 +85,9 @@ class PeerSession:
         self.brain: Any = make_brain(
             private.police_class if role == "police" else private.thief_class,
             seed=seed,
-            options=private.police_options if role == "police" else private.thief_options,
+            # M7-15: base options overlaid by the selected model's sub-table —
+            # physics-specific vectors deploy by the negotiated physics.
+            options=private.strategy_options(role),
         )
         self.barriers_placed = 0  # our own quota bookkeeping (police walls, M5-2)
         self.policy: Any = SkeletonPolicy(seed=seed)

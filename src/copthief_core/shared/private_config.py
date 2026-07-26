@@ -33,6 +33,20 @@ def _recipients(raw: Any) -> tuple[str, ...]:  # noqa: ANN401 - raw TOML value
     return tuple(str(v).strip() for v in values if str(v).strip())
 
 
+def _scalar_options(table: dict[str, Any]) -> dict[str, float]:
+    """The role table's numeric knobs — nested (per-model) tables excluded."""
+    return {str(k): float(v) for k, v in table.items() if not isinstance(v, dict)}
+
+
+def _model_options(table: dict[str, Any]) -> dict[str, dict[str, float]]:
+    """The role table's per-scent-model sub-tables (M7-15), keyed by model name."""
+    return {
+        str(name): {str(k): float(v) for k, v in sub.items()}
+        for name, sub in table.items()
+        if isinstance(sub, dict)
+    }
+
+
 def validated_version(raw: dict[str, Any], source: str) -> str:
     """Validated `version` field (CLAUDE.md §1 #9: starts 1.00, checked at startup)."""
     value = raw.get("version")
@@ -83,8 +97,13 @@ def load_private_settings(
         profile_hint_floor=float(belief["profile_hint_floor"]),
         police_class=str(strategy["police_class"]),
         thief_class=str(strategy["thief_class"]),
-        police_options={str(k): float(v) for k, v in strategy.get("police", {}).items()},
-        thief_options={str(k): float(v) for k, v in strategy.get("thief", {}).items()},
+        police_options=_scalar_options(strategy.get("police", {})),
+        thief_options=_scalar_options(strategy.get("thief", {})),
+        # M7-15: `[strategy.<role>.<scent_model>]` sub-tables — weights that apply
+        # only when that named model is the selected one (tuned vectors are
+        # physics-specific; the M7-14 gate comparison is the evidence).
+        police_model_options=_model_options(strategy.get("police", {})),
+        thief_model_options=_model_options(strategy.get("thief", {})),
         hint_bank=str(strategy.get("hint_bank", "")),
         # M3-8 (ADR-0004 v2): omission keeps the reference form, so a config that never
         # heard of named models plays exactly what M3-2 shipped. The registry lives

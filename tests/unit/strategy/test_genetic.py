@@ -106,3 +106,60 @@ def test_fitness_threads_the_doors_to_the_series() -> None:
         locked_models=private.locked_models,
     )
     assert 0.0 <= value <= 1.0
+
+
+def test_an_opponent_pool_averages_fitness_across_its_members() -> None:
+    """M7-15: a GA tuned against ONE opponent overfits (the book-v1 retune beat the
+    claim-reader but stalled vs a random walker). A pool scores the candidate
+    against every member over the same scenarios; the fitness is the plain mean —
+    pinned exactly against the single-opponent runs it is built from."""
+    from dataclasses import replace
+
+    from copthief_core.shared.config import load_all
+    from copthief_core.strategy.genetic.runs import fitness
+    from copthief_core.strategy.scenarios import scenario_suite
+
+    constitution, private, _ = load_all(Path("config"), counted=False)
+    scenarios = list(scenario_suite(constitution, seeds=(301, 302), min_separation=4))
+
+    def run(config: object) -> float:
+        return fitness(
+            config,  # type: ignore[arg-type]
+            constitution,
+            private.smell_trust_weight,
+            scenarios,
+            {},
+            locked_models=private.locked_models,
+        )
+
+    lone_a = run(replace(CONFIG, opponent="ref-thief", opponent_feed=None))
+    lone_b = run(replace(CONFIG, opponent="belief-evader", opponent_feed="truth-lag1"))
+    pooled = run(
+        replace(
+            CONFIG,
+            opponent_pool=(
+                {"spec": "ref-thief"},
+                {"spec": "belief-evader", "feed": "truth-lag1"},
+            ),
+        )
+    )
+    assert pooled == (lone_a + lone_b) / 2
+
+
+def test_the_pool_parses_from_config_with_safe_defaults() -> None:
+    import json
+    import tempfile
+
+    raw = json.loads((Path("config") / "ga.json").read_text(encoding="utf-8"))
+    raw["opponent_pool"] = [
+        {"spec": "ref-thief"},
+        {"spec": "belief-evader", "feed": "truth-lag1", "options": {"stay_penalty": 0.0}},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "ga.json"
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        config = load_ga_config(path)
+    assert len(config.opponent_pool) == 2
+    assert config.opponent_pool[0]["spec"] == "ref-thief"
+    assert config.opponent_pool[1]["feed"] == "truth-lag1"
+    assert CONFIG.opponent_pool == ()

@@ -85,6 +85,11 @@ class PrivateSettings:
     thief_class: str
     police_options: dict[str, float]
     thief_options: dict[str, float]
+    # M7-15: `[strategy.<role>.<scent_model>]` overlays — tuned vectors are
+    # physics-specific (the M7-14 gate comparison), so a sub-table named after a
+    # scent model applies only when that model is the selected one.
+    police_model_options: dict[str, dict[str, float]]
+    thief_model_options: dict[str, dict[str, float]]
     # M5-6: which named template bank the verbal layer speaks ("" = the default
     # bank) — the A/B arena run ships its winner here.
     hint_bank: str
@@ -101,3 +106,11 @@ class PrivateSettings:
     gui: GuiSettings
     # [email] draft/arming rail (M6-4) — private; safe defaults when absent.
     email: EmailSettings
+
+    def strategy_options(self, role: str) -> dict[str, float]:
+        """The effective brain knobs for `role`: the base `[strategy.<role>]` table
+        overlaid by the sub-table named after the SELECTED scent model (M7-15) —
+        deployment follows the physics, mechanically."""
+        base = self.police_options if role == "police" else self.thief_options
+        per_model = self.police_model_options if role == "police" else self.thief_model_options
+        return {**base, **per_model.get(self.scent_model, {})}
