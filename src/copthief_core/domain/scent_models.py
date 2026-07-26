@@ -55,6 +55,15 @@ class ScentModel(Protocol):
         vouches for the opponent having been within `age` moves of it.
         """
 
+    def spatial_kernel(self) -> list[tuple[float, ...]] | None:
+        """The fresh-deposit kernel as a spatial likelihood template, or None for
+        models whose intensity encodes AGE (M7-14: selects the filter's observation
+        scorer — age vouchers vs kernel shape-match)."""
+
+    def decayed(self, value: float) -> float:
+        """One decay step of a single cell value — the filter's expected carry-over
+        for computing the observation INNOVATION (observed minus predicted field)."""
+
 
 class SubtractiveChebyshevV1:
     """The reference form (kit SPEC §5): radial Chebyshev rings, linear falloff, round-3.
@@ -108,6 +117,15 @@ class SubtractiveChebyshevV1:
         if not self._decay:
             return 0
         return max(0, round((self.fresh_center() - value) / self._decay))
+
+    def spatial_kernel(self) -> list[tuple[float, ...]] | None:
+        """None: linear falloff makes intensity a faithful AGE — the M3-3 voucher
+        path stays byte-identical (98% argmax hit-rate, measurement preserved)."""
+        return None
+
+    def decayed(self, value: float) -> float:
+        """One subtractive decay step of a single value (unused by the voucher path)."""
+        return round(max(0.0, value - self._decay), self._digits)
 
 
 _MODELS: dict[str, Callable[[dict[str, Any]], ScentModel]] = {

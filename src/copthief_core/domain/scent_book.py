@@ -86,6 +86,17 @@ class MultiplicativeBookV1:
             return 0
         return max(0, round(log(value / self.center_intensity) / log(1.0 - self._rho)))
 
+    def spatial_kernel(self) -> list[tuple[float, ...]] | None:
+        """The kernel as a spatial likelihood template (M7-14): under the additive
+        clamp, intensity is a poor AGE signal (saturation) but the fresh deposit's
+        ring structure identifies its centre — the belief filter matches shape."""
+        return self.kernel
+
+    def decayed(self, value: float) -> float:
+        """One decay step of a single value: `step_cell` with no deposit — the exact
+        carry-over the filter subtracts to isolate the fresh kernel (innovation)."""
+        return self.step_cell(value, 0.0)
+
     def advance(self, cells: Cells, center: Coord, intensity: float, ok: InBounds) -> None:
         """Decay and deposit as ONE expression per cell — the order the kit pins."""
         for cell in set(cells) | set(self._window(center, ok)):

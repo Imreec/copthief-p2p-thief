@@ -51,18 +51,67 @@ class TruthFeed:
         self._decay = constitution.pheromones.decay
         self._smell_trust = smell_trust
 
-    def observe(
-        self, belief: BeliefFilter, *, trail: ScentField, truth: Coord, board: Board
-    ) -> BeliefFilter:
-        """A fresh certainty delta at the revealed cell, on the CURRENT board (declared
-        barriers included) — brains read only the filter, so every brain becomes
-        full-information without any brain change."""
+    def _delta_at(self, cell: Coord, board: Board) -> BeliefFilter:
+        """A fresh certainty delta at `cell`, on the CURRENT board (declared barriers
+        included) — brains read only the filter, so a brain becomes (lag-)informed
+        without any brain change."""
         return BeliefFilter(
             board=board,
             move_set=self._move_set,
-            start=truth,
+            start=cell,
             center_intensity=self._center,
             decay=self._decay,
             smell_trust=self._smell_trust,
             hint_trust=0.0,
         )
+
+    def observe(
+        self, belief: BeliefFilter, *, trail: ScentField, truth: Coord, board: Board
+    ) -> BeliefFilter:
+        """Common knowledge: collapse to the revealed cell every observation."""
+        return self._delta_at(truth, board)
+
+
+class LagTruthFeed(TruthFeed):
+    """Delayed common knowledge: the truth K observations ago (M7-14).
+
+    The claim-reading counter-model from the capture postmortem: a cop that
+    claim-tests its own cell answers any listening evader with its position one step
+    late — Alon's "hidden lag-1" arm. Before K observations exist, the inbound belief
+    (the signed-start delta) already IS the lag-K information, so it survives.
+    """
+
+    def __init__(self, constitution: Constitution, *, smell_trust: float, lag: int) -> None:
+        super().__init__(constitution, smell_trust=smell_trust)
+        self._lag = lag
+        self._history: list[Coord] = []
+
+    def observe(
+        self, belief: BeliefFilter, *, trail: ScentField, truth: Coord, board: Board
+    ) -> BeliefFilter:
+        """Collapse to the K-embargoed cell; embargoed history keeps the prior belief."""
+        self._history.append(truth)
+        if len(self._history) <= self._lag:
+            return belief
+        return self._delta_at(self._history[-1 - self._lag], board)
+
+
+_LAG_PREFIX = "truth-lag"
+
+
+def make_feed(name: str, constitution: Constitution, *, smell_trust: float) -> BeliefFeed:
+    """Config-name factory for information feeds (arena roster `feed` entries).
+
+    Names: 'hidden' (reference-v3, the default wire) | 'truth' (bookletter-v3 common
+    knowledge) | 'truth-lag<K>' (delayed common knowledge — the claim-reading
+    counter). Built per GAME by callers: a lagged feed carries history, so a shared
+    instance would leak one game's trajectory into the next.
+    """
+    if name == "hidden":
+        return ScentFeed()
+    if name == "truth":
+        return TruthFeed(constitution, smell_trust=smell_trust)
+    if name.startswith(_LAG_PREFIX) and name[len(_LAG_PREFIX) :].isdigit():
+        lag = int(name[len(_LAG_PREFIX) :])
+        return LagTruthFeed(constitution, smell_trust=smell_trust, lag=lag)
+    raise ValueError(f"unknown feed: {name!r}")

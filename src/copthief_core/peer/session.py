@@ -15,7 +15,6 @@ from typing import Any
 from copthief_core.domain.belief import BeliefFilter
 from copthief_core.domain.gazetteer import Gazetteer
 from copthief_core.domain.scent import ScentField
-from copthief_core.domain.scent_models import make_scent_model
 from copthief_core.domain.state_machine import GameState, GameStateMachine
 from copthief_core.peer import handshake, inbound, turns
 from copthief_core.peer.handshake import NegotiationError
@@ -24,7 +23,7 @@ from copthief_core.peer.policy import SkeletonPolicy
 from copthief_core.peer.sealing import SealedTurn
 from copthief_core.peer.turns import FINAL_CAUGHT_HINT
 from copthief_core.shared.config_model import Constitution, PrivateSettings
-from copthief_core.shared.locked_models import SCENT_MODEL, assert_agrees_with
+from copthief_core.shared.locked_models import build_scent_model
 from copthief_core.strategy.brains import make_brain
 from copthief_core.wire.turn import TurnMessage
 
@@ -42,12 +41,12 @@ def _make_scent_field(constitution: Constitution, private: PrivateSettings) -> S
     declare — and `assert_agrees_with` refuses any registration that contradicts the
     signed pheromone terms, so we can never declare physics we do not play.
     """
-    doc = private.locked_models.doc(SCENT_MODEL, private.scent_model)
-    assert_agrees_with(doc, constitution.pheromones)
     return ScentField(
         board_size=constitution.board.grid_size,
         origin=constitution.board.axis_start_index,
-        model=make_scent_model(private.scent_model, params=doc["params"]),
+        model=build_scent_model(
+            private.locked_models, private.scent_model, constitution.pheromones
+        ),
     )
 
 

@@ -75,3 +75,43 @@ def test_champion_gate_red_when_a_pinned_champion_lost_its_role() -> None:
 def test_champion_gate_red_for_an_unknown_champion_name() -> None:
     problems = champion_regression(_report(), {"police": "ghost", "thief": "random"})
     assert any("ghost" in p for p in problems)
+
+
+def test_round_robin_threads_the_config_model_and_per_entry_feeds() -> None:
+    """M7-14 end-to-end: a book-v1 arena with a lag-fed evader entry runs, stays
+    deterministic, and gives every pairing one result per seed."""
+    from pathlib import Path
+
+    from copthief_core.sdk.arena import run_round_robin
+    from copthief_core.sdk.arena_config import ArenaConfig, RosterEntry
+    from copthief_core.sdk.simulation import SimulationSdk
+
+    config = ArenaConfig(
+        version="1.00",
+        police_roster=(RosterEntry(name="greedy-manhattan", spec="greedy-manhattan"),),
+        thief_roster=(RosterEntry(name="evader-lag1", spec="belief-evader", feed="truth-lag1"),),
+        seeds=(1, 2),
+        scenario_min_separation=4,
+        brain_options={},
+        dod_series=(),
+        evidence_out="unused.md",
+        scent_model="multiplicative_book_v1",
+    )
+    sdk = SimulationSdk(Path("config"))
+    first = run_round_robin(sdk, config=config)
+    second = run_round_robin(sdk, config=config)
+    assert first == second
+    assert len(first.series) == 1
+    assert len(first.series[0].results) == 2
+    assert first.standing("evader-lag1", "thief").games == 2
+    # The doors must not be decorative: silently ignoring the feed or the model
+    # would leave this identical to the shipped-defaults run of the same roster.
+    from dataclasses import replace
+
+    plain = replace(
+        config,
+        scent_model=None,
+        thief_roster=(RosterEntry(name="evader-lag1", spec="belief-evader"),),
+    )
+    baseline = run_round_robin(sdk, config=plain)
+    assert baseline != first

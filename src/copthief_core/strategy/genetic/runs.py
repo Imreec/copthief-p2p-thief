@@ -15,6 +15,7 @@ from typing import Any
 
 from copthief_core.domain.rules import Outcome
 from copthief_core.shared.config_model import Constitution
+from copthief_core.shared.locked_models import LockedModelRegistry
 from copthief_core.shared.private_config import ConfigError, validated_version
 from copthief_core.strategy.genetic.genome import GeneSpec
 from copthief_core.strategy.scenarios import Scenario, play_scenario_series
@@ -50,6 +51,10 @@ class GaConfig:
     smoke: GaPhase
     artifact_out: str
     evidence_out: str
+    # M7-14 doors, both defaulting to the shipped behavior: the run's named physics
+    # and the fixed opponent's information feed (strategy/info_feed.make_feed names).
+    scent_model: str | None = None
+    opponent_feed: str | None = None
 
     def spec(self) -> GeneSpec:
         """The search box in fixed (sorted) gene order."""
@@ -91,6 +96,8 @@ def load_ga_config(path: Path) -> GaConfig:
             smoke=_phase(raw["smoke"]),
             artifact_out=str(raw["artifact_out"]),
             evidence_out=str(raw["evidence_out"]),
+            scent_model=(None if raw.get("scent_model") is None else str(raw["scent_model"])),
+            opponent_feed=(None if raw.get("opponent_feed") is None else str(raw["opponent_feed"])),
         )
     except (KeyError, TypeError, ValueError, IndexError) as error:
         raise ConfigError(f"{path.name}: malformed GA config — {error}") from error
@@ -102,8 +109,15 @@ def fitness(
     smell_trust: float,
     scenarios: list[Scenario],
     candidate_options: dict[str, float],
+    *,
+    locked_models: LockedModelRegistry | None = None,
 ) -> float:
-    """The candidate's win-rate for `config.role` vs the fixed opponent."""
+    """The candidate's win-rate for `config.role` vs the fixed opponent.
+
+    M7-14: `config.scent_model` (resolved against `locked_models`) selects the
+    physics the whole run is tuned under; `config.opponent_feed` names the FIXED
+    OPPONENT's information structure — it lands on whichever side the opponent plays.
+    """
     police = config.brain if config.role == "police" else config.opponent
     thief = config.opponent if config.role == "police" else config.brain
     police_options = candidate_options if config.role == "police" else config.opponent_options
@@ -116,6 +130,10 @@ def fitness(
         scenarios=scenarios,
         police_options=police_options,
         thief_options=thief_options,
+        thief_feed_name=config.opponent_feed if config.role == "police" else None,
+        police_feed_name=config.opponent_feed if config.role == "thief" else None,
+        scent_model_name=config.scent_model,
+        locked_models=locked_models,
     )
     winning = Outcome.COP_CAPTURE if config.role == "police" else Outcome.THIEF_SURVIVAL
     return sum(r.outcome is winning for r in results) / len(results)

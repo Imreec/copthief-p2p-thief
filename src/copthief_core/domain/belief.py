@@ -14,6 +14,12 @@ import math
 from collections.abc import Iterable
 
 from copthief_core.domain.belief_baseline import LastKnownTracker
+from copthief_core.domain.belief_observation import (
+    age_voucher_scores,
+    innovation,
+    kernel_match_scores,
+    parse_grid,
+)
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.rules import legal_moves
 from copthief_core.domain.scent_models import ScentModel, SubtractiveChebyshevV1
@@ -57,6 +63,8 @@ class BeliefFilter:
         self._hint_trust = hint_trust
         self._probs: dict[Coord, float] = {start: 1.0}  # §2.1: the signed-start delta
         self._reachable: set[Coord] = {start}
+        # M7-14: the previous observed field, for the kernel path's innovation.
+        self._last_scent: dict[Coord, float] | None = None
 
     def note_barrier(self, cell: Coord) -> None:
         """A declared barrier (sealed, audited — certain) blocks motion AND occupancy."""
@@ -83,34 +91,29 @@ class BeliefFilter:
         self._normalize()
 
     def update_scent(self, grid: dict[str, float]) -> None:
-        """§2.3: each cell implies an age under the SELECTED model's falloff (linear for
-        the reference form, logarithmic for the book's), so it vouches for the opponent
-        being within that many moves of it. The voucher's weight spreads over its
-        Manhattan age-ball (`value / ball_size`) — a fresh center is a sharp spike,
-        aged scent a wide whisper. Multiplies `1 + smell_trust * strongest_voucher`;
-        never eliminates (floor 1)."""
+        """§2.3, dispatched on what a value MEANS under the selected model (M7-14):
+        age vouchers when intensity encodes age (reference form — the M3-3 path,
+        byte-identical), kernel shape-match when it does not (book form — saturation
+        makes 'freshest cell' meaningless, but the fresh kernel's ring structure
+        identifies its centre). Multiplies `1 + smell_trust * score`; never
+        eliminates (floor 1)."""
         if self._smell_trust <= 0.0 or not grid:
             return
-        vouchers = []
-        for key, value in grid.items():
-            if value <= 0.0:
-                continue
-            row, col = (int(part) for part in key.split(","))
-            age = self._scent.age_of(value)
-            ball_size = 2 * age * age + 2 * age + 1  # Manhattan ball, boundary-blind
-            vouchers.append(((row, col), value / ball_size, age))
-        if not vouchers:
+        support = list(self._probs)
+        kernel = self._scent.spatial_kernel()
+        if kernel is not None:
+            # Shape-match the INNOVATION: what the decay-predicted past cannot
+            # explain is (up to clamping) one fresh kernel at the current cell.
+            observed = parse_grid(grid)
+            residual = innovation(observed, self._last_scent, self._scent.decayed)
+            self._last_scent = observed
+            scores = kernel_match_scores(residual, support, kernel, self._board)
+        else:
+            scores = age_voucher_scores(grid, support, self._scent.age_of)
+        if not scores:
             return
-        for cell in self._probs:
-            score = max(
-                (
-                    weight
-                    for (src, weight, age) in vouchers
-                    if abs(cell[0] - src[0]) + abs(cell[1] - src[1]) <= age
-                ),
-                default=0.0,
-            )
-            self._probs[cell] *= 1.0 + self._smell_trust * score
+        for cell in support:
+            self._probs[cell] *= 1.0 + self._smell_trust * scores.get(cell, 0.0)
         self._normalize()
 
     def update_hint(self, cells: Iterable[Coord], weight: float | None = None) -> None:
