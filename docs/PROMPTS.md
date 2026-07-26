@@ -3,6 +3,23 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #50 — feat/m7-16-thief-bookv1-retune (anti-camping from selection ⚑)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** the sibling half of the counted-series strategy prep, queued
+  behind the M7-15 sync by Imree's "close the open items" instruction.
+- **What landed:** `config/ga_bookv1.json` (mixed pool of four belief-cop worlds
+  under the pair-locked physics), the retune artifact (survival 0.391 → 0.609; the
+  headline is `ramp_start_fraction` crashing from 0.95 to the 0.3 box floor — the
+  camping habit the postmortem flagged, priced out by selection), the two gate
+  arenas (new wins book-v1, old keeps reference — physics-specific, same as the
+  cop side), deployment on the `[strategy.thief.multiplicative_book_v1]` overlay
+  with the base untouched, and the evidence doc. Non-mirrored changes only
+  (config + docs); the machinery arrived via sync #49.
+- **Honesty notes:** the cop pool is core-name heuristics bracketing a threat
+  class, not the opponent's build; book-v1 stays cop-favored at these arms and the
+  doc says so.
+
 ## PR #26 — feat/m5-7-thief-notebook (M5-7 results notebook, executed + pinned ⚑)
 
 - **Driver:** Imree (session brief: M5-7 notebook — arena + GA curves + sensitivity;

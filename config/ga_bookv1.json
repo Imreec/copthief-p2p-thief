@@ -1,0 +1,54 @@
+{
+  "version": "1.00",
+  "_comment": "M7-16 counted-series retune (thief side): evolve ThiefBrain UNDER THE PAIR-LOCKED PHYSICS (multiplicative_book_v1) against a POOL of belief-driven cops. The M7-14 belief fix made the plain argmax chaser the strongest measured book-v1 cop (63/128 in the cop repo's arena), and the deployed reference-tuned thief survives only 5/16 against it - the M7-13 postmortem's warning (camping streaks to 14 are unpriced risk once a cop converts beacons) made quantitative. Pool: the reference heuristic with and without walls, the greedy chaser, and a random walker; fitness = mean survival rate, seeds 401..416, disjoint from the DoD seeds (1..32) and the reference-GA seeds (201..248). Weights land in ga_weights_bookv1.json and deploy ONLY via config review - never to the sparring host, never automatically.",
+  "role": "thief",
+  "brain": "copthief_thief.brain:ThiefBrain",
+  "opponent": "ref-police",
+  "opponent_options": {
+    "ref_police_barrier_chance": 0.15
+  },
+  "opponent_pool": [
+    {"spec": "ref-police", "options": {"ref_police_barrier_chance": 0.15}},
+    {"spec": "ref-police", "options": {"ref_police_barrier_chance": 0.0}},
+    {"spec": "greedy-manhattan"},
+    {"spec": "random"}
+  ],
+  "scent_model": "multiplicative_book_v1",
+  "genes": {
+    "w_distance": [0.5, 6.0],
+    "w_region": [0.0, 3.0],
+    "w_articulation": [0.0, 40.0],
+    "trap_size_fraction": [0.05, 0.6],
+    "w_spread": [0.0, 2.0],
+    "ramp_start_fraction": [0.3, 0.95],
+    "ramp_multiplier": [1.0, 5.0]
+  },
+  "run": {
+    "seed": 42,
+    "population": 16,
+    "generations": 12,
+    "elite_count": 2,
+    "tournament_size": 3,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [
+      401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416
+    ],
+    "scenario_min_separation": 4
+  },
+  "smoke": {
+    "seed": 7,
+    "population": 4,
+    "generations": 3,
+    "elite_count": 1,
+    "tournament_size": 2,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [501, 502, 503],
+    "scenario_min_separation": 4
+  },
+  "artifact_out": "config/ga_weights_bookv1.json",
+  "evidence_out": "docs/evidence/m7-16-ga-bookv1.md"
+}
