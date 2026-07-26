@@ -43,6 +43,22 @@ w_distance = 5.2704
 w_region = 1.8097
 w_spread = 1.0655
 
+[strategy.thief.multiplicative_book_v1]
+# M7-16 per-model overlay: applies ONLY when [scent] model selects this name
+# (tuned vectors are physics-specific - the cop repo's M7-14/15 gate comparisons,
+# reproduced thief-side in docs/evidence/m7-16-*.md). This is the mixed-pool
+# book-v1 vector (config/ga_weights_bookv1.json): survival 0.391->0.609 across
+# four belief-cop worlds; the headline is anti-camping emerging from selection -
+# ramp_start_fraction fell from 0.95 to the box floor 0.3 (evade from 30% of the
+# clock, not 95%) and w_articulation maxed (the M7-13 postmortem's prescription).
+ramp_multiplier = 2.479692710824608
+ramp_start_fraction = 0.3
+trap_size_fraction = 0.1580899936008633
+w_articulation = 40.0
+w_distance = 3.6023324400184356
+w_region = 2.2014344105088215
+w_spread = 2.0
+
 [scent]
 # Which NAMED scent model we play (M3-8, ADR-0004 v2; registrations in
 # config/locked_models.json, kit SPEC s7). Private until the handshake, which declares
