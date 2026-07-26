@@ -57,3 +57,52 @@ def test_malformed_ga_config_is_refused_loudly(tmp_path: Path) -> None:
 
     with pytest.raises(ConfigError):
         load_ga_config(path)
+
+
+def test_ga_config_parses_the_bookv1_doors_with_safe_defaults() -> None:
+    """M7-14: a GA config may name the run's scent model and the opponent's feed;
+    both default off so the shipped ga.json is untouched by the feature."""
+    import json
+
+    raw = json.loads((Path("config") / "ga.json").read_text(encoding="utf-8"))
+    raw["scent_model"] = "multiplicative_book_v1"
+    raw["opponent_feed"] = "truth-lag1"
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "ga.json"
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        config = load_ga_config(path)
+    assert config.scent_model == "multiplicative_book_v1"
+    assert config.opponent_feed == "truth-lag1"
+    assert CONFIG.scent_model is None
+    assert CONFIG.opponent_feed is None
+
+
+def test_fitness_threads_the_doors_to_the_series() -> None:
+    """Wiring proof without flaky value asserts: a bogus feed name must surface from
+    make_feed, and a named model without the registry must refuse — both can only
+    happen if fitness actually passes the doors down."""
+    from dataclasses import replace
+
+    from copthief_core.shared.config import load_all
+    from copthief_core.strategy.genetic.runs import fitness
+    from copthief_core.strategy.scenarios import scenario_suite
+
+    constitution, private, _ = load_all(Path("config"), counted=False)
+    scenarios = list(scenario_suite(constitution, seeds=(301,), min_separation=4))
+    bad_feed = replace(CONFIG, opponent_feed="psychic")
+    with pytest.raises(ValueError, match="unknown feed"):
+        fitness(bad_feed, constitution, private.smell_trust_weight, scenarios, {})
+    named_model = replace(CONFIG, scent_model="multiplicative_book_v1")
+    with pytest.raises(ValueError, match="registry"):
+        fitness(named_model, constitution, private.smell_trust_weight, scenarios, {})
+    value = fitness(
+        named_model,
+        constitution,
+        private.smell_trust_weight,
+        scenarios,
+        {},
+        locked_models=private.locked_models,
+    )
+    assert 0.0 <= value <= 1.0

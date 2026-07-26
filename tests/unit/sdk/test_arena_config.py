@@ -54,3 +54,35 @@ def test_malformed_version_is_refused_loudly(tmp_path: Path) -> None:
     path.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(ConfigError):
         load_arena_config(path)
+
+
+def test_scent_model_and_roster_feeds_parse_with_safe_defaults(tmp_path: Path) -> None:
+    """M7-14 doors: an arena config may select the physics for the WHOLE run and a
+    per-thief-entry information feed; both default to the shipped behavior (reference
+    physics, hidden feed) so the existing arena.json is untouched by the feature."""
+    raw = json.loads((Path("config") / "arena.json").read_text(encoding="utf-8"))
+    raw["scent_model"] = "multiplicative_book_v1"
+    raw["thief_roster"] = [
+        "ref-thief",
+        {"name": "evader-lag1", "spec": "belief-evader", "feed": "truth-lag1"},
+    ]
+    path = tmp_path / "arena.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    config = load_arena_config(path)
+    assert config.scent_model == "multiplicative_book_v1"
+    assert config.thief_roster[0].feed is None
+    assert config.thief_roster[1].feed == "truth-lag1"
+    shipped = load_arena_config(Path("config") / "arena.json")
+    assert shipped.scent_model is None
+
+
+def test_champion_pin_defaults_to_the_shipped_gate_and_can_opt_out(tmp_path: Path) -> None:
+    """Measurement configs (M7-14) skip the champion gate by pinning null; the
+    shipped arena.json keeps the CI gate without naming it."""
+    shipped = load_arena_config(Path("config") / "arena.json")
+    assert shipped.champion_pin == "config/arena_champion.json"
+    raw = json.loads((Path("config") / "arena.json").read_text(encoding="utf-8"))
+    raw["champion_pin"] = None
+    path = tmp_path / "arena.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    assert load_arena_config(path).champion_pin is None

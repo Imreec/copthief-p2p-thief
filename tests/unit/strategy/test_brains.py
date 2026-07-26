@@ -128,3 +128,13 @@ def test_factory_builds_by_config_name_and_refuses_unknowns() -> None:
     assert isinstance(make_brain("greedy-manhattan", seed=1), GreedyManhattanBrain)
     with pytest.raises(ValueError, match="unknown brain"):
         make_brain("skynet", seed=1)
+
+
+def test_belief_evader_is_a_core_brain_name() -> None:
+    """The trap-aware evader must be reachable from arena/GA rosters by name in BOTH
+    role repos (core registry, not a dotted role-package spec — M7-14)."""
+    from copthief_core.strategy.brains import make_brain
+    from copthief_core.strategy.evader_brains import BeliefEvaderBrain
+
+    brain = make_brain("belief-evader", seed=3, options={"stay_penalty": 1.5})
+    assert isinstance(brain, BeliefEvaderBrain)

@@ -16,8 +16,9 @@ from dataclasses import dataclass
 
 from copthief_core.domain.board import Coord
 from copthief_core.shared.config_model import Constitution
+from copthief_core.shared.locked_models import LockedModelRegistry, build_scent_model
 from copthief_core.strategy.brains import make_brain
-from copthief_core.strategy.info_feed import BeliefFeed
+from copthief_core.strategy.info_feed import BeliefFeed, make_feed
 from copthief_core.strategy.referee import RefereeGameResult, play_referee_game
 
 
@@ -90,9 +91,36 @@ def play_scenario_series(
     police_options: Mapping[str, float] | None = None,
     thief_options: Mapping[str, float] | None = None,
     belief_feed: BeliefFeed | None = None,
+    thief_feed_name: str | None = None,
+    police_feed_name: str | None = None,
+    scent_model_name: str | None = None,
+    locked_models: LockedModelRegistry | None = None,
 ) -> list[RefereeGameResult]:
     """A seeded series over scenarios: fresh brains per game, two RNG streams per seed
-    (police 2n, thief 2n+1) so pairings never share a stream."""
+    (police 2n, thief 2n+1) so pairings never share a stream.
+
+    M7-14 doors: `scent_model_name` (+ the committed registry) selects the physics for
+    every game; `thief_feed_name` / `police_feed_name` name one side's information
+    structure, built FRESH PER GAME because a lagged feed carries trajectory history.
+    A named police feed pins the thief side to hidden unless the thief names its own —
+    the referee's fallback (thief inherits the police feed) is for the symmetric
+    balance-study shape, not for named per-side runs. All default to shipped behavior.
+    """
+    model = None
+    if scent_model_name is not None:
+        if locked_models is None:
+            raise ValueError("scent_model_name requires the locked-model registry")
+        model = build_scent_model(locked_models, scent_model_name, constitution.pheromones)
+
+    def side_feed(name: str | None) -> BeliefFeed | None:
+        return None if name is None else make_feed(name, constitution, smell_trust=smell_trust)
+
+    def thief_side_feed() -> BeliefFeed | None:
+        named = side_feed(thief_feed_name)
+        if named is None and police_feed_name is not None:
+            return make_feed("hidden", constitution, smell_trust=smell_trust)
+        return named
+
     return [
         play_referee_game(
             constitution,
@@ -106,7 +134,9 @@ def play_scenario_series(
             seed=scenario.seed,
             cop_start=scenario.cop_start,
             thief_start=scenario.thief_start,
-            belief_feed=belief_feed,
+            belief_feed=side_feed(police_feed_name) or belief_feed,
+            thief_belief_feed=thief_side_feed(),
+            scent_model=model,
         )
         for scenario in scenarios
     ]

@@ -57,10 +57,22 @@ def evolve(config: GaConfig, phase: GaPhase, config_dir: Path | None = None) -> 
 
     def score(genome: list[float]) -> float:
         return fitness(
-            config, constitution, private.smell_trust_weight, scenarios, decode(spec, genome)
+            config,
+            constitution,
+            private.smell_trust_weight,
+            scenarios,
+            decode(spec, genome),
+            locked_models=private.locked_models,
         )
 
-    default_fitness = fitness(config, constitution, private.smell_trust_weight, scenarios, {})
+    default_fitness = fitness(
+        config,
+        constitution,
+        private.smell_trust_weight,
+        scenarios,
+        {},
+        locked_models=private.locked_models,
+    )
     population = [random_genome(spec, rng) for _ in range(phase.population)]
     scored = sorted(((genome, score(genome)) for genome in population), key=lambda pair: -pair[1])
     history: list[Generation] = []

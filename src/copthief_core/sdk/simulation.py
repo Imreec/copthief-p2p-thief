@@ -13,7 +13,7 @@ from pathlib import Path
 
 from copthief_core.peer.match import MatchResult, run_local_minigame
 from copthief_core.peer.p2p import PeerGameResult
-from copthief_core.peer.replay import ReplaySummary, replay_from_log
+from copthief_core.peer.replay import ReplaySummary
 from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
 from copthief_core.shared.config import load_all
 from copthief_core.shared.run_mode import RunMode
@@ -89,10 +89,14 @@ class SimulationSdk:
         police_options: Mapping[str, float] | None = None,
         thief_options: Mapping[str, float] | None = None,
         belief_feed: BeliefFeed | None = None,
+        thief_feed: str | None = None,
+        scent_model: str | None = None,
     ) -> list[RefereeGameResult]:
         """Referee-mode series over a start-scenario suite (M5-2) — the arena's and
         the DoD floors' game source; options carry per-brain config knobs, and
-        `belief_feed` selects the wire-shape information structure (default hidden)."""
+        `belief_feed` selects the wire-shape information structure (default hidden).
+        M7-14: `scent_model` names the run's physics (resolved against the committed
+        registry); `thief_feed` names the thief side's information structure."""
         return play_scenario_series(
             self.constitution,
             police_brain_name=police,
@@ -102,6 +106,9 @@ class SimulationSdk:
             police_options=police_options,
             thief_options=thief_options,
             belief_feed=belief_feed,
+            thief_feed_name=thief_feed,
+            scent_model_name=scent_model,
+            locked_models=self.private.locked_models,
         )
 
     def run_peer(
@@ -133,28 +140,18 @@ class SimulationSdk:
         )
 
     def replay(self, log_path: Path, *, gui: bool = False) -> ReplaySummary:
-        """Re-verify a logged game (M4-3): the cryptographic walk over every record.
+        """Re-verify a logged game (M4-3; delegates to sdk/analysis)."""
+        from copthief_core.sdk.analysis import replay_flow
 
-        With `gui`, the viewer window (verdict banner + step controls) opens and
-        blocks until closed; the summary is returned either way."""
-        summary = replay_from_log(log_path)
-        if gui:
-            from copthief_core.gui.windows.replay import show_replay
-
-            show_replay(log_path, self.constitution, self.private.gui)
-        return summary
+        return replay_flow(self, log_path, gui=gui)
 
     def export_overlay(
         self, log_path: Path, out: Path, *, role: str | None = None
     ) -> tuple[Path, Path]:
-        """Render the belief-vs-truth overlay + error curve PNGs from an audited log
-        (M4-4; post-audit only). Returns (overlay path, curve path). matplotlib is
-        imported lazily — the viz group is an analysis-time dependency (D2)."""
-        from copthief_core.gui.export import export_overlay_pngs
+        """Render the belief-vs-truth overlay + curve PNGs (M4-4; sdk/analysis)."""
+        from copthief_core.sdk.analysis import export_overlay_flow
 
-        return export_overlay_pngs(
-            log_path, out, role=role, constitution=self.constitution, settings=self.private.gui
-        )
+        return export_overlay_flow(self, log_path, out, role=role)
 
     def run_p2p_match(
         self, *, police_seed: int, thief_seed: int, thief_port: int, host: str

@@ -115,6 +115,8 @@ def run_round_robin(
                     police_options=config.options_for(police.name),
                     thief_options=config.options_for(thief.name),
                     belief_feed=belief_feed,
+                    thief_feed=thief.feed,
+                    scent_model=config.scent_model,
                 )
             ),
         )

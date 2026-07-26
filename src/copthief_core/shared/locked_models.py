@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from copthief_core.domain.crypto import canonical_hash
+from copthief_core.domain.scent_models import ScentModel, make_scent_model
 
 if TYPE_CHECKING:  # annotation-only: config_model imports THIS module at runtime
     from copthief_core.shared.config_model import PheromoneParams
@@ -104,6 +105,22 @@ def assert_agrees_with(doc: dict[str, Any], pheromones: PheromoneParams) -> None
         raise LockedModelError(
             f"locked model {name!r} disagrees with the signed constitution: " + "; ".join(problems)
         )
+
+
+def build_scent_model(
+    registry: LockedModelRegistry, name: str, pheromones: PheromoneParams
+) -> ScentModel:
+    """The ONE door from a registration to running physics (M7-14).
+
+    Input: the committed registry + a model name + the signed pheromone terms;
+    Output: the constructed `ScentModel`; Raises: LockedModelError on an unknown name
+    or a registration the constitution contradicts. Peer sessions and the referee
+    harness both build here, so the hash we declare and the physics we play — in live
+    games AND in arena/GA measurements — stay the same object.
+    """
+    doc = registry.doc(SCENT_MODEL, name)
+    assert_agrees_with(doc, pheromones)
+    return make_scent_model(name, params=doc["params"])
 
 
 def lock_decision(ours: str | None, theirs: str | None) -> str:

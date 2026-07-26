@@ -134,10 +134,12 @@ class GreedyManhattanBrain(BrainBase):
 def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = None) -> BrainBase:
     """Config-name factory (`game.toml [strategy]` / `config/arena.json` rosters).
 
-    Core names: 'random' | 'greedy-manhattan' | 'ref-police' | 'ref-thief'. A spec with
-    a colon is the book §6.2 dotted notation `package.module:Class` — the role packages'
-    door into the arena and the peer loop; core itself stays role-blind.
+    Core names: 'random' | 'greedy-manhattan' | 'ref-police' | 'ref-thief' |
+    'belief-evader'. A spec with a colon is the book §6.2 dotted notation
+    `package.module:Class` — the role packages' door into the arena and the peer
+    loop; core itself stays role-blind.
     """
+    from copthief_core.strategy.evader_brains import BeliefEvaderBrain
     from copthief_core.strategy.reference_brains import RefPoliceBrain, RefThiefBrain
 
     core: dict[str, type[BrainBase]] = {
@@ -145,6 +147,7 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
         "greedy-manhattan": GreedyManhattanBrain,
         "ref-police": RefPoliceBrain,
         "ref-thief": RefThiefBrain,
+        "belief-evader": BeliefEvaderBrain,
     }
     if name in core:
         return core[name](seed=seed, options=options)

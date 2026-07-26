@@ -68,3 +68,27 @@ def test_omission_is_never_refusal_in_either_direction() -> None:
     assert lock_decision(ours, None) == "play"
     assert lock_decision(None, ours) == "play"
     assert lock_decision(None, None) == "play"
+
+
+def test_build_scent_model_constructs_the_named_physics_from_the_registry() -> None:
+    """The builder is the ONE door from a registration to running physics (M7-14):
+    same doc lookup, same signed-terms guard, same params — peer and referee paths
+    can never construct the model two different ways."""
+    from copthief_core.domain.scent_book import MultiplicativeBookV1
+    from copthief_core.domain.scent_models import SubtractiveChebyshevV1
+    from copthief_core.shared.locked_models import build_scent_model
+
+    book = build_scent_model(REGISTRY, "multiplicative_book_v1", SHIPPED)
+    assert isinstance(book, MultiplicativeBookV1)
+    reference = build_scent_model(REGISTRY, "subtractive_chebyshev_v1", SHIPPED)
+    assert isinstance(reference, SubtractiveChebyshevV1)
+
+
+def test_build_scent_model_refuses_a_registration_the_constitution_contradicts() -> None:
+    from copthief_core.shared.locked_models import build_scent_model
+
+    drifted = PheromoneParams(
+        center_intensity=0.9, decay=0.2, grid_size=5, min_center_intensity=0.5
+    )
+    with pytest.raises(LockedModelError, match="disagrees with the signed constitution"):
+        build_scent_model(REGISTRY, "multiplicative_book_v1", drifted)
