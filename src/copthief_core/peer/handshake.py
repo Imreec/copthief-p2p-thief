@@ -93,6 +93,15 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
     """Verify value-equal terms + the opponent's signature; lock the game_uid."""
     ours = terms_from_config(session.constitution)
     theirs = raw.get("terms")
+    # Absence is a different diagnosis from disagreement (2026-07-25 friendly, T3):
+    # a greeting with NO terms is the bookletter shape (config_sha256 substitution)
+    # arriving under a reference wire — a wire-shape fault on the sender's side, not
+    # a constitution drift. Naming it saves the two hours it cost to see the first time.
+    if theirs is None:
+        raise NegotiationError(
+            "opponent agreement carries no terms at all — a bookletter-shaped "
+            "greeting under a reference wire (kit CORE: flat terms + nonce + signature)"
+        )
     if canonical_str(theirs) != canonical_str(ours):
         raise NegotiationError("terms mismatch: opponent terms do not value-equal ours")
     if terms_signature(ours, str(raw.get("nonce"))) != raw.get("signature"):

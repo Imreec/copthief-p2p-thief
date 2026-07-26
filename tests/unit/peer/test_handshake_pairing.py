@@ -55,6 +55,27 @@ def test_a_matching_opponent_still_negotiates_cleanly() -> None:
     assert result["game_uid"]
 
 
+def test_an_agreement_with_no_terms_at_all_names_the_bookletter_smell() -> None:
+    """T3 of the 2026-07-25 friendly burned two hours on 'terms mismatch' when the
+    inbound agreement carried NO terms key: the opponent's bookletter-shaped greeting
+    (config_sha256 substitution) under a reference wire. Absence is a different
+    diagnosis from disagreement, and the refusal must say which one it saw."""
+    session = _session("police", 4)
+    payload = _their_payload(session)
+    del payload["terms"]
+    with pytest.raises(NegotiationError, match="no terms at all.*bookletter"):
+        session.handle_negotiate(payload)
+
+
+def test_terms_that_disagree_still_refuse_as_a_mismatch() -> None:
+    """The existing diagnosis is unchanged when terms ARE present but differ."""
+    session = _session("police", 4)
+    payload = _their_payload(session)
+    payload["terms"] = {**payload["terms"], "num_games": 1}
+    with pytest.raises(NegotiationError, match="terms mismatch"):
+        session.handle_negotiate(payload)
+
+
 def test_an_opponent_on_a_different_sub_game_is_refused() -> None:
     """The phantom-s6 shape, caught at the handshake instead of in the artifacts."""
     session = _session("police", 4)
