@@ -3,6 +3,24 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #52 — sync-m7-18-claim-channel (the claim channel arrives, and pays here)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** sync the M7-18 core from the police repo, then take the one
+  measurement the lead repo could not — its configured thief is `random`, so the number
+  for the vector we actually ship had to be taken here.
+- **Outcome:** sync first, on the ritual (820 keyless tests green HERE before the sync was
+  committed; mirrored tests confirmed role-blind; mirror verify 284). Then the measurement,
+  and it is the answer M7-16's disclosed 8/32 warning was waiting for: peer-path exact
+  cop-tracking 0.502 → 0.994, and the deployed vector's survivals against both chasers
+  8 → 21 of 32, points 945 → 1115. The A/B is controlled — same brain, same options, only
+  the feed differs — and its hidden column reproduces the committed M7-16 table
+  cell-for-cell, which is the check that makes the delta trustworthy.
+- **Discipline note:** no strategy weight changed; the gain is information, not tuning. Two
+  follow-ups are named rather than folded in (this repo's GA pool tuned the vector under a
+  HIDDEN feed and may now be the wrong shape; the cop's pool understates a real
+  claim-reader), because both change deployed weights and deserve their own evidence.
+
 ## PR #50 — feat/m7-16-thief-bookv1-retune (anti-camping from selection ⚑)
 
 - **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
