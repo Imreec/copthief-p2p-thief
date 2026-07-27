@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from copthief_core.domain.crypto import series_game_id
 from copthief_core.domain.terms import terms_from_config
 from copthief_core.report.emit import emit_series
 from copthief_core.report.summary_from_log import summary_from_log
@@ -67,7 +68,7 @@ def series_artifact_from_logs(
         summaries=summaries,
         own_identity=identity_block(private),
         opponent_identity=opponent_identity or opponent_identity_from_logs(logs, opponent_group),
-        game_id=f"{private.group_id}-vs-{opponent_group}",
+        game_id=series_game_id(private.group_id, opponent_group),
         game_uid=_game_uid(logs),
         shared_terms=shared_terms,
         terms=terms_from_config(constitution),

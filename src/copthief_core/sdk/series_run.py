@@ -16,6 +16,7 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
+from copthief_core.domain.crypto import series_game_id
 from copthief_core.domain.terms import terms_from_config
 from copthief_core.infra.email_sender import EmailTransport, build_report_sender
 from copthief_core.peer.match import _locked_log
@@ -128,7 +129,7 @@ def run_local_series(
         summaries=summaries,
         own_identity=identity_block(private),
         opponent_identity=identity_block(mirror),
-        game_id=f"{private.group_id}-vs-{mirror.group_id}",
+        game_id=series_game_id(private.group_id, mirror.group_id),
         game_uid=sides["natural"][0][0].game_uid,
         shared_terms=json.loads((config_dir / "game.json").read_text(encoding="utf-8")),
         terms=terms_from_config(constitution),
