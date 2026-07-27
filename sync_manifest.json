@@ -14,6 +14,7 @@
     "scripts/check_file_sizes.py": "abb028552d232724e76437625cdd01b401071d0291d62d4421288ca81fb941f2",
     "scripts/check_no_hardcoded.py": "921cd11e5f6f56ce2883a0feeebbfc77cf9a55c70563fbf5d34c7041608102f2",
     "scripts/check_submission.py": "c6499a3591e79abf79a7a1aac483fd16609cfa2b3447300cdc8821e895b6c3ef",
+    "scripts/claim_probe.py": "11977955896285db879d4ca9dd916656fcacbf7a9f46d50c40908dd480d9af34",
     "scripts/deception_ab.py": "06087ef032df61ca8f5981e037b6e6a85f7803d561aa8ab371ad367db9b2c302",
     "scripts/ga_run.py": "ee80b9452d47181477299ac65c48c0609d0d54a5923a68fc6f10552a9ea51bf3",
     "scripts/gmail_auth.py": "7ce3a74688983dfaaf824a4c80445fb7095b2e9fa440b181e364744476ee3e45",
@@ -22,7 +23,7 @@
     "scripts/sync_core.py": "3c8ca23345d0d0ab1382c12edc876754180249eb3efa5d74cbd15deb9900edac",
     "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
     "src/copthief_core/domain/__init__.py": "f2a030c99c021e72c2960a9ff2b55dce2ec64dae40a0e153ff57be3db5eef7d5",
-    "src/copthief_core/domain/belief.py": "8aaf2ef1c6450ab47f120cd557d87e7f90e8badfac4168e484372ddee1f9ae55",
+    "src/copthief_core/domain/belief.py": "41365f00935cb02ba76bb5f707640fb9ca5ab01e6f4b24275880fef5ae04755e",
     "src/copthief_core/domain/belief_baseline.py": "4c229cf8e9b62d6706de89013d7196a9d83eeb209a0e77c676c3673d6eb82a36",
     "src/copthief_core/domain/belief_observation.py": "a9fb36a4e58c5581fb80e162ec5e169c60b2396830a0c5cfedb51a8d593812d1",
     "src/copthief_core/domain/board.py": "08b256712d0a8203b1250fd3faaeb974de47eed7b55bf864af3a759e21cab880",
@@ -57,7 +58,7 @@
     "src/copthief_core/peer/audit_flow.py": "24c40482c10c287002180736276d3b0e53a1e7d93e11b16a07424757a779ab17",
     "src/copthief_core/peer/events.py": "abb5b3bff3e6b8affdf282878274b850048a1f93a482a31f34d1a95bddd73a1e",
     "src/copthief_core/peer/handshake.py": "64f45d604975a4c84db63ac0eb925134bc6689ecdceadb73a96c97b67c2272c2",
-    "src/copthief_core/peer/inbound.py": "161f658d3247e997df4eb646802c4b64124ece8ac54d88f517779b58ad163ab6",
+    "src/copthief_core/peer/inbound.py": "f35bceb745c4222b0961245e6e61fe33f9ff5ea5edff0aef5edfbb29edc3b9f7",
     "src/copthief_core/peer/inbox_order.py": "806abba1cbe6c5f19285c83227a22af36343a77ddf587d8dd9c5e48c5d825f37",
     "src/copthief_core/peer/match.py": "89c719224436d9fd206c461090ff6c11e11181dddc1090418c98bfff2a092968",
     "src/copthief_core/peer/p2p.py": "36ef63d853997f3eb724e21941646e8d95a09150272eda25040271dfe01a8451",
@@ -192,6 +193,7 @@
     "tests/integration/test_zero_tokens.py": "b6aae707210b81360ea245a24ae981c8ed2983c30a450cf95a6dc05dfdcf789e",
     "tests/unit/domain/test_belief.py": "17087c3b784d6aba049360c4a2607bf32b52b9d7ed7d376b6f5814861a30c8cf",
     "tests/unit/domain/test_belief_book.py": "043b340a237818c104a3b35de25730507a0fac010f82bc785d3bbe4344c9f35b",
+    "tests/unit/domain/test_belief_claim.py": "30b762b1afcadcabe38703489e18082622aa28144a4cb340e8a8227c90094fa6",
     "tests/unit/domain/test_belief_scent.py": "4a9314e25ce9ffd4dbc2c9606c7e163a0f9d94d2c4a00523ea9d5fc616286430",
     "tests/unit/domain/test_board.py": "66edf4f238671ffc513957acc689d7ec13ad8b5e263e0bfa29625faa2a6927b6",
     "tests/unit/domain/test_crypto.py": "4001a4dcd398c7394f5cfb3229bb295b41b6c3b8cb1ca6a65f8ca10cac591734",
@@ -227,7 +229,7 @@
     "tests/unit/peer/test_series.py": "4454a436ffacc284ef622051144b47ca89b1bf5194ff9bc5bf263007f80a7135",
     "tests/unit/peer/test_session.py": "09d81f9c39fef2a6130c190694ae16cc6e4f3c4028c8a5db6081930d757e9afc",
     "tests/unit/peer/test_session_barriers.py": "617486ce172c161002700579d07afd95865987d8c99f3534e77c4acf65533459",
-    "tests/unit/peer/test_session_belief.py": "1a4da8e273f04c3cc7d14850227240789cebf935ffe1079899592f072b3906ca",
+    "tests/unit/peer/test_session_belief.py": "bdba089bb3f90e23da07bb736621d880116728e8ef917cef3c2d3d71ff7b657f",
     "tests/unit/peer/test_session_hints.py": "06ef610a1bbc3c575fcb4038dc28270f27d8fcc01c9f3c11cd365fabf82d1ab7",
     "tests/unit/peer/test_session_scent.py": "d452c1e1c805cdcc8bef83eb00d13610c39671810089d961df345992575c536f",
     "tests/unit/peer/test_step0_sealing.py": "257554a0e74aca6f2a9d83309bd14be728903634845fd251111d840f981c9efe",
@@ -283,7 +285,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "8cf7635",
+  "source_commit": "338fe39",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "56a7057f114fcb12fdaf148ea12d6424d0e16058ee0c42cdfe589c6598aff49e"
+  "tree_hash": "7bd4eda9ae44e99b9fc22d6004c3db4dfe4ed2a2fe6562c5082484cb2f5a48d9"
 }

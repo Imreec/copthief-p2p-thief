@@ -63,6 +63,13 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         session.belief.note_barrier(barrier)
     # PRD_belief §4 pipeline (reference order): predict, then sharpen with the scent.
     session.belief.predict()
+    # M7-18: a declared claim names the sender's post-move cell exactly, so it lands
+    # AFTER predict (it describes where they ARE, not where they were) and BEFORE the
+    # probabilistic evidence — certainty first, mirroring the barrier's treatment above.
+    # Absence is deliberately not read (PRD_claims §4.2): it identifies the sender only
+    # if they claim unconditionally, and misleads if they do not.
+    if message.capture_claim is not None:
+        session.belief.note_claim((message.capture_claim[0], message.capture_claim[1]))
     session.belief.update_scent(message.smell_grid)
     # M3-4: their hint feeds the belief ONLY through the closed-vocabulary parser —
     # adversarial text maps to a known landmark or to nothing (injection-safe by shape).

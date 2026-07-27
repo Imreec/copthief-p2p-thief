@@ -72,6 +72,19 @@ class BeliefFilter:
         self._probs.pop(cell, None)
         self._normalize()
 
+    def note_claim(self, cell: Coord) -> None:
+        """A declared capture claim (sealed, sanctioned — certain): collapse onto `cell`.
+
+        M7-18 / PRD_claims §4.1. The claim is a plaintext pre-reveal of a position already
+        sealed in the same message's commit, and a false one costs the game with no appeal
+        (App E rules 21-22) — so it is barrier-class evidence, not scent-class. The
+        never-eliminate invariant (SQ3) guards against UNAUTHENTICATED grids and does not
+        reach here. A claim outside the current support still collapses: the claim is
+        truth, and our prior was simply wrong.
+        """
+        self._probs = {cell: 1.0}
+        self._reachable.add(cell)
+
     def predict(self) -> None:
         """One opponent turn: mass splits uniformly over each support cell's legal
         actions (barriers excluded); stranded mass is rescaled by normalization."""
