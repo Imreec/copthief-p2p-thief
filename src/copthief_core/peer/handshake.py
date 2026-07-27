@@ -49,10 +49,21 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
     nonce = make_nonce()
     registry: LockedModelRegistry = session.private.locked_models
     session.scent_model_hash = registry.hash(SCENT_MODEL, session.private.scent_model)
+    # M7-22: declare our DERIVED uid when the opponent is known a priori (a series run
+    # configures it). Outside `terms` like every M7-10-class extra — no signature input
+    # moves. A wrong-input derivation (the opponent team's 2026-07-25 bug: hashing the
+    # whole game.json instead of the flat terms) is stable and self-consistent, so only
+    # a cross-peer comparison can catch it before the report diff does.
+    declared_uid = (
+        {"game_uid": game_uid(terms, session.private.group_id, session.expected_opponent_group)}
+        if session.expected_opponent_group
+        else {}
+    )
     return {
         "terms": terms,
         "nonce": nonce,
         "signature": terms_signature(terms, nonce),
+        **declared_uid,
         # M7-10: which game, and which side. Outside `terms` on purpose — that is the
         # byte-identical signed constitution, so a per-sub-game value cannot live there.
         **pairing_declaration(sub_game_number=declared_sub_game(session), role=session.role),
@@ -133,4 +144,14 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
             f"{ours_model}, opponent declared {session.opponent_scent_model_hash}"
         )
     session.game_uid = game_uid(ours, session.private.group_id, session.opponent_group)
+    # M7-22: refuse a COMPARABLE uid disagreement — the kit §7 truth table unchanged
+    # (omission never refuses: the reference declares nothing; an uncomparable value is
+    # silence). Judged after pairing, so only our true counterpart ever reaches it.
+    declared = raw.get("game_uid")
+    if isinstance(declared, str) and declared != session.game_uid:
+        raise NegotiationError(
+            f"game_uid mismatch: we derive {session.game_uid}, opponent declared "
+            f"{declared} — two derivations of one game disagree; check the terms input "
+            "(the uid hashes the FLAT negotiated terms + sorted group ids, kit §4)"
+        )
     return {"status": "ok", "game_uid": session.game_uid}

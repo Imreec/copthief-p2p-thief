@@ -64,10 +64,14 @@ class PeerSession:
         gazetteer: Gazetteer | None = None,
         hint_trust: float | None = None,
         spec_record: SealedTurn | None = None,
+        expected_opponent_group: str | None = None,
     ) -> None:
         self.constitution = constitution
         self.private = private
         self.role = role
+        # M7-22: the uid is pair-dependent, so declaring it in OUR greeting requires
+        # knowing the opponent a priori — a series run does; a one-off peer omits.
+        self.expected_opponent_group = expected_opponent_group
         # M3-4 verbal layer: with a (non-empty) gazetteer our hints come from the
         # template×landmark composer and inbound hints feed the belief; without one
         # the M1 policy bank still plays (empty closed world = no geography talk).

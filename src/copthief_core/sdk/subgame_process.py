@@ -53,6 +53,7 @@ def subgame_command(
     log_path: Path,
     sub_game_number: int,
     mode: RunMode,
+    opponent_group: str | None = None,
 ) -> list[str]:
     """The argv for one sub-game child (Input: everything the peer needs plus the run's
     governance; Output: the command).
@@ -83,6 +84,10 @@ def subgame_command(
         str(log_path),
         "--sub-game",
         str(sub_game_number),
+        # M7-22: the series knows its opponent, so every child declares the derived
+        # game_uid in its greeting — a wrong-input derivation (either side's) refuses
+        # at the handshake instead of surfacing at the report diff.
+        *(["--opponent-group", opponent_group] if opponent_group else []),
         *_mode_flag(mode),
     ]
 
@@ -125,7 +130,13 @@ def _tail(stderr: str | None) -> str:
 
 
 def subgame_player(
-    *, config_dir: Path, host: str, port: int, endpoints: SeriesEndpoints, mode: RunMode
+    *,
+    config_dir: Path,
+    host: str,
+    port: int,
+    endpoints: SeriesEndpoints,
+    mode: RunMode,
+    opponent_group: str | None = None,
 ) -> PlaySubGame:
     """Bind the network settings once and hand the driver a player (Input: the peer's
     fixed settings, the opponent's endpoints and the run's governance; Output: a
@@ -149,6 +160,7 @@ def subgame_player(
                 log_path=log_path,
                 sub_game_number=sub_game_number,
                 mode=mode,
+                opponent_group=opponent_group,
             )
         )
 
