@@ -13,6 +13,7 @@ from typing import Any
 
 from series_fixtures import RecordingMail, sub_game_log
 
+from copthief_core.domain.crypto import series_game_id
 from copthief_core.sdk.live_series import run_live_series
 from copthief_core.sdk.simulation import SimulationSdk
 from copthief_core.shared.config_model import EmailSettings
@@ -21,7 +22,9 @@ from copthief_core.shared.run_mode import RunMode
 CONFIG = Path("config")
 OPPONENT = "anrbj666"
 FRIENDLY = ("us@example.test", "them@example.test")
-GAME_ID = f"{SimulationSdk(CONFIG).private.group_id}-vs-{OPPONENT}"
+# M7-17: derived the same way the driver derives it (sorted pair, kit SPEC §4) — the
+# harness must never re-encode a naming convention the code has moved past.
+GAME_ID = series_game_id(SimulationSdk(CONFIG).private.group_id, OPPONENT)
 
 
 def rehearsal_sdk(*, recipient: tuple[str, ...] = FRIENDLY, lecturer: str = "") -> SimulationSdk:

@@ -25,6 +25,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from copthief_core.domain.crypto import series_game_id
 from copthief_core.infra.email_sender import (
     EmailSender,
     EmailTransport,
@@ -74,7 +75,7 @@ def run_live_series(
     The sub-game count comes from the SIGNED constitution, never from the operator: it
     is a negotiated term, and App F fixes it at six for counted play.
     """
-    game_id = f"{sdk.private.group_id}-vs-{opponent_group}"
+    game_id = series_game_id(sdk.private.group_id, opponent_group)
     sender = build_report_sender(
         private=sdk.private,
         limits=sdk.rate_limits,

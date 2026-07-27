@@ -87,3 +87,15 @@ def game_uid(terms: object, group_a: str, group_b: str) -> str:
     pair = sorted([group_a, group_b])
     seed = f"{canonical_str(terms)}|{'|'.join(pair)}"
     return str(uuid.UUID(bytes=hashlib.sha256(seed.encode()).digest()[:_NONCE_BYTES]))
+
+
+def series_game_id(group_a: str, group_b: str) -> str:
+    """The human-readable series id, order-stable from either side (M7-17).
+
+    The reference DERIVES it — `derive_game_ids` sorts the pair exactly as `game_uid`
+    does — so both peers name the match identically with no convention to settle (kit
+    SPEC §4). Our previous self-first form gave the two teams' otherwise-agreeing
+    friendly reports two different ids for one match.
+    """
+    pair = sorted([group_a, group_b])
+    return f"{pair[0]}-vs-{pair[1]}"

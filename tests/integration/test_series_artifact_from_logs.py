@@ -41,8 +41,10 @@ def test_six_logs_become_one_series_artifact(tmp_path: Path) -> None:
     assert result["final_result"]["series_tie"] is True
     # The whole counted-shaped artifact SET lands on disk, not just the result dict.
     written = {p.name for p in (tmp_path / "out").rglob("*.json")}
-    assert "result_imreeyal-vs-anrbj666.json" in written
-    assert "declaration_imreeyal-vs-anrbj666.json" in written
+    # M7-17: the pair is SORTED (reference derive_game_ids; kit SPEC §4) — both teams
+    # name the match identically, so the two reports join on one id.
+    assert "result_anrbj666-vs-imreeyal.json" in written
+    assert "declaration_anrbj666-vs-imreeyal.json" in written
     assert sum(1 for n in written if n.startswith("report_")) == 6
 
 
