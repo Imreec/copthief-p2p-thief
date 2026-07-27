@@ -13,13 +13,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from copthief_core.shared.config import load_all
+from copthief_core.strategy.genetic.fitness import fitness
 from copthief_core.strategy.genetic.genome import decode, random_genome
 from copthief_core.strategy.genetic.operators import (
     blend_crossover,
     gaussian_mutate,
     tournament_select,
 )
-from copthief_core.strategy.genetic.runs import GaConfig, GaPhase, fitness
+from copthief_core.strategy.genetic.runs import GaConfig, GaPhase
 from copthief_core.strategy.scenarios import scenario_suite
 
 

@@ -17,7 +17,7 @@
     "scripts/claim_probe.py": "11977955896285db879d4ca9dd916656fcacbf7a9f46d50c40908dd480d9af34",
     "scripts/claim_sweep.py": "5721ca0fe4322832b211783934c71cc645b65f47a5424261d00071f0a902a32d",
     "scripts/deception_ab.py": "06087ef032df61ca8f5981e037b6e6a85f7803d561aa8ab371ad367db9b2c302",
-    "scripts/ga_run.py": "ee80b9452d47181477299ac65c48c0609d0d54a5923a68fc6f10552a9ea51bf3",
+    "scripts/ga_run.py": "c3599439b569c2bf48015432be0cdf8387461b892f79e50bcb06e539bc9dad5e",
     "scripts/gmail_auth.py": "7ce3a74688983dfaaf824a4c80445fb7095b2e9fa440b181e364744476ee3e45",
     "scripts/make_sparring_config.py": "99c851b11923e29478ab089ce896ea7bd66023af8ea23c2da9a95b4a7d79222f",
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
@@ -128,10 +128,11 @@
     "src/copthief_core/strategy/decision.py": "17928bfde96702f538f01ca62145d7311f147532666a81a3996099028fa0db47",
     "src/copthief_core/strategy/evader_brains.py": "a2faf8a2245a5c5d4ebd63cb4f8cf17c18a903dd416179bb6753730d84b356a6",
     "src/copthief_core/strategy/genetic/__init__.py": "c7e64949da2cd055f741f1ecb087e01d1fe74dad440dd39e06706e80cdeea70f",
-    "src/copthief_core/strategy/genetic/evolve.py": "9b90ca006f3fc3f83c73635fdadd8d78192177da491cdcf852d6408e8ebdb30c",
+    "src/copthief_core/strategy/genetic/evolve.py": "5da254024480f1a1a2173a4a29ef5040032498694fb6ed1089d3df5b1db37920",
+    "src/copthief_core/strategy/genetic/fitness.py": "93cc0d59ef6475b073e3c7cf836fe3238222e1eec828e3be8b419645abc5e4a8",
     "src/copthief_core/strategy/genetic/genome.py": "dfb5ddb8d02a7897f7f5c7ba45490873d9a9b28da1393f498a987cef3746ea54",
     "src/copthief_core/strategy/genetic/operators.py": "9ad14763e1158ddfe9a27a1ac942c6c64381aaaed78ad90c6e93fb6689ff8afd",
-    "src/copthief_core/strategy/genetic/runs.py": "0cd3365009e5c1747f70da5ccb86aa76358d89375feb6e1686d4561ed1fb9bac",
+    "src/copthief_core/strategy/genetic/runs.py": "a1dc23828de502b2669a3683a43a6b46c0f4f9d1006752539b348024fdab9cd4",
     "src/copthief_core/strategy/hints.py": "ade10a390c30aee00841a6cf81f82c6f2774a5ed85367202da2599eeb3d9dcf9",
     "src/copthief_core/strategy/info_feed.py": "f730b0377cf6152ad48103e1365c29a6ed5ac5fbc78d079d29ff450c7658df4b",
     "src/copthief_core/strategy/profiling.py": "98e7f41cc8eafca8e57751c3c71f5d8a0b4c4b8890a63593082aea20afd2e79b",
@@ -281,7 +282,8 @@
     "tests/unit/strategy/test_deception_eval.py": "0e771b32639496574ebdab3654519c68237cd3ae34e8ce5ec64345dfbafac229",
     "tests/unit/strategy/test_decision.py": "635392c8e36de35f2cabac49e567f3290d94e766fbf27cd6817c0dd4d0b55333",
     "tests/unit/strategy/test_evader_brains.py": "44989e1b7081ee62ca9d05e9fa4002bebfde66f9a95d119c4add2f9bb0d8ac98",
-    "tests/unit/strategy/test_genetic.py": "a4e84561fa5ee4c8745336724c9d4e7b49f7d803b477a295c874666932d88cae",
+    "tests/unit/strategy/test_ga_claims.py": "97d98f58a5a52b7524220f56a8fd129ccf4ced471c0f2cd68d298bfcc0099e7f",
+    "tests/unit/strategy/test_genetic.py": "f0bb1a4095da722fdececfba965ea85b31f6dec8f9ab3b089ac3c642537d4ede",
     "tests/unit/strategy/test_hints.py": "67d309c0bd4efde65d86d775bd248d640271d1e6e210e9e7e66da0bc93141b10",
     "tests/unit/strategy/test_info_feed.py": "439f09f05fb8068634003b0898cb8dadc055b7eff9a36af371e8bda5eedd7969",
     "tests/unit/strategy/test_profiling.py": "9a691c0e462ab6f16e8078f34a802686f0608679deef463190cac858a61c4783",
@@ -291,7 +293,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "6cefd46",
+  "source_commit": "fc2b6e0",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "fa522dd9d981b40ad66554817baeb6e15dfcc4ac773d50d5190b51dd7dfe71b7"
+  "tree_hash": "de535a40ad972df51fdcc4f1e8f51a4b0b7f4ef128cf224c958fa0fdcadd7bd2"
 }

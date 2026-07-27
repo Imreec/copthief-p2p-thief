@@ -1,24 +1,22 @@
-"""GA config loading + fitness (M5-4): config-driven, role-blind, referee-mode only.
+"""GA config loading (M5-4): config-driven, role-blind, referee-mode only.
 
 Fitness = the candidate brain's win-rate for the configured role against the fixed
 reference opponent over a fresh scenario-seed suite (never the DoD seeds — the gate
 is not a training target). The mirrored copy of this module evolves whatever brain
-the LOCAL `config/ga.json` names (PR #29 rule).
+the LOCAL `config/ga.json` names (PR #29 rule). Fitness itself lives in
+`genetic/fitness` since M7-20 (the claim-policy door crossed the file limit).
 """
 
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from copthief_core.domain.rules import Outcome
-from copthief_core.shared.config_model import Constitution
-from copthief_core.shared.locked_models import LockedModelRegistry
 from copthief_core.shared.private_config import ConfigError, validated_version
 from copthief_core.strategy.genetic.genome import GeneSpec
-from copthief_core.strategy.scenarios import Scenario, play_scenario_series
 
 
 @dataclass(frozen=True)
@@ -60,6 +58,20 @@ class GaConfig:
     # (the book-v1 single-opponent retune beat the claim-reader and stalled against
     # a random walker); empty = the single `opponent` above, unchanged.
     opponent_pool: tuple[dict[str, Any], ...] = ()
+    # M7-20: evolve UNDER the claim policy we will actually play. `claim_threshold` is
+    # run-level because it is a POLICE property and the referee applies it to the police
+    # side whichever role is being evolved; `claim_feed` is what an opponent learns on
+    # the turns we declared, per member (with this run-level fallback) because the pool's
+    # whole point is a mixture where some opponents read our claims and others do not.
+    claim_threshold: float | None = None
+    claim_feed: str | None = None
+
+    def claim_feed_for(self, member: Mapping[str, Any]) -> str | None:
+        """This opponent's claim-reading channel: its own key wins, else the run's."""
+        if "claim_feed" in member:
+            feed = member["claim_feed"]
+            return None if feed is None else str(feed)
+        return self.claim_feed
 
     def spec(self) -> GeneSpec:
         """The search box in fixed (sorted) gene order."""
@@ -104,68 +116,10 @@ def load_ga_config(path: Path) -> GaConfig:
             scent_model=(None if raw.get("scent_model") is None else str(raw["scent_model"])),
             opponent_feed=(None if raw.get("opponent_feed") is None else str(raw["opponent_feed"])),
             opponent_pool=tuple(dict(member) for member in raw.get("opponent_pool", [])),
+            claim_threshold=(
+                None if raw.get("claim_threshold") is None else float(raw["claim_threshold"])
+            ),
+            claim_feed=(None if raw.get("claim_feed") is None else str(raw["claim_feed"])),
         )
     except (KeyError, TypeError, ValueError, IndexError) as error:
         raise ConfigError(f"{path.name}: malformed GA config — {error}") from error
-
-
-def _fitness_vs(
-    config: GaConfig,
-    constitution: Constitution,
-    smell_trust: float,
-    scenarios: list[Scenario],
-    candidate_options: dict[str, float],
-    opponent: dict[str, Any],
-    locked_models: LockedModelRegistry | None,
-) -> float:
-    """Win-rate of the candidate vs ONE opponent ({spec, feed?, options?})."""
-    spec = str(opponent["spec"])
-    feed = opponent.get("feed")
-    options = {str(k): float(v) for k, v in opponent.get("options", {}).items()}
-    police = config.brain if config.role == "police" else spec
-    thief = spec if config.role == "police" else config.brain
-    police_options = candidate_options if config.role == "police" else options
-    thief_options = options if config.role == "police" else candidate_options
-    results = play_scenario_series(
-        constitution,
-        police_brain_name=police,
-        thief_brain_name=thief,
-        smell_trust=smell_trust,
-        scenarios=scenarios,
-        police_options=police_options,
-        thief_options=thief_options,
-        thief_feed_name=feed if config.role == "police" else None,
-        police_feed_name=feed if config.role == "thief" else None,
-        scent_model_name=config.scent_model,
-        locked_models=locked_models,
-    )
-    winning = Outcome.COP_CAPTURE if config.role == "police" else Outcome.THIEF_SURVIVAL
-    return sum(r.outcome is winning for r in results) / len(results)
-
-
-def fitness(
-    config: GaConfig,
-    constitution: Constitution,
-    smell_trust: float,
-    scenarios: list[Scenario],
-    candidate_options: dict[str, float],
-    *,
-    locked_models: LockedModelRegistry | None = None,
-) -> float:
-    """The candidate's mean win-rate for `config.role` across the opponent pool.
-
-    M7-14: `config.scent_model` (resolved against `locked_models`) selects the
-    physics the whole run is tuned under; an opponent's `feed` lands on whichever
-    side that opponent plays. M7-15: with `opponent_pool` set, fitness is the plain
-    mean over its members; empty = the single configured opponent, unchanged.
-    """
-    pool = config.opponent_pool or (
-        {"spec": config.opponent, "feed": config.opponent_feed, "options": config.opponent_options},
-    )
-    scores = [
-        _fitness_vs(
-            config, constitution, smell_trust, scenarios, candidate_options, member, locked_models
-        )
-        for member in pool
-    ]
-    return sum(scores) / len(scores)
