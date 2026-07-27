@@ -8,21 +8,18 @@ does not passively serve tools.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from copthief_core.peer.match import MatchResult, run_local_minigame
 from copthief_core.peer.p2p import PeerGameResult
 from copthief_core.peer.replay import ReplaySummary
 from copthief_core.sdk.p2p_match import P2PMatchResult, play_p2p_match
+from copthief_core.sdk.simulation_referee import RefereeSeriesMixin
 from copthief_core.shared.config import load_all
 from copthief_core.shared.run_mode import RunMode
-from copthief_core.strategy.info_feed import BeliefFeed
-from copthief_core.strategy.referee import RefereeGameResult
-from copthief_core.strategy.scenarios import Scenario, play_referee_series, play_scenario_series
 
 
-class SimulationSdk:
+class SimulationSdk(RefereeSeriesMixin):
     """One config tree, all flows (Input: config dir; see method docstrings)."""
 
     def __init__(
@@ -66,49 +63,6 @@ class SimulationSdk:
                 log_path=log_path,
                 tee=tee,
             ),
-        )
-
-    def referee_series(
-        self, police_brain: str, thief_brain: str, *, seeds: list[int]
-    ) -> list[RefereeGameResult]:
-        """Headless referee-mode series on the canonical signed starts (M3-5/M3-6)."""
-        return play_referee_series(
-            self.constitution,
-            police_brain_name=police_brain,
-            thief_brain_name=thief_brain,
-            smell_trust=self.private.smell_trust_weight,
-            seeds=seeds,
-        )
-
-    def scenario_series(
-        self,
-        *,
-        police: str,
-        thief: str,
-        scenarios: Sequence[Scenario],
-        police_options: Mapping[str, float] | None = None,
-        thief_options: Mapping[str, float] | None = None,
-        belief_feed: BeliefFeed | None = None,
-        thief_feed: str | None = None,
-        scent_model: str | None = None,
-    ) -> list[RefereeGameResult]:
-        """Referee-mode series over a start-scenario suite (M5-2) — the arena's and
-        the DoD floors' game source; options carry per-brain config knobs, and
-        `belief_feed` selects the wire-shape information structure (default hidden).
-        M7-14: `scent_model` names the run's physics (resolved against the committed
-        registry); `thief_feed` names the thief side's information structure."""
-        return play_scenario_series(
-            self.constitution,
-            police_brain_name=police,
-            thief_brain_name=thief,
-            smell_trust=self.private.smell_trust_weight,
-            scenarios=scenarios,
-            police_options=police_options,
-            thief_options=thief_options,
-            belief_feed=belief_feed,
-            thief_feed_name=thief_feed,
-            scent_model_name=scent_model,
-            locked_models=self.private.locked_models,
         )
 
     def run_peer(

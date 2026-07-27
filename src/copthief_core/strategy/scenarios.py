@@ -20,6 +20,7 @@ from copthief_core.shared.locked_models import LockedModelRegistry, build_scent_
 from copthief_core.strategy.brains import make_brain
 from copthief_core.strategy.info_feed import BeliefFeed, make_feed
 from copthief_core.strategy.referee import RefereeGameResult, play_referee_game
+from copthief_core.strategy.referee_claims import ClaimPolicy
 
 
 @dataclass(frozen=True)
@@ -95,6 +96,8 @@ def play_scenario_series(
     police_feed_name: str | None = None,
     scent_model_name: str | None = None,
     locked_models: LockedModelRegistry | None = None,
+    claim_threshold: float | None = None,
+    thief_claim_feed_name: str | None = None,
 ) -> list[RefereeGameResult]:
     """A seeded series over scenarios: fresh brains per game, two RNG streams per seed
     (police 2n, thief 2n+1) so pairings never share a stream.
@@ -105,6 +108,10 @@ def play_scenario_series(
     A named police feed pins the thief side to hidden unless the thief names its own —
     the referee's fallback (thief inherits the police feed) is for the symmetric
     balance-study shape, not for named per-side runs. All default to shipped behavior.
+
+    M7-19: `claim_threshold` switches the cop's capture-claim channel on (None leaves it
+    unmodelled — historical physics), and `thief_claim_feed_name` is the information the
+    thief gets on turns the cop DID declare, built fresh per game like every other feed.
     """
     model = None
     if scent_model_name is not None:
@@ -136,7 +143,9 @@ def play_scenario_series(
             thief_start=scenario.thief_start,
             belief_feed=side_feed(police_feed_name) or belief_feed,
             thief_belief_feed=thief_side_feed(),
+            thief_claim_feed=side_feed(thief_claim_feed_name),
             scent_model=model,
+            claim_policy=ClaimPolicy(threshold=claim_threshold),
         )
         for scenario in scenarios
     ]

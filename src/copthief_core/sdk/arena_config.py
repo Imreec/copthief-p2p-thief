@@ -22,11 +22,23 @@ class RosterEntry:
 
     `feed` optionally names this entry's information structure (M7-14 —
     `strategy/info_feed.make_feed` names); None keeps the run's default (hidden).
+
+    `claim_threshold` (M7-19, police entries) switches the capture-claim channel ON for
+    this cop and sets the belief confidence at which it declares. None leaves claims
+    UNMODELLED — the historical physics every committed table was measured under. 0.0 is
+    the faithful model of today's emitter: declare on every moving turn.
+
+    `claim_feed` (M7-19, thief entries) is what THIS opponent learns on turns the cop did
+    declare. Per entry, not per run, because the point of the sweep is a MIXTURE: a
+    threshold tuned only against opponents who all read claims would donate points
+    against the ones who do not.
     """
 
     name: str
     spec: str
     feed: str | None = None
+    claim_threshold: float | None = None
+    claim_feed: str | None = None
 
 
 @dataclass(frozen=True)
@@ -63,6 +75,13 @@ class ArenaConfig:
         """The per-brain options block for `name` (empty when none is configured)."""
         return dict(self.brain_options.get(name, {}))
 
+    def claim_threshold_for(self, name: str) -> float | None:
+        """This entry's claim threshold; None when the entry does not model claims."""
+        for entry in (*self.police_roster, *self.thief_roster):
+            if entry.name == name:
+                return entry.claim_threshold
+        raise KeyError(f"no roster entry named {name!r}")
+
     def spec_for(self, name: str) -> str:
         """The factory spec behind a roster alias (KeyError-loud on unknown names)."""
         for entry in (*self.police_roster, *self.thief_roster):
@@ -75,8 +94,13 @@ def _entry(raw: str | dict[str, Any]) -> RosterEntry:
     if isinstance(raw, str):
         return RosterEntry(name=raw, spec=raw)
     feed = raw.get("feed")
+    threshold = raw.get("claim_threshold")
     return RosterEntry(
-        name=str(raw["name"]), spec=str(raw["spec"]), feed=None if feed is None else str(feed)
+        name=str(raw["name"]),
+        spec=str(raw["spec"]),
+        feed=None if feed is None else str(feed),
+        claim_threshold=None if threshold is None else float(threshold),
+        claim_feed=None if raw.get("claim_feed") is None else str(raw["claim_feed"]),
     )
 
 

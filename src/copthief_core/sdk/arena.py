@@ -117,6 +117,8 @@ def run_round_robin(
                     belief_feed=belief_feed,
                     thief_feed=thief.feed,
                     scent_model=config.scent_model,
+                    claim_threshold=police.claim_threshold,
+                    thief_claim_feed=thief.claim_feed,
                 )
             ),
         )

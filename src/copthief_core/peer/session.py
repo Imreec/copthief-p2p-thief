@@ -25,6 +25,7 @@ from copthief_core.peer.turns import FINAL_CAUGHT_HINT
 from copthief_core.shared.config_model import Constitution, PrivateSettings
 from copthief_core.shared.locked_models import build_scent_model
 from copthief_core.strategy.brains import make_brain
+from copthief_core.strategy.referee_claims import ClaimPolicy
 from copthief_core.wire.turn import TurnMessage
 
 __all__ = ["FINAL_CAUGHT_HINT", "NegotiationError", "PeerSession", "ProtocolViolationError"]
@@ -117,6 +118,12 @@ class PeerSession:
         # M5-5: `hint_trust` is the profiling seam — a series runner passes the
         # profile-shifted value for mini-game 2+; the belief math never changes.
         self.hint_trust = private.hint_trust_default if hint_trust is None else hint_trust
+        # M7-19: when this peer declares a capture. Read from `[strategy.<role>]` (with
+        # the M7-15 per-scent-model overlay), so the policy follows the physics the same
+        # way the weight vector does. Absent = 0.0 = the historical always-on emitter.
+        self.claim_policy = ClaimPolicy(
+            threshold=private.strategy_options(role).get("claim_threshold", 0.0)
+        )
         self.belief = BeliefFilter(
             board=self.board,
             move_set=constitution.movement.move_set,
