@@ -86,6 +86,14 @@ def build_parser() -> argparse.ArgumentParser:
         "(rules 37-38). Omit for a one-off game -- a SERIES must pass the real index.",
     )
     peer.add_argument(
+        "--opponent-group",
+        default=None,
+        help="the opponent's group id, when known a priori (a series knows it): lets "
+        "the greeting declare the derived game_uid so a wrong derivation refuses at "
+        "the handshake instead of surfacing at the report diff (M7-22). Omit = the "
+        "key is not declared; an opponent that omits it is never refused for that.",
+    )
+    peer.add_argument(
         "--sparring",
         action="store_true",
         help="refuse to play unless the config is safe for a standing host "

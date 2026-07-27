@@ -76,6 +76,7 @@ class SimulationSdk(RefereeSeriesMixin):
         log_path: Path | None = None,
         gui: bool = False,
         sub_game_number: int | None = None,
+        opponent_group: str | None = None,
     ) -> PeerGameResult:
         """Play ONE full mini-game as a standalone peer: own FastMCP server on `port`,
         symmetric loop against `opponent_url` (delegates to sdk/peer_run)."""
@@ -91,6 +92,7 @@ class SimulationSdk(RefereeSeriesMixin):
             log_path=log_path,
             gui=gui,
             sub_game_number=sub_game_number,
+            opponent_group=opponent_group,
         )
 
     def replay(self, log_path: Path, *, gui: bool = False) -> ReplaySummary:

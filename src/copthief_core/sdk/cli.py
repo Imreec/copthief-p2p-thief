@@ -55,6 +55,7 @@ def _run_series(sdk: SimulationSdk, args: argparse.Namespace) -> int:
             port=port,
             endpoints=endpoints,
             mode=sdk.mode,
+            opponent_group=args.opponent_group,
         ),
     )
     # The whole result artifact is on disk and would drown the console; the run record
@@ -159,6 +160,7 @@ def _play_peer(
         log_path=args.log,
         gui=args.gui,
         sub_game_number=args.sub_game,
+        opponent_group=args.opponent_group,
     )
 
 

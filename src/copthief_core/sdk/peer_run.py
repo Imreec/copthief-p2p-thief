@@ -48,6 +48,7 @@ def run_peer_flow(
     log_path: Path | None = None,
     gui: bool = False,
     sub_game_number: int | None = None,
+    opponent_group: str | None = None,
 ) -> PeerGameResult:
     """Play ONE full mini-game as a standalone peer (blocking until it settles)."""
     from copthief_core.infra.mcp_client import McpToolClient
@@ -94,6 +95,9 @@ def run_peer_flow(
         sdk.private,
         role=role,
         seed=seed,
+        # M7-22: known only on a series run — lets the greeting declare the derived
+        # game_uid so a wrong-input derivation refuses at T instead of at the report diff.
+        expected_opponent_group=opponent_group,
         gazetteer=gazetteer,
         # M6-3: the live peer declares its sealed step-0 (real HEAD + game-count).
         # M7-4: the sub-game index must be the REAL one. It is sealed into the step-0

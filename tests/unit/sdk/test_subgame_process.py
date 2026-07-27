@@ -20,7 +20,9 @@ from copthief_core.shared.run_mode import RunMode
 DEV = RunMode()
 
 
-def _command(mode: RunMode = DEV, *, sub_game_number: int = 4) -> list[str]:
+def _command(
+    mode: RunMode = DEV, *, sub_game_number: int = 4, opponent_group: str | None = None
+) -> list[str]:
     return subgame_command(
         role="thief",
         config_dir=Path("config"),
@@ -31,6 +33,7 @@ def _command(mode: RunMode = DEV, *, sub_game_number: int = 4) -> list[str]:
         log_path=Path("logs/g04.jsonl"),
         sub_game_number=sub_game_number,
         mode=mode,
+        opponent_group=opponent_group,
     )
 
 
@@ -44,6 +47,13 @@ def test_the_child_plays_the_named_sub_game_in_the_named_role() -> None:
     assert _value(command, "--role") == "thief"
     assert _value(command, "--log") == str(Path("logs/g04.jsonl"))
     assert _value(command, "--opponent-url") == "https://thief.example.test/mcp"
+
+
+def test_a_series_child_declares_the_known_opponent_group() -> None:
+    """M7-22: the series knows its opponent, so every child greets with the derived
+    game_uid; a one-off child without the flag declares nothing (omission is legal)."""
+    assert _value(_command(opponent_group="anrbj666"), "--opponent-group") == "anrbj666"
+    assert "--opponent-group" not in _command()
 
 
 def test_the_child_is_our_own_interpreter_running_our_own_cli() -> None:
