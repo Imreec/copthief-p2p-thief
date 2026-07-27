@@ -114,11 +114,20 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         commit=sealed.commit,
         # F5: ISO-8601 UTC string from the caller epoch — no clock read here.
         timestamp=datetime.fromtimestamp(now, UTC).isoformat(),
-        # SQ2: the police claims its landing cell on every MOVING turn — free,
-        # automatic; STAY and BARRIER claim nothing (MoveType.MOVE-only claims).
+        # SQ2 + M7-19: the police declares its landing cell, but no longer
+        # unconditionally. A claim is protocol-certain position for any listening
+        # evader (M7-18 measured the mirror: 0.31 -> 0.94 cop-tracking), and the book
+        # gates only the LANDING capture on declaring it — so declaring below the
+        # configured confidence gives away more than it can win. `claim_threshold`
+        # 0.0 (the default) is exactly the historical emitter.
         capture_claim=(
             session.position
-            if session.role == "police" and move not in ("STAY", BARRIER_MOVE)
+            if session.role == "police"
+            and session.claim_policy.claims(
+                barrier_placed=barrier is not None,
+                move=move,
+                confidence=session.belief.prob_at(session.position),
+            )
             else None
         ),
         barrier_placed=barrier,

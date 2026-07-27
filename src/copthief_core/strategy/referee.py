@@ -20,6 +20,7 @@ from copthief_core.domain.scent_models import ScentModel
 from copthief_core.shared.config_model import Constitution
 from copthief_core.strategy.brains import BrainBase
 from copthief_core.strategy.info_feed import BeliefFeed, ScentFeed
+from copthief_core.strategy.referee_claims import ClaimPolicy
 from copthief_core.strategy.referee_obs import police_observation, thief_observation
 from copthief_core.strategy.referee_setup import referee_belief, referee_trail
 from copthief_core.strategy.verbal import HintTraceRow, apply_thief_hint
@@ -50,7 +51,9 @@ def play_referee_game(
     verbal_trace: list[HintTraceRow] | None = None,
     belief_feed: BeliefFeed | None = None,
     thief_belief_feed: BeliefFeed | None = None,
+    thief_claim_feed: BeliefFeed | None = None,
     scent_model: ScentModel | None = None,
+    claim_policy: ClaimPolicy | None = None,
 ) -> RefereeGameResult:
     """One full-information-resolved, belief-driven mini-game (Input: constitution +
     two brains + trust + the bookkeeping seed + optional scenario starts; Output: the
@@ -78,6 +81,10 @@ def play_referee_game(
     cop_trail = referee_trail(constitution, model=scent_model)
     feed = ScentFeed() if belief_feed is None else belief_feed  # wire-shape seam
     thief_feed = feed if thief_belief_feed is None else thief_belief_feed
+    # M7-19: the cop's claim is a strategy choice, so a same-cell ending resolves only
+    # while one stands. Unmodelled (the default) it always stands — historical physics.
+    claims = ClaimPolicy() if claim_policy is None else claim_policy
+    claim_standing = not claims.modeled
 
     def result(outcome: Outcome, steps: int) -> RefereeGameResult:
         return RefereeGameResult(
@@ -117,6 +124,7 @@ def play_referee_game(
             steps_survived=step,
             survival_threshold=threshold,
             max_moves=max_moves,
+            claim_standing=claim_standing,
         )
         if outcome is not None:
             return result(outcome, step)
@@ -130,8 +138,21 @@ def play_referee_game(
             thief_belief.note_barrier(decision.barrier)
         else:
             cop = board.apply_move(cop, decision.move)
+        # The claim decision, read off the belief as it stands after the thief moved:
+        # "how likely is it that I just landed on them". It gates BOTH half-turns until
+        # the cop's next turn — the friendly's g06 capture rode exactly such a standing
+        # claim, and a threshold that would have suppressed it forfeits that capture.
+        claim_standing = claims.claims(
+            barrier_placed=decision.barrier is not None,
+            move=decision.move,
+            confidence=police_belief.prob_at(cop),
+        )
         cop_trail.advance(cop, intensity)
-        thief_belief = thief_feed.observe(thief_belief, trail=cop_trail, truth=cop, board=board)
+        # Claim-conditional information (PRD_claims §5.2), composed at the loop level so
+        # the BeliefFeed Protocol never learns about claims: a declared cell is a
+        # certainty delta, silence leaves the thief on its ordinary hidden channel.
+        turn_feed = thief_claim_feed if (claim_standing and thief_claim_feed) else thief_feed
+        thief_belief = turn_feed.observe(thief_belief, trail=cop_trail, truth=cop, board=board)
         outcome = check_end(
             board,
             cop_pos=cop,
@@ -139,6 +160,7 @@ def play_referee_game(
             steps_survived=step,
             survival_threshold=threshold,
             max_moves=max_moves,
+            claim_standing=claim_standing,
         )
         if outcome is not None:
             return result(outcome, step)

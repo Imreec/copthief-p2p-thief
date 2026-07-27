@@ -1,6 +1,7 @@
 """Config loader (PRD_engine §5; App B): typed constitution, JSON-wins rule, versions, precedence."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -16,7 +17,11 @@ def test_shipped_config_loads_into_a_typed_constitution() -> None:
     assert constitution.movement.move_set == ("N", "S", "E", "W", "STAY")
     assert isinstance(constitution.scoring, ScoringTable)
     assert isinstance(constitution.pheromones.decay, float)
-    assert private.version == "1.01"
+    # Constraint #9 pins the SCHEME, not this repo's current value: a mirrored test that
+    # hardcoded the shipped string would pass here and go red in the sibling the moment
+    # either repo's config version moved independently (gotcha #9).
+    assert re.fullmatch(r"\d+\.\d{2}", private.version)
+    assert private.version >= "1.00"
     assert limits.requests_per_minute >= constitution.gatekeeper.requests_per_minute
 
 
@@ -81,10 +86,13 @@ def test_private_toml_can_never_override_a_signed_term(tmp_path: Path) -> None:
 
 
 def test_malformed_private_version_is_refused(tmp_path: Path) -> None:
+    _constitution, shipped, _limits = load_all(CONFIG_DIR, counted=False)
     clone = copy_config(tmp_path)
     toml = clone / "game.toml"
     toml.write_text(
-        toml.read_text(encoding="utf-8").replace('version = "1.01"', 'version = "1.0"'),
+        toml.read_text(encoding="utf-8").replace(
+            f'version = "{shipped.version}"', 'version = "1.0"'
+        ),
         encoding="utf-8",
     )
     with pytest.raises(ConfigError, match="version"):

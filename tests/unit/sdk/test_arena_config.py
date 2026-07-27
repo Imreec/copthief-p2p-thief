@@ -76,6 +76,38 @@ def test_scent_model_and_roster_feeds_parse_with_safe_defaults(tmp_path: Path) -
     assert shipped.scent_model is None
 
 
+def test_police_claim_threshold_parses_and_defaults_to_unmodelled(tmp_path: Path) -> None:
+    """M7-19: a police roster entry may carry a claim threshold, switching the claim
+    channel on for that cop. Absent, claims stay UNMODELLED — the historical physics
+    every committed arena table was measured under, so no existing config shifts."""
+    raw = json.loads((Path("config") / "arena.json").read_text(encoding="utf-8"))
+    raw["police_roster"] = [
+        "ref-police",
+        {"name": "quiet-cop", "spec": "ref-police", "claim_threshold": 0.25},
+        {"name": "loud-cop", "spec": "ref-police", "claim_threshold": 0.0},
+    ]
+    path = tmp_path / "arena.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    config = load_arena_config(path)
+    assert config.police_roster[0].claim_threshold is None
+    assert config.police_roster[1].claim_threshold == 0.25
+    assert config.police_roster[2].claim_threshold == 0.0  # modelled, and always claims
+    assert config.claim_threshold_for("quiet-cop") == 0.25
+    assert config.claim_threshold_for("ref-police") is None
+    # The claim feed is PER THIEF ENTRY: the sweep's whole point is a mixture where some
+    # opponents read our claims and others ignore them.
+    raw["thief_roster"] = [
+        "ref-thief",
+        {"name": "claim-reader", "spec": "belief-evader", "claim_feed": "truth"},
+    ]
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    mixed = load_arena_config(path)
+    assert mixed.thief_roster[0].claim_feed is None
+    assert mixed.thief_roster[1].claim_feed == "truth"
+    shipped = load_arena_config(Path("config") / "arena.json")
+    assert all(entry.claim_threshold is None for entry in shipped.police_roster)
+
+
 def test_champion_pin_defaults_to_the_shipped_gate_and_can_opt_out(tmp_path: Path) -> None:
     """Measurement configs (M7-14) skip the champion gate by pinning null; the
     shipped arena.json keeps the CI gate without naming it."""

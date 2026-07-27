@@ -5,6 +5,7 @@ the thief must answer honestly on its next turn (lying is exposed by the sealed 
 at audit); a caught thief sends the mandatory final message and both games end capture.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -113,3 +114,55 @@ def test_a_non_terminal_repeated_step_still_collapses_the_session() -> None:
     replay_turn["step"] = 1  # a repeated step WITHOUT the terminal caught answer
     with pytest.raises(ProtocolViolationError, match="step discontinuity"):
         police.handle_receive_turn(replay_turn)
+
+
+# -- M7-19: the quiet-cop threshold on the LIVE emitter -----------------------------------
+# The threshold is injected here, never read from this repo's config: a mirrored test that
+# asserted a shipped value would pass in the lead and go red in the sibling (gotcha #9).
+
+
+def _pair_with_threshold(threshold: float) -> tuple[PeerSession, PeerSession]:
+    private = replace(
+        PRIVATE, police_options={**PRIVATE.police_options, "claim_threshold": threshold}
+    )
+    police = PeerSession(CONSTITUTION, private, role="police", seed=1)
+    thief = PeerSession(CONSTITUTION, private, role="thief", seed=2)
+    thief.handle_negotiate(police.negotiate_payload())
+    police.handle_negotiate(thief.negotiate_payload())
+    return police, thief
+
+
+def _landing_cell(session: PeerSession, move: str) -> tuple[int, int]:
+    return session.board.apply_move(session.position, move)
+
+
+def test_a_configured_threshold_silences_a_low_confidence_moving_turn() -> None:
+    police, _thief = _pair_with_threshold(0.9)
+    police.machine.state = GameState.COMPUTING_MOVE
+    police.brain = _ScriptedBrain(["S"])
+    # The belief starts as a delta at the thief's signed start, which is not where we land.
+    assert police.belief.prob_at(_landing_cell(police, "S")) < 0.9
+    assert police.take_turn(now=1.0)["capture_claim"] is None
+
+
+def test_the_same_cop_still_declares_when_it_believes_it_has_landed() -> None:
+    police, _thief = _pair_with_threshold(0.9)
+    police.machine.state = GameState.COMPUTING_MOVE
+    police.brain = _ScriptedBrain(["S"])
+    police.belief.note_claim(_landing_cell(police, "S"))  # certainty on the landing cell
+    message = police.take_turn(now=1.0)
+    assert message["capture_claim"] == list(police.position)
+
+
+def test_threshold_zero_is_todays_emitter_unchanged() -> None:
+    police, _thief = _pair_with_threshold(0.0)
+    police.machine.state = GameState.COMPUTING_MOVE
+    police.brain = _ScriptedBrain(["S"])
+    assert police.take_turn(now=1.0)["capture_claim"] == list(police.position)
+
+
+def test_a_threshold_never_makes_a_stay_turn_start_claiming() -> None:
+    police, _thief = _pair_with_threshold(0.0)
+    police.machine.state = GameState.COMPUTING_MOVE
+    police.brain = _ScriptedBrain(["STAY"])
+    assert police.take_turn(now=1.0)["capture_claim"] is None

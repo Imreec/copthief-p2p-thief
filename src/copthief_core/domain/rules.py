@@ -67,6 +67,7 @@ def check_end(
     steps_survived: int,
     survival_threshold: int,
     max_moves: int,
+    claim_standing: bool = True,
 ) -> Outcome | None:
     """Referee-mode end-of-mini-game resolution; None while the game continues.
 
@@ -76,8 +77,15 @@ def check_end(
     steps — or the `max_moves` cap with no capture — is thief survival (an uncaught
     thief at the cap has, by definition, outlasted the pursuit). TECHNICAL_LOSS is never
     produced by physics; the protocol layer assigns it.
+
+    `claim_standing` gates ONLY the landing form (M7-19, PRD_claims §2.4): the book's
+    scoring table defines that capture as the cop landing on the thief's cell **and
+    declaring** it, so a silent cop forfeits it. The barrier and imprisonment forms come
+    from a placement the book requires be declared unconditionally, so they never gate.
+    Defaults open — a caller that does not model claims sees the historical physics.
     """
-    if cop_pos == thief_pos or thief_pos in board.barriers or is_imprisoned(board, thief_pos):
+    landed = claim_standing and cop_pos == thief_pos
+    if landed or thief_pos in board.barriers or is_imprisoned(board, thief_pos):
         return Outcome.COP_CAPTURE
     if steps_survived >= survival_threshold or steps_survived >= max_moves:
         return Outcome.THIEF_SURVIVAL
