@@ -3,6 +3,27 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #54 — m7-21-thief-retune-informed (the retune that actually worked)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** after the cop-side retune failed its gate, he asked why not try the
+  thief one now. Right call — it is the same class of task but a healthier instrument.
+- **Outcome:** **wins both gates and ships.** The discipline that made it work was applying
+  the M7-20 lesson FIRST: measure whether the pool can resolve its candidates BEFORE
+  spending a GA run. It could (spreads 0.25–0.56), and it showed the headroom outright — a
+  probe vector at 1.000 survival where the deployed one sat at 0.656. Fitness 0.602 → 0.805,
+  and the evolved vector explains itself: `w_articulation` falls from its box ceiling
+  because anti-cornering machinery earns its keep for a BLIND evader and gets in the way of
+  an informed one.
+- **Correction made mid-run:** the reference gate initially compared two book-v1 vectors
+  under reference physics, which could not answer "should the base table change too?". Added
+  the actually-deployed base vector as a third arm; it ties the new one (950–950), so the
+  base stays untouched and only the overlay moves.
+- **Discipline note:** the GA pool deliberately mixes informed and uninformed worlds, and
+  models the quiet cop conservatively (captures are not claim-gated, so it is treated as
+  dangerous as a loud cop). A vector tuned against a fully-informed world would have looked
+  better and been more fragile.
+
 ## PR #52 — sync-m7-18-claim-channel (the claim channel arrives, and pays here)
 
 - **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).

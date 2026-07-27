@@ -1,0 +1,97 @@
+{
+  "version": "1.00",
+  "_comment": "M7-21 champion gate under the COUNTED physics. Both thief candidates read capture claims (claim_feed truth = what M7-18 deployed), against a MIXTURE of cop worlds: two that declare normally, one QUIET cop (claim_threshold 2.0 - an opponent who deploys the M7-19 policy against us, so our claim-reading buys nothing), and a random walker. Held-out seeds 1..32, disjoint from the GA's 401..432. champion_pin null: a measurement, the CI gate is arena_champion.json.",
+  "police_roster": [
+    {
+      "name": "ref-police",
+      "spec": "ref-police"
+    },
+    {
+      "name": "greedy-loud",
+      "spec": "greedy-manhattan"
+    },
+    {
+      "name": "random",
+      "spec": "random"
+    },
+    {
+      "name": "greedy-quiet",
+      "spec": "greedy-manhattan",
+      "claim_threshold": 2.0
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-champion",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-m7-21",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "thief-champion": {
+      "ramp_multiplier": 2.479692710824608,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.1580899936008633,
+      "w_articulation": 40.0,
+      "w_distance": 3.6023324400184356,
+      "w_region": 2.2014344105088215,
+      "w_spread": 2.0
+    },
+    "thief-m7-21": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 8.928429525952911,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    }
+  },
+  "evidence_out": "docs/evidence/m7-21-gate-bookv1.md",
+  "scent_model": "multiplicative_book_v1"
+}

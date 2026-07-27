@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.01"
+version = "1.02"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -44,20 +44,25 @@ w_region = 1.8097
 w_spread = 1.0655
 
 [strategy.thief.multiplicative_book_v1]
-# M7-16 per-model overlay: applies ONLY when [scent] model selects this name
-# (tuned vectors are physics-specific - the cop repo's M7-14/15 gate comparisons,
-# reproduced thief-side in docs/evidence/m7-16-*.md). This is the mixed-pool
-# book-v1 vector (config/ga_weights_bookv1.json): survival 0.391->0.609 across
-# four belief-cop worlds; the headline is anti-camping emerging from selection -
-# ramp_start_fraction fell from 0.95 to the box floor 0.3 (evade from 30% of the
-# clock, not 95%) and w_articulation maxed (the M7-13 postmortem's prescription).
-ramp_multiplier = 2.479692710824608
+# M7-21 (supersedes M7-16 on this overlay): retuned for an INFORMED thief. M7-16 evolved
+# its vector under a HIDDEN feed; M7-18 then taught the thief to read the opponent cop's
+# capture claims, so those weights were tuned for a blinder agent than we now field. The
+# GA pool mixes information worlds (two cops we can read, one QUIET cop we cannot, plus a
+# random walker) so the vector cannot over-rely on information.
+# Headline: w_articulation falls from the ceiling 40.0 to 8.93 - the elaborate
+# anti-cornering machinery was carrying a blind evader, and an informed one is better off
+# simply keeping distance from the cell it KNOWS the cop occupies.
+# Gate (docs/evidence/m7-21-informed-thief.md, held-out seeds 1..32, both physics):
+# book-v1 1260 vs the previous overlay's 1170 (survivals 124/128 vs 106/128, better or
+# equal on EVERY arm); reference 950 vs 925. The BASE table below is untouched - under
+# reference physics this vector only TIES it (950-950), which is no reason to change it.
+ramp_multiplier = 3.546170631626467
 ramp_start_fraction = 0.3
-trap_size_fraction = 0.1580899936008633
-w_articulation = 40.0
-w_distance = 3.6023324400184356
-w_region = 2.2014344105088215
-w_spread = 2.0
+trap_size_fraction = 0.20126612510301556
+w_articulation = 8.928429525952911
+w_distance = 4.562212626629817
+w_region = 2.030098462268734
+w_spread = 1.7843591354096908
 
 [scent]
 # Which NAMED scent model we play (M3-8, ADR-0004 v2; registrations in

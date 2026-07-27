@@ -86,7 +86,7 @@ def test_fitness_threads_the_doors_to_the_series() -> None:
     from dataclasses import replace
 
     from copthief_core.shared.config import load_all
-    from copthief_core.strategy.genetic.runs import fitness
+    from copthief_core.strategy.genetic.fitness import fitness
     from copthief_core.strategy.scenarios import scenario_suite
 
     constitution, private, _ = load_all(Path("config"), counted=False)
@@ -116,7 +116,7 @@ def test_an_opponent_pool_averages_fitness_across_its_members() -> None:
     from dataclasses import replace
 
     from copthief_core.shared.config import load_all
-    from copthief_core.strategy.genetic.runs import fitness
+    from copthief_core.strategy.genetic.fitness import fitness
     from copthief_core.strategy.scenarios import scenario_suite
 
     constitution, private, _ = load_all(Path("config"), counted=False)

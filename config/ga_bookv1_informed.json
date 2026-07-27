@@ -1,0 +1,126 @@
+{
+  "version": "1.00",
+  "_comment": "M7-21 retune for the INFORMED thief. M7-16 evolved this vector under a HIDDEN feed; M7-18 then taught the thief to read the opponent cop's capture claims, so its weights were tuned for a blinder agent than it now is. Pool is a MIXTURE of information worlds, because we do not choose which cop we draw: two loud cops we can read (claim_feed truth), one QUIET cop we cannot (no claim_feed - the M7-19 policy is ours to deploy and an opponent may deploy it too), and a random walker. Conservative by construction: claims are not modelled on the capture side, so every same-cell ending still resolves - the quiet cop is modelled as strong as a loud one, which understates our survival rather than flattering it. Seeds 401..432 (32, not M7-16's 16): the cop-side M7-20 run proved 16 seeds cannot resolve this pool. Gate seeds 1..32 stay disjoint. Weights land in a SEPARATE artifact and deploy only via config review.",
+  "role": "thief",
+  "brain": "copthief_thief.brain:ThiefBrain",
+  "opponent": "ref-police",
+  "opponent_options": {
+    "ref_police_barrier_chance": 0.15
+  },
+  "opponent_pool": [
+    {
+      "spec": "ref-police",
+      "options": {
+        "ref_police_barrier_chance": 0.15
+      },
+      "claim_feed": "truth"
+    },
+    {
+      "spec": "ref-police",
+      "options": {
+        "ref_police_barrier_chance": 0.0
+      },
+      "claim_feed": "truth"
+    },
+    {
+      "spec": "greedy-manhattan"
+    },
+    {
+      "spec": "random"
+    }
+  ],
+  "scent_model": "multiplicative_book_v1",
+  "genes": {
+    "w_distance": [
+      0.5,
+      6.0
+    ],
+    "w_region": [
+      0.0,
+      3.0
+    ],
+    "w_articulation": [
+      0.0,
+      40.0
+    ],
+    "trap_size_fraction": [
+      0.05,
+      0.6
+    ],
+    "w_spread": [
+      0.0,
+      2.0
+    ],
+    "ramp_start_fraction": [
+      0.3,
+      0.95
+    ],
+    "ramp_multiplier": [
+      1.0,
+      5.0
+    ]
+  },
+  "run": {
+    "seed": 42,
+    "population": 16,
+    "generations": 12,
+    "elite_count": 2,
+    "tournament_size": 3,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [
+      401,
+      402,
+      403,
+      404,
+      405,
+      406,
+      407,
+      408,
+      409,
+      410,
+      411,
+      412,
+      413,
+      414,
+      415,
+      416,
+      417,
+      418,
+      419,
+      420,
+      421,
+      422,
+      423,
+      424,
+      425,
+      426,
+      427,
+      428,
+      429,
+      430,
+      431,
+      432
+    ],
+    "scenario_min_separation": 4
+  },
+  "smoke": {
+    "seed": 7,
+    "population": 4,
+    "generations": 3,
+    "elite_count": 1,
+    "tournament_size": 2,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [
+      501,
+      502,
+      503
+    ],
+    "scenario_min_separation": 4
+  },
+  "artifact_out": "config/ga_weights_bookv1_informed.json",
+  "evidence_out": "docs/evidence/m7-21-ga-informed.md"
+}

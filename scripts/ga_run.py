@@ -2,7 +2,7 @@
 
 Config-driven and role-blind (config/ga.json): evolves the LOCAL repo's role brain
 against the fixed reference opponent over a fresh scenario-seed suite. Writes the
-weights artifact (config/ga_weights.json) and the fitness-curve evidence table
+weights artifact (the config's `artifact_out`) and the fitness-curve evidence table
 (docs/evidence/m5-ga.md). Deterministic: same tree + config -> same artifacts.
 
   uv run python scripts/ga_run.py
@@ -70,7 +70,7 @@ def _evidence(config: GaConfig, result: EvolutionResult, config_name: str) -> st
         f"**Evolved fitness:** {result.best_fitness:.3f} - curve {improved} "
         f"({result.history[0].best:.3f} -> {result.history[-1].best:.3f}).",
         "",
-        "Evolved weights are committed in `config/ga_weights.json`; they deploy only",
+        f"Evolved weights are committed in `{config.artifact_out}`; they deploy only",
         "via config review (never to the sparring host - CLAUDE.md s9).",
         "",
     ]
