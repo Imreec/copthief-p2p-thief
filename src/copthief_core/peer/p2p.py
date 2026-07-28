@@ -121,6 +121,7 @@ def run_peer_game(
             if ack["disposition"] == inbox_order.ACCEPTED:
                 deadline = time.time() + turn_timeout
                 events.belief_snapshot(emit, session)
+                events.scent_refusal(emit, session, ack["step"])  # M7-23, log-only
                 # A reply we cannot deliver ends the game as OUR loss, not as a crash.
                 if session.machine.is_terminal or _send_own_turn(session, transport, emit):
                     continue

@@ -112,6 +112,14 @@ def test_decisions_carry_provenance_matching_the_audit(game_events: list[dict[st
             assert decision["intent"] == record["intent"]
 
 
+def test_honest_game_triggers_no_frame_refusals(game_events: list[dict[str, Any]]) -> None:
+    # M7-23 false-positive property at the integration tier: with the frame check ON
+    # by default, a full honest mini-game logs zero refusals — the check is silent
+    # exactly when the traffic is honest (PRD_scent §10.4).
+    assert _of(game_events, "scent_frame_refused") == []
+    assert _of(game_events, "scent_frame_refusals") == []
+
+
 def test_rejected_inbound_turn_is_still_archived() -> None:
     # Dispute evidence: a protocol-violating message is archived BEFORE validation.
     police = PeerSession(CONSTITUTION, PRIVATE, role="police", seed=11)

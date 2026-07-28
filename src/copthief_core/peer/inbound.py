@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from copthief_core.domain.scent_frame import frame_explained
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer import inbox_order
 from copthief_core.wire.turn import TurnMessage
@@ -55,6 +56,26 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         return _tolerated(message.step, inbox_order.BUFFERED)
     session.sequencer.record(message.commit)
     session.inbound.append(message)
+    # M7-23 (PRD_scent §10): validate the transmitted grid against the locked physics
+    # BEFORE anything consumes it. Gated on the ARRIVING grid, not on the model's
+    # `transmitted` flag — our sender transmits unconditionally (the reference send()
+    # mirror), so under a book-v1 lock grids are on the wire and belief reads them.
+    # A refused frame is withheld whole (belief + known_field) but still serves as
+    # the NEXT frame's baseline, so one bad frame poisons at most two comparisons
+    # and honest traffic re-accepts on its own (self-healing). Evidence-grade only.
+    scent_ok = True
+    if session.private.frame_check and message.smell_grid and not final_caught:
+        scent_ok = frame_explained(
+            session.inbound[-2].smell_grid if len(session.inbound) > 1 else {},
+            message.smell_grid,
+            model=session.known_field.model,
+            board_size=session.constitution.board.grid_size,
+            origin=session.constitution.board.axis_start_index,
+            intensity=session.constitution.pheromones.center_intensity,
+            tolerance=session.private.scent_physics_tolerance,
+        )
+        if not scent_ok:
+            session.scent_refusals.append({"step": message.step, "cells": len(message.smell_grid)})
     # F9: a declared barrier is sealed/audited evidence — it constrains OUR OWN move
     # legality (the M2 gap) and the belief motion model, before anything else reads it.
     if message.barrier_placed is not None:
@@ -70,7 +91,8 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
     # if they claim unconditionally, and misleads if they do not.
     if message.capture_claim is not None:
         session.belief.note_claim((message.capture_claim[0], message.capture_claim[1]))
-    session.belief.update_scent(message.smell_grid)
+    if scent_ok:
+        session.belief.update_scent(message.smell_grid)
     # M3-4: their hint feeds the belief ONLY through the closed-vocabulary parser —
     # adversarial text maps to a known landmark or to nothing (injection-safe by shape).
     if session.gazetteer is not None:
@@ -80,11 +102,11 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         if landmark is not None:
             session.belief.update_hint(session.gazetteer.cells_for(landmark))
     # SQ1 receive side, M3-8 cadence policy: absorb their transmitted trail, then one
-    # per-message decay — BOTH gated on the named model. Under the book model nothing is
-    # transmitted (each side recomputes the rival's field) and there is no received copy
-    # to decay, so this whole pass is skipped (kit SPEC §7 `transmitted` /
-    # `receiver_side_decay`; ADR-0004 v2's side-by-side table).
-    if session.known_field.transmitted:
+    # per-message decay — both gated on the named model's RECEIVE contract (kit SPEC §7
+    # `transmitted` / `receiver_side_decay`; ADR-0004 v2). NB the M7-23 probe: that
+    # contract is honored HERE only — the send path transmits unconditionally (open
+    # decision M7-24), which is why the frame check above never consults the flag.
+    if session.known_field.transmitted and scent_ok:
         session.known_field.absorb(message.smell_grid)
     if session.known_field.receiver_side_decay:
         session.known_field.decay()

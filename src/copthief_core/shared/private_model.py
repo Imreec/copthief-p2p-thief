@@ -106,6 +106,10 @@ class PrivateSettings:
     gui: GuiSettings
     # [email] draft/arming rail (M6-4) — private; safe defaults when absent.
     email: EmailSettings
+    # M7-23 (PRD_scent §10): the in-play frame validity check — ON by omission
+    # (§10.6 decision 1). Defaulted so direct constructions stay valid; the loader
+    # always passes it explicitly.
+    frame_check: bool = True
 
     def strategy_options(self, role: str) -> dict[str, float]:
         """The effective brain knobs for `role`: the base `[strategy.<role>]` table

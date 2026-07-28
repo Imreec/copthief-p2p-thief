@@ -132,3 +132,22 @@ def test_rate_limits_above_the_signed_minimums_are_accepted(tmp_path: Path) -> N
     limits_path.write_text(json.dumps(raw), encoding="utf-8")
     _, _, limits = load_all(clone, counted=False)
     assert limits.queue_depth == 500
+
+
+def test_frame_check_defaults_on_when_the_scent_section_omits_it() -> None:
+    # PRD_scent section 10.6 decision 1: the in-play frame check is ON by omission --
+    # abstention-safe, and the false-positive property is the evidence it stands on.
+    _constitution, private, _limits = load_all(CONFIG_DIR, counted=False)
+    assert private.frame_check is True
+
+
+def test_frame_check_disables_from_the_scent_section(tmp_path: Path) -> None:
+    clone = copy_config(tmp_path)
+    toml_path = clone / "game.toml"
+    text = toml_path.read_text(encoding="utf-8")
+    # Anchor on the section HEADER line — a comment on line 44 also says "[scent]".
+    toml_path.write_text(
+        text.replace("\n[scent]\n", "\n[scent]\nframe_check = false\n", 1), encoding="utf-8"
+    )
+    _constitution, private, _limits = load_all(clone, counted=False)
+    assert private.frame_check is False
