@@ -79,3 +79,40 @@ def test_spec_and_malformed_records_never_crash_the_check() -> None:
         )
         == []
     )
+
+
+class _TallySession:
+    """The emit_scent_physics surface, minus a full PeerSession (M7-23 tally test)."""
+
+    def __init__(self, refusals: list[dict[str, Any]]) -> None:
+        self.inbound: list[Any] = []
+        self.constitution = CONSTITUTION
+        self.private = PRIVATE
+        self.role = "police"
+        self.opponent_group = "opponent"
+        self.scent_refusals = refusals
+
+
+def test_settlement_emission_tallies_in_play_refusals() -> None:
+    """PRD_scent §10.6 decision 3: the frame-check refusals ride the same settlement
+    emission as the M6-7 mismatches, so the dispute file carries both."""
+    sink: list[dict[str, Any]] = []
+    from copthief_core.peer.scent_check import emit_scent_physics
+
+    refusals = [{"step": 2, "cells": 9}, {"step": 3, "cells": 11}]
+    emit_scent_physics(_TallySession(refusals), {"records": []}, sink.append)
+    assert sink == [
+        {
+            "event": "scent_frame_refusals",
+            "sender": "police",
+            "payload": {"count": 2, "steps": [2, 3]},
+        }
+    ]
+
+
+def test_settlement_emission_is_silent_with_no_refusals() -> None:
+    sink: list[dict[str, Any]] = []
+    from copthief_core.peer.scent_check import emit_scent_physics
+
+    emit_scent_physics(_TallySession([]), {"records": []}, sink.append)
+    assert sink == []

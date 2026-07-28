@@ -73,6 +73,21 @@ def belief_snapshot(emit: LogFn, session: PeerSession) -> None:
     )
 
 
+def scent_refusal(emit: LogFn, session: PeerSession, step: int) -> None:
+    """The just-accepted message's grid failed the frame validity check (M7-23) —
+    loud JSONL so refusals surface at the mutual audit, never only a console.
+    Silent unless the LATEST refusal is exactly `step`: the check refuses at most
+    once per accepted message, so anything else is a stale entry already reported."""
+    if session.scent_refusals and session.scent_refusals[-1]["step"] == step:
+        emit(
+            {
+                "event": "scent_frame_refused",
+                "receiver": session.role,
+                "payload": dict(session.scent_refusals[-1]),
+            }
+        )
+
+
 def decision(emit: LogFn, session: PeerSession) -> None:
     """Provenance of the just-sealed turn (PLAN §7 'decisions + provenance')."""
     record = session.records[-1].payload

@@ -117,6 +117,9 @@ class PeerSession:
         # Locked scent-model hashes (PRD_scent §4), recorded by the handshake.
         self.scent_model_hash: str | None = None
         self.opponent_scent_model_hash: str | None = None
+        # M7-23 (PRD_scent §10): frames the validity check refused — evidence-grade
+        # only, surfaced as JSONL by the loop and tallied at settlement (§10.6).
+        self.scent_refusals: list[dict[str, Any]] = []
         # PRD_belief: the opponent's position filter, primed at THEIR signed start;
         # peer/turns runs its predict/update pipeline on every inbound message.
         # M5-5: `hint_trust` is the profiling seam — a series runner passes the

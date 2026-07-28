@@ -115,3 +115,14 @@ def emit_scent_physics(
                 "payload": {"opponent": session.opponent_group, "mismatches": mismatches},
             }
         )
+    # M7-23 (PRD_scent §10.6 decision 3): the in-play frame-check refusals ride the
+    # same settlement emission, so the dispute file carries both evidence classes.
+    refusals = getattr(session, "scent_refusals", [])
+    if refusals:
+        emit(
+            {
+                "event": "scent_frame_refusals",
+                "sender": session.role,
+                "payload": {"count": len(refusals), "steps": [r["step"] for r in refusals]},
+            }
+        )
