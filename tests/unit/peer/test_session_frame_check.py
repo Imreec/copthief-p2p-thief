@@ -94,6 +94,23 @@ def test_game_continues_and_the_check_recovers_after_a_refusal() -> None:
     assert thief.scent_refusals == []  # our own outbound frames stayed honest
 
 
+def test_empty_grid_is_absence_of_data_never_impossible_data() -> None:
+    """Round-16 pin (the opponent team's option-3 trap, which their checker had and
+    ours must never grow): a peer transmitting `{}` — the legal form of a
+    not-transmitted arrangement — is absence of data, not a physics violation. The
+    gate skips entirely: no refusal, nothing absorbed, the game advances."""
+    police, thief = _pair(PRIVATE)
+    for turn in range(3):
+        message = thief.take_turn(now=float(turn))
+        message["smell_grid"] = {}
+        ack = police.handle_receive_turn(message)
+        assert ack["status"] == "ok"
+        reply = police.take_turn(now=float(turn) + 0.5)
+        thief.handle_receive_turn(reply)
+    assert police.scent_refusals == []  # never refused, never latched
+    assert police.known_field.cells() == {}
+
+
 def test_disabled_gate_absorbs_even_a_forged_frame() -> None:
     police, thief = _pair(replace(PRIVATE, frame_check=False))
     police.handle_receive_turn(_forged(thief, thief.take_turn(now=1.0)))

@@ -19,6 +19,7 @@ from copthief_core.domain.crypto import (
 from copthief_core.domain.terms import terms_from_config
 from copthief_core.peer.pairing import pairing_declaration, pairing_problem
 from copthief_core.shared.locked_models import (
+    INFO_MODE,
     SCENT_MODEL,
     LockedModelRegistry,
     lock_decision,
@@ -49,6 +50,11 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
     nonce = make_nonce()
     registry: LockedModelRegistry = session.private.locked_models
     session.scent_model_hash = registry.hash(SCENT_MODEL, session.private.scent_model)
+    # M7-25 (Round-16 settlement): the information-consumption posture, declared like
+    # any lock family. Two `belief` declarations on the record turn the honor term
+    # into a handshake-checkable one — each side's declaration is backed by its own
+    # validator-firewall test (PRD_scent §10.1).
+    session.info_mode_hash = registry.hash(INFO_MODE, session.private.info_mode)
     # M7-22: declare our DERIVED uid when the opponent is known a priori (a series run
     # configures it). Outside `terms` like every M7-10-class extra — no signature input
     # moves. A wrong-input derivation (the opponent team's 2026-07-25 bug: hashing the
@@ -71,6 +77,7 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
         # `<family>_sha256`. The reference reads only its four keys (verify_peer
         # indexes them), so the extra key is ignored by it and compared by us.
         registry.declared_key(SCENT_MODEL): session.scent_model_hash,
+        registry.declared_key(INFO_MODE): session.info_mode_hash,
         # F8b: all seven keys the reference's declaration writer dereferences; the
         # spec comes from OUR sealed step-0 record (M6-3) so the identity we hand the
         # opponent and the declaration we seal can never disagree.
@@ -142,6 +149,18 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
         raise NegotiationError(
             "locked scent model mismatch: we declared "
             f"{ours_model}, opponent declared {session.opponent_scent_model_hash}"
+        )
+    # M7-25: the info_mode family, same truth table (both-declare-and-differ refuses;
+    # omission — the reference, or any pre-Round-16 peer — is never refusal).
+    declared = raw.get(LockedModelRegistry.declared_key(INFO_MODE))
+    session.opponent_info_mode_hash = str(declared) if declared is not None else None
+    ours_mode = session.info_mode_hash or session.private.locked_models.hash(
+        INFO_MODE, session.private.info_mode
+    )
+    if lock_decision(ours_mode, session.opponent_info_mode_hash) == "refuse":
+        raise NegotiationError(
+            "locked info mode mismatch: we declared "
+            f"{ours_mode}, opponent declared {session.opponent_info_mode_hash}"
         )
     session.game_uid = game_uid(ours, session.private.group_id, session.opponent_group)
     # M7-22: refuse a COMPARABLE uid disagreement — the kit §7 truth table unchanged

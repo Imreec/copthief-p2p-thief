@@ -27,6 +27,11 @@ if TYPE_CHECKING:  # annotation-only: config_model imports THIS module at runtim
 
 SCENT_MODEL = "scent_model"
 DEFAULT_SCENT_MODEL = "subtractive_chebyshev_v1"
+# M7-25 (Round-16 settlement with the opponent team): the information-consumption
+# posture as a declarable lock family. `belief` is our shipped default — it is the
+# posture the frame validator's firewall already enforces in code (PRD_scent §10.1).
+INFO_MODE = "info_mode"
+DEFAULT_INFO_MODE = "belief"
 
 # Registered param name -> the signed `pheromones` attribute it must equal. Params with
 # no signed counterpart (kernel, distance, cadence...) are physics the registration

@@ -141,6 +141,13 @@ def test_frame_check_defaults_on_when_the_scent_section_omits_it() -> None:
     assert private.frame_check is True
 
 
+def test_info_mode_defaults_to_belief_when_the_belief_section_omits_it() -> None:
+    # M7-25: the shipped posture is `belief` — matching the frame validator's firewall;
+    # a peer wanting `exact` must say so in [belief] and declare its hash at negotiate.
+    _constitution, private, _limits = load_all(CONFIG_DIR, counted=False)
+    assert private.info_mode == "belief"
+
+
 def test_frame_check_disables_from_the_scent_section(tmp_path: Path) -> None:
     clone = copy_config(tmp_path)
     toml_path = clone / "game.toml"
