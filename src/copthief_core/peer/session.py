@@ -117,6 +117,9 @@ class PeerSession:
         # Locked scent-model hashes (PRD_scent §4), recorded by the handshake.
         self.scent_model_hash: str | None = None
         self.opponent_scent_model_hash: str | None = None
+        # M7-25: the info_mode lock hashes — same family machinery, recorded likewise.
+        self.info_mode_hash: str | None = None
+        self.opponent_info_mode_hash: str | None = None
         # M7-23 (PRD_scent §10): frames the validity check refused — evidence-grade
         # only, surfaced as JSONL by the loop and tallied at settlement (§10.6).
         self.scent_refusals: list[dict[str, Any]] = []

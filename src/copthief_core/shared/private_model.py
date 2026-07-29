@@ -110,6 +110,10 @@ class PrivateSettings:
     # (§10.6 decision 1). Defaulted so direct constructions stay valid; the loader
     # always passes it explicitly.
     frame_check: bool = True
+    # M7-25: which registered `info_mode` doc we declare at negotiate (kit SPEC §7).
+    # "belief" = the field reaches decisions only through the belief layer — the
+    # posture the M7-23 firewall enforces; the declaration makes it a checkable lock.
+    info_mode: str = "belief"
 
     def strategy_options(self, role: str) -> dict[str, float]:
         """The effective brain knobs for `role`: the base `[strategy.<role>]` table

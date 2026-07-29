@@ -121,12 +121,15 @@ def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
     # (one game under two indices; or both having taken thief). Same safety argument as
     # the M3-8 extra: the reference indexes only its own four keys, so it ignores these,
     # and our own refusal treats an absent field as silence rather than disagreement.
+    # M7-25 adds `info_mode_sha256` (Round-16 settlement) — the same family machinery
+    # and the same safety argument again.
     assert set(payload) == {
         "terms",
         "nonce",
         "signature",
         "identity",
         "scent_model_sha256",
+        "info_mode_sha256",
         "sub_game_number",
         "role",
     }
