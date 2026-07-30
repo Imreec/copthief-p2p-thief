@@ -94,6 +94,29 @@ def test_game_continues_and_the_check_recovers_after_a_refusal() -> None:
     assert thief.scent_refusals == []  # our own outbound frames stayed honest
 
 
+def test_caught_final_is_never_refused_even_as_a_zero_step_resend() -> None:
+    """Round-17 pin (the opponent team's finding in their OWN receiver, verified absent
+    in ours): a game-ending caught=true final whose grid is a ZERO-STEP re-send of the
+    previous field can never satisfy the one-advance law — and must never be asked to.
+    The `final_caught` exemption has skipped it since the first build (PRD §10.2); this
+    pin keeps a capture ending from ever seeding a false refusal into rule-36 evidence.
+    Both concede shapes covered: an advancing final (ours) and an unchanged re-send
+    (theirs)."""
+    for zero_step_resend in (False, True):
+        police, thief = _pair(PRIVATE)
+        first = thief.take_turn(now=1.0)
+        police.handle_receive_turn(first)
+        claim_turn = police.take_turn(now=1.5)
+        claim_turn["capture_claim"] = list(thief.position)  # the claim lands
+        thief.handle_receive_turn(claim_turn)
+        final = thief.take_turn(now=2.0)
+        assert final["claim_response"] == {"claim": claim_turn["capture_claim"], "caught": True}
+        if zero_step_resend:
+            final["smell_grid"] = dict(first["smell_grid"])  # their concede shape
+        police.handle_receive_turn(final)
+        assert police.scent_refusals == []
+
+
 def test_empty_grid_is_absence_of_data_never_impossible_data() -> None:
     """Round-16 pin (the opponent team's option-3 trap, which their checker had and
     ours must never grow): a peer transmitting `{}` — the legal form of a
