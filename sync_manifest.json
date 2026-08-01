@@ -60,7 +60,7 @@
     "src/copthief_core/peer/audit_flow.py": "24c40482c10c287002180736276d3b0e53a1e7d93e11b16a07424757a779ab17",
     "src/copthief_core/peer/events.py": "da9501359b6412b777f7238308b9aab39418614eb506c3a02fb43c56d1f1cc45",
     "src/copthief_core/peer/handshake.py": "8eb303588bad21716f4433e6854a7d8acbc68ac8bba4f09a157f504cb7cd7e32",
-    "src/copthief_core/peer/inbound.py": "f4f41275e0e6f4c64b4ca2c77e88f77e86fff0a5edbdc423e968e1b076729e58",
+    "src/copthief_core/peer/inbound.py": "535bbc26978fc41877f5f0046c9a9219c8bd7013f29265aa29f8bda0f6e8cd25",
     "src/copthief_core/peer/inbox_order.py": "806abba1cbe6c5f19285c83227a22af36343a77ddf587d8dd9c5e48c5d825f37",
     "src/copthief_core/peer/match.py": "89c719224436d9fd206c461090ff6c11e11181dddc1090418c98bfff2a092968",
     "src/copthief_core/peer/p2p.py": "471d8ea59a9d99e2408ac584e924d394199707ce1879693210056fbc84c907ba",
@@ -236,6 +236,7 @@
     "tests/unit/peer/test_scent_check.py": "81c7a62d6b57727d4bac5c7592b3c78c6a4fe892f7616f19473d292043bdf4b4",
     "tests/unit/peer/test_scent_model_sealing.py": "d6131d7bc7ae681cc3e357ab3f5617d888fb5d347c7e769f7b854e0905223906",
     "tests/unit/peer/test_sealing.py": "8879a826c237fc9c77b8965cd4b0466e8e1f1c5fd1658d6363e0b5f36a2f2c24",
+    "tests/unit/peer/test_self_imprisonment.py": "2daa1d7ea43612eafdb186186c2dbb53d8118ba1047b4d7a5b415bff28a056f4",
     "tests/unit/peer/test_series.py": "4454a436ffacc284ef622051144b47ca89b1bf5194ff9bc5bf263007f80a7135",
     "tests/unit/peer/test_session.py": "09d81f9c39fef2a6130c190694ae16cc6e4f3c4028c8a5db6081930d757e9afc",
     "tests/unit/peer/test_session_barriers.py": "617486ce172c161002700579d07afd95865987d8c99f3534e77c4acf65533459",
@@ -299,7 +300,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "e99a7b3",
+  "source_commit": "ed0a999",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "56757035275610fd808f685da1a2065194f472482e3b9d79b948fce642b289eb"
+  "tree_hash": "f9cf524b188878ba54f9c3fc63c67efa9f10705f21003a6fafecb94050bb9e5b"
 }
