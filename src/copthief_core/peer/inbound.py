@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from copthief_core.domain.rules import is_imprisoned
 from copthief_core.domain.scent_frame import frame_explained
 from copthief_core.domain.state_machine import GameState
 from copthief_core.peer import inbox_order
@@ -82,6 +83,23 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         barrier = (message.barrier_placed[0], message.barrier_placed[1])
         session.board = session.board.with_barrier(barrier)
         session.belief.note_barrier(barrier)
+        # M7-29 (rules 46/47, App E p.149 ← ch.3): the thief adjudicates capture
+        # against ITSELF at the moment the seal lands — a barrier on our own cell
+        # (46) or every escape blocked (47) is a capture, and the concession is
+        # automatic and sealed, with no strategy input in the path (the same
+        # predicate our cop and referee already consume; the peer thief was the
+        # one consumer missing — the Round-20 warm-up defect). The concede rides
+        # the existing mandatory caught-final shape on our next turn.
+        if (
+            session.role == "thief"
+            and not session.caught
+            and (
+                tuple(session.position) in session.board.barriers
+                or is_imprisoned(session.board, session.position)
+            )
+        ):
+            session.caught = True
+            session.pending_claim_response = {"claim": list(session.position), "caught": True}
     # PRD_belief §4 pipeline (reference order): predict, then sharpen with the scent.
     session.belief.predict()
     # M7-18: a declared claim names the sender's post-move cell exactly, so it lands
