@@ -46,18 +46,26 @@ def make_summary(
     steps: int = 2,
     tokens_total: int = 0,
     audit_passed: bool = True,
+    github_commit: str | None = None,
 ) -> dict[str, Any]:
-    """One reference-shaped per-sub-game summary (the M6-6 series runner's contract)."""
+    """One reference-shaped per-sub-game summary (the M6-6 series runner's contract).
+
+    `github_commit=None` mirrors the reference's own step-0 payload (which omits the
+    key); a value mirrors OUR live seal (`live_spec_record` always includes it).
+    """
+    spec_payload: dict[str, Any] = {
+        "step": 0,
+        "type": "system_spec",
+        "spec": {"os": "TestOS 1.0", "cpu_type": "TestCPU"},
+        "model": "none",
+        "code_version": "1.00",
+        "group_name": role.title(),
+        "sub_game_number": sub_game_number,
+    }
+    if github_commit is not None:
+        spec_payload["github_commit"] = github_commit
     spec_record = {
-        "payload": {
-            "step": 0,
-            "type": "system_spec",
-            "spec": {"os": "TestOS 1.0", "cpu_type": "TestCPU"},
-            "model": "none",
-            "code_version": "1.00",
-            "group_name": role.title(),
-            "sub_game_number": sub_game_number,
-        },
+        "payload": spec_payload,
         "nonce": "aa" * 16,
         "commit": "bb" * 32,
     }

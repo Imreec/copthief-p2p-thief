@@ -55,14 +55,30 @@ def _roles(own_gid: str, opp_gid: str, own_role: str) -> dict[str, str]:
     return {own_gid: own_role, opp_gid: opp_role}
 
 
+def _own_commit(summary: dict[str, Any]) -> str:
+    """The commit hash our sealed step-0 recorded, or "unknown" without one.
+
+    M7-28: the book mandates the exact commit played per sub-game in the closing
+    email's JSON (ch.5 → §9.3.3); the reference's sample emits "unknown" — a
+    book-vs-reference contradiction resolved toward the book. The opponent column
+    is NOT ours to fill: their hash never crosses the wire today (proposed as a
+    negotiate-extras declaration; their own report carries theirs).
+    """
+    for record in summary.get("records", []):
+        payload = record.get("payload", {})
+        if payload.get("type") == "system_spec":
+            return str(payload.get("github_commit", "unknown"))
+    return "unknown"
+
+
 def subgame_entry(
     summary: dict[str, Any], game_id: str, own_gid: str, opp_gid: str, table: ScoringTable
 ) -> dict[str, Any]:
     """One sub-game's result row: roles, outcome, per-group score, audit verdict.
 
-    `github_commit` stays "unknown" for both sides until M6-3 wires the sealed
-    step-0 hashes through; opponent tokens are unknowable to this peer (their own
-    report carries them) — 0 mirrors the reference's stance.
+    Opponent tokens are unknowable to this peer (their own report carries them) —
+    0 mirrors the reference's stance. `log_files` uses the sample's flat filenames
+    (M7-28 — the M7-27 cross-team diff named our subdir prefix as the deviation).
     """
     roles = _roles(own_gid, opp_gid, summary["role"])
     n = summary["sub_game_number"]
@@ -76,12 +92,12 @@ def subgame_entry(
         "result": summary["result"],
         "winner_group": winner,
         "tie": winner is None,
-        "github_commit": {own_gid: "unknown", opp_gid: "unknown"},
+        "github_commit": {own_gid: _own_commit(summary), opp_gid: "unknown"},
         "tokens": {own_gid: summary["tokens_total"], opp_gid: 0},
         "score": subgame_score(summary["result"], roles, table),
         "log_files": {
-            own_gid: f"{own_gid}/{log_filename(game_id, n)}",
-            opp_gid: f"{opp_gid}/{log_filename(game_id, n)}",
+            own_gid: log_filename(game_id, n),
+            opp_gid: log_filename(game_id, n),
         },
         "audit": {"log_verified": passed, "tampered": not passed},
     }
