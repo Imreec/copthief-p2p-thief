@@ -80,13 +80,46 @@ def test_emit_series_subgame_rows_carry_commit_and_token_defaults(
     result = _emit(tmp_path, table, shared_terms)
     first = result["sub_games"][0]
     assert first["roles"] == {"team-a": "thief", "team-b": "police"}
-    assert first["github_commit"] == {"team-a": "unknown", "team-b": "unknown"}  # M6-3 fills ours
+    assert first["github_commit"] == {"team-a": "unknown", "team-b": "unknown"}  # no sealed hash
     assert first["tokens"] == {"team-a": 0, "team-b": 0}
-    assert first["log_files"]["team-a"] == "team-a/log_team-a-vs-team-b_g01.json"
+    assert first["log_files"]["team-a"] == "log_team-a-vs-team-b_g01.json"  # sample-flat (M7-28)
     assert first["score"] == {"team-a": 5, "team-b": 20}
     second = result["sub_games"][1]
     assert second["roles"] == {"team-a": "police", "team-b": "thief"}
     assert second["score"] == {"team-a": 5, "team-b": 10}
+
+
+def test_emit_series_fills_our_own_github_commit_from_the_sealed_step0(
+    tmp_path: Path, table: ScoringTable, shared_terms: dict[str, Any]
+) -> None:
+    """M7-28: the book mandates the exact commit played per sub-game in the closing
+    email's JSON (ch.5 -> s9.3.3); our sealed step-0 already records it, so the result
+    row reads it from there. The opponent column stays "unknown" until the proposed
+    commit-in-negotiate declaration is agreed (their own report carries theirs)."""
+    sha = "ab" * 20
+    summaries = [
+        make_summary(sub_game_number=1, role="thief", github_commit=sha),
+        make_summary(
+            sub_game_number=2,
+            role="police",
+            result="survival",
+            winner="thief",
+            github_commit=sha,
+        ),
+    ]
+    result = emit_series(
+        summaries=summaries,
+        own_identity=make_identity("team-a", 8801),
+        opponent_identity=make_identity("team-b", 8802),
+        game_id="team-a-vs-team-b",
+        game_uid="uid-1",
+        shared_terms=shared_terms,
+        terms={"rules": {"max_steps": 35}},
+        table=table,
+        out_root=tmp_path,
+    )
+    for row in result["sub_games"]:
+        assert row["github_commit"] == {"team-a": sha, "team-b": "unknown"}
 
 
 def test_artifact_bytes_are_lf_utf8_indent2_without_trailing_newline() -> None:
