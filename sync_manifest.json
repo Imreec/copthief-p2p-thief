@@ -139,7 +139,7 @@
     "src/copthief_core/strategy/profiling.py": "98e7f41cc8eafca8e57751c3c71f5d8a0b4c4b8890a63593082aea20afd2e79b",
     "src/copthief_core/strategy/referee.py": "db9928fcdc016c44bcdecb86ead5e0e301edcbfa74f4b47be65b4f7701e95a89",
     "src/copthief_core/strategy/referee_claims.py": "2c1b7121575ac1473ff2869d880683d0e6787d0c9d244427de0d0b862ddf2773",
-    "src/copthief_core/strategy/referee_obs.py": "4524def674de038bc26e9ffdc87fdae7ad4a6585393e3e5405189ae6e87f5118",
+    "src/copthief_core/strategy/referee_obs.py": "99493a45e205c659bb02f97decdaafddb927c0265267c262f135ddcfc3fa9e54",
     "src/copthief_core/strategy/referee_setup.py": "8eb0f0c0af04725db8a2f2441b167f9c426dc357f2ba51bc0204557e6c44066a",
     "src/copthief_core/strategy/reference_brains.py": "fb4bd0d55210812ed52552a1e5370aba0e5a56a793e77f5f2cc3efb6d3789968",
     "src/copthief_core/strategy/region.py": "bd4d31db314a78cfb65a61b1d9935972f89bf3f12ff13dc154ade5b9729fa0d2",
@@ -294,13 +294,14 @@
     "tests/unit/strategy/test_hints.py": "67d309c0bd4efde65d86d775bd248d640271d1e6e210e9e7e66da0bc93141b10",
     "tests/unit/strategy/test_info_feed.py": "439f09f05fb8068634003b0898cb8dadc055b7eff9a36af371e8bda5eedd7969",
     "tests/unit/strategy/test_profiling.py": "9a691c0e462ab6f16e8078f34a802686f0608679deef463190cac858a61c4783",
+    "tests/unit/strategy/test_referee_obs_quota.py": "333cb0396c9666d93252db08cce19a32f17f359c26430b3c543039376fa5cdbd",
     "tests/unit/strategy/test_referee_setup.py": "f8c96938919cf376183219952a3c039d38698b0e634f76d8ebc99a24e04bcc04",
     "tests/unit/strategy/test_reference_brains.py": "37c824cf8a20767306da5139afd4d394c3a6c6658891a5ae8b556075a9555b4d",
     "tests/unit/strategy/test_scenarios.py": "43772faa4d342138171422f5a3ed3a26acbb904c48c006ea909690f33a570d01",
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "ed0a999",
+  "source_commit": "e650af3",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "f9cf524b188878ba54f9c3fc63c67efa9f10705f21003a6fafecb94050bb9e5b"
+  "tree_hash": "d48c4c20b16ee8bc2a56844f4a62a646af9663cfb4ad709e8e519aa2d357fe56"
 }
