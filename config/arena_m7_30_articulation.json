@@ -1,0 +1,141 @@
+{
+  "version": "1.00",
+  "_comment": "M7-30 A/B on ONE gene: the deployed book-v1 overlay against itself with w_articulation zeroed, everything else byte-identical. Every cell is expected to TIE, and that is the point - referee mode builds the thief's Observation without the barrier quota (strategy/referee_obs.thief_observation), so the trap-awareness branch the gene weights can never fire in the instrument, while the live peer path fills both fields (peer/turns.py) and always fires it. A gate that cannot tell 8.93 from 0.0 also could not tell it from the 40.0 M7-16 shipped, which is how the gene drifted across two retunes as unmeasured live behaviour. This table is the evidence for the deployment question M7-30 puts to Imree: zeroing the gene is a tie the instrument certifies, and the ONLY value at which instrument and wire provably agree - it is not justified by a win, because no win on this gene is measurable here at all. The real fix is police-lead (referee_obs carrying the quota).",
+  "police_roster": [
+    {
+      "name": "ref-police",
+      "spec": "ref-police"
+    },
+    {
+      "name": "greedy-loud",
+      "spec": "greedy-manhattan"
+    },
+    {
+      "name": "random",
+      "spec": "random"
+    },
+    {
+      "name": "sealer-loud",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain"
+    },
+    {
+      "name": "sealer-quiet",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 2.0
+    },
+    {
+      "name": "sealer2-quiet",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 2.0
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-champion",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-champion-blind",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-zeroart",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-zeroart-blind",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "sealer-loud": {
+      "seal_max_exits": 3.0
+    },
+    "sealer-quiet": {
+      "seal_max_exits": 3.0
+    },
+    "sealer2-quiet": {
+      "seal_max_exits": 2.0
+    },
+    "thief-champion": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 8.928429525952911,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    },
+    "thief-champion-blind": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 8.928429525952911,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    },
+    "thief-zeroart": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 0.0,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    },
+    "thief-zeroart-blind": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 0.0,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    }
+  },
+  "evidence_out": "docs/evidence/m7-30-gate-articulation.md",
+  "scent_model": "multiplicative_book_v1"
+}

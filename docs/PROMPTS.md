@@ -3,6 +3,46 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR #61 — m7-30-thief-vs-walling (the retune that did not work, and why it could not)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** after the warm-up lost s1/s3/s5 to corner seals, retune the thief
+  against walling cops — probe first, add a walling arm to the pool without replacing
+  anything, and gate against the deployed M7-21 overlay on every arm.
+- **Outcome:** **null result on the retune; a real defect found instead.** The probe was
+  meant to size the headroom and instead overturned the premise: the gene the retune was
+  supposed to raise, `w_articulation`, cannot be seen by the arena at all — referee mode
+  builds the thief's Observation without the barrier quota, so its trap branch never fires,
+  while the live peer path always fires it. Values a decade apart produce bit-identical
+  games. The GA improved pool fitness 0.615 → 0.828 and still lost the gate, on the one arm
+  the milestone was aimed at. Nothing deployed; `game.toml` untouched.
+- **The uncomfortable part, stated rather than buried:** this means M7-21's own published
+  headline — `w_articulation` "falling from the box ceiling 40.0 to 8.93" — was free drift
+  the instrument could not score, and it changed how the agent plays for real. Our own prior
+  evidence needed correcting, so it is corrected in the same document that found it.
+- **Discipline note:** three temptations refused. (a) Tuning on the broken instrument
+  anyway — it would have produced a shippable-looking vector measuring a fiction. (b)
+  Re-rolling the GA after seeing the gate fail — the gate is not a training target, and a
+  pool chosen to clear it would be exactly that. (c) Deploying on the aggregate (2220 v
+  2200, better on three arms) — beat-or-tie means every arm, and the arm it lost is the
+  quiet waller, the closest model of the cop that actually beat us.
+- **Scope honesty:** the fix the finding calls for is in mirrored core, which this repo may
+  not edit, so it is named as a police-lead follow-up rather than quietly worked around. The
+  one deployment question that is thief-side (`w_articulation` → 0.0) is left undeployed and
+  put to Imree, because its justification is instrument↔wire agreement rather than a
+  measured win — and a gate that certifies a tie is not a mandate.
+- **Disclosed limit:** the probe measurements behind §1(a)–(d) of the evidence ran in a
+  scratchpad harness that patches core, so they are **not** reproducible from this tree.
+  Said so in the document rather than presenting them as repo-backed.
+- **At review (2026-08-02):** he verified the `referee_obs` / `brains.py` / `turns.py`
+  citations first-hand in both repos, answered the overlay question **no** (deployed weights
+  stay — the divergence closes by fixing the instrument, not by moving a weight the gate
+  cannot score), claimed the core fix as **M7-31** police-side, and required the dated
+  corrections to the M7-21 evidence and TODO entry before merge. Writing those found one
+  more error — **mine**: I had said M7-21's gate "rested on three informative arms, not
+  four", and its own generated tables show `random` was 32 v 32 as well, so it rested on
+  **two**. Corrected in both documents.
+
 ## PR #54 — m7-21-thief-retune-informed (the retune that actually worked)
 
 - **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).

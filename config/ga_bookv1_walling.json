@@ -1,0 +1,141 @@
+{
+  "version": "1.00",
+  "_comment": "M7-30 retune against WALLING cops. The 2026-08-01 warm-up lost s1/s3/s5 identically - our thief camped at (6,6) and the opponent cop spent 2 of its 14 barriers on the two gates (App E rules 46-47) - and with M7-29's self-concession those seals now settle as captures on the peer path too. POOL = the M7-21 mixture PLUS two sealing arms, never a replacement: the four information worlds stay exactly as they were so nothing already won can be traded away, and the sealers add the pressure the pool never had (measured: across the whole shipped pool the referee resolved ONE barrier capture and ZERO imprisonments in 224 games, and ref-police at a high barrier chance SELF-NEUTERS - walling forgoes the step, so our thief survives it 32/32). Quiet members follow the M7-21 convention: no claim_feed (the thief learns nothing) while their landings still resolve, which models a quiet cop as strong as a loud one and so understates our survival rather than flattering it. Seeds 401..432; the gate's 1..32 stay disjoint and untrained. TWO GENES ARE PINNED, deliberately - see below. Weights land in a SEPARATE artifact and deploy only via config review.",
+  "_comment_outcome": "NEGATIVE RESULT - this run's vector LOST the champion gate and is NOT deployed. It regresses against `sealer-quiet` (29 of 32 survivals against the champion's 30, in BOTH feed conditions - the quiet waller is the closest model of the cop that actually beat us) and, blind under reference physics, loses a whole arm to a plain chaser (0 of 32 against the champion's 8). CLAUDE.md s5 requires beat-or-tie on EVERY arm, so `config/ga_weights_bookv1_walling.json` is kept as a LABELLED negative-result artifact, the M7-20 precedent - never as a deployment candidate. Verdict and diagnosis: docs/evidence/m7-30-thief-vs-walling.md s4.",
+  "_comment_pinned_genes": "w_articulation is pinned to 0.0 because the INSTRUMENT CANNOT SEE IT: referee mode builds the thief's Observation without the barrier quota (strategy/referee_obs.thief_observation sets neither field, so the brain reads 0 < 0), while the live peer path fills both (peer/turns.py), so the trap-awareness branch is always live on the wire and never live in the arena. Pinned in tests/role/test_referee_articulation_gap.py: three values a decade apart produce byte-identical games. Leaving the gene free is what M7-16 and M7-21 did, and it drifted 40.0 -> 8.93 as pure noise that nonetheless changes how the agent plays for real. 0.0 is the one value at which instrument and wire provably agree, so it is the only value this instrument can honestly certify. The core fix (referee_obs carrying the quota) is police-lead and named as the follow-up. trap_size_fraction is pinned to its currently-deployed value for the same reason once removed: it feeds only the trap ceiling, which w_articulation = 0 switches off, so evolving it would emit a number that looks tuned and means nothing.",
+  "role": "thief",
+  "brain": "copthief_thief.brain:ThiefBrain",
+  "opponent": "ref-police",
+  "opponent_options": {
+    "ref_police_barrier_chance": 0.15
+  },
+  "opponent_pool": [
+    {
+      "spec": "ref-police",
+      "options": {
+        "ref_police_barrier_chance": 0.15
+      },
+      "claim_feed": "truth"
+    },
+    {
+      "spec": "ref-police",
+      "options": {
+        "ref_police_barrier_chance": 0.0
+      },
+      "claim_feed": "truth"
+    },
+    {
+      "spec": "greedy-manhattan"
+    },
+    {
+      "spec": "random"
+    },
+    {
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "options": {
+        "seal_max_exits": 3.0
+      },
+      "claim_feed": "truth"
+    },
+    {
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "options": {
+        "seal_max_exits": 2.0
+      }
+    }
+  ],
+  "scent_model": "multiplicative_book_v1",
+  "genes": {
+    "w_distance": [
+      0.5,
+      6.0
+    ],
+    "w_region": [
+      0.0,
+      3.0
+    ],
+    "w_articulation": [
+      0.0,
+      0.0
+    ],
+    "trap_size_fraction": [
+      0.20126612510301556,
+      0.20126612510301556
+    ],
+    "w_spread": [
+      0.0,
+      2.0
+    ],
+    "ramp_start_fraction": [
+      0.3,
+      0.95
+    ],
+    "ramp_multiplier": [
+      1.0,
+      5.0
+    ]
+  },
+  "run": {
+    "seed": 42,
+    "population": 16,
+    "generations": 12,
+    "elite_count": 2,
+    "tournament_size": 3,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [
+      401,
+      402,
+      403,
+      404,
+      405,
+      406,
+      407,
+      408,
+      409,
+      410,
+      411,
+      412,
+      413,
+      414,
+      415,
+      416,
+      417,
+      418,
+      419,
+      420,
+      421,
+      422,
+      423,
+      424,
+      425,
+      426,
+      427,
+      428,
+      429,
+      430,
+      431,
+      432
+    ],
+    "scenario_min_separation": 4
+  },
+  "smoke": {
+    "seed": 7,
+    "population": 4,
+    "generations": 3,
+    "elite_count": 1,
+    "tournament_size": 2,
+    "crossover_blend": 0.5,
+    "mutation_sigma": 0.15,
+    "mutation_rate": 0.35,
+    "fitness_seeds": [
+      501,
+      502,
+      503
+    ],
+    "scenario_min_separation": 4
+  },
+  "artifact_out": "config/ga_weights_bookv1_walling.json",
+  "evidence_out": "docs/evidence/m7-30-ga-walling.md"
+}

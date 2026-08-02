@@ -8,6 +8,46 @@
 > `m7-21-gate-reference.md`. Contrast with the cop-side attempt (`m7-20-*` in the police
 > repo), which failed its gate and did not ship.
 
+## 0. Dated correction — 2026-08-02 (M7-30)
+
+**Two claims below are corrected by a later measurement. The original text is preserved
+unchanged; read it against this section.** (Precedent: the M7-20 evidence hardening, police
+PR #83 — correct beside the original, never silently.)
+
+**(a) The §2 headline was not measurable by the instrument that produced it.**
+`w_articulation` is **inert in referee mode**: `strategy/referee_obs.thief_observation` sets
+neither `barriers_used` nor `max_barriers`, so `ThiefBrain`'s quota gate reads `0 < 0` and
+the trap-awareness branch never runs — while the live peer path fills both
+(`peer/turns.py`) and so always runs it. Values a decade apart produce **bit-identical**
+referee games, and a 768-game A/B on that one gene ties in every pairing row
+(`m7-30-gate-articulation.md`). The "collapse from the box ceiling 40.0 to 8.93" was
+therefore **free drift the GA could not score, not a finding** — and §2's explanation of
+*why* an informed evader should want less anti-cornering machinery, however plausible, is
+supported by nothing measured here. `trap_size_fraction` is inert for the same reason: it
+feeds only the trap ceiling, inside that same dead branch.
+
+**What still stands:** the fitness gain and the gate win are real. They are attributable to
+the four genes the instrument *can* see — `ramp_multiplier` 2.48 → 3.55, `w_distance`
+3.60 → 4.56, `w_region` 2.20 → 2.03, `w_spread` 2.00 → 1.78.
+
+**What it cost:** the overlay deployed here carries `w_articulation` 8.93 where M7-16
+carried 40.0. That difference is live on the wire and has never been measured. Closing it is
+**M7-31** (police-lead: `referee_obs` must carry the barrier quota the peer path passes).
+
+**(b) "Better or equal on EVERY arm" rested on TWO arms, not four.** In §3's book-v1 table,
+`greedy-quiet` is a **dead column by construction**: `claim_threshold` 2.0 means it never
+declares, the book's scoring table 2 makes a landing capture conditional on that
+declaration, and `greedy-manhattan` places no barriers — so it has no other capture form and
+returns 32/32 to any thief whatsoever. `random` returned 32 v 32 as well (the M7-20
+"`random` discriminates 0.000" observation). Only **`ref-police` (30 v 21)** and
+**`greedy-loud` (30 v 21)** separated the two candidates. The reference table in §3 is the
+same shape: `random` is 32/32/32 and two arms carry the comparison.
+
+So §5's caveat "four modelled cop worlds are not the league" was too generous to itself —
+two of the four were not modelling a threat at all. And neither the pool nor the gate
+contained a cop that captures by **barrier or imprisonment**: see
+`m7-30-thief-vs-walling.md` for that threat class, and for what happened when it was added.
+
 ## 1. Diagnose before spending the run
 
 The cop-side M7-20 run burned a full GA on a pool that could not resolve its own candidates.
@@ -27,6 +67,9 @@ worlds a probe vector reached **1.000** survival while the deployed vector sat a
 is what justified spending the run.
 
 ## 2. What the GA found, and why it makes sense
+
+> ⚠ **Corrected 2026-08-02 — see §0(a). The `w_articulation` headline below was not
+> measurable by this instrument.** Original text preserved.
 
 Fitness (mean survival across the pool, seeds 401–432): **0.602 → 0.805**.
 
@@ -49,6 +92,10 @@ Note the evolved `w_articulation` (8.93) lands close to the **base** reference-t
 physics made the scent trail informative. Two different routes to "don't over-think it".
 
 ## 3. The gate says yes — in both physics
+
+> ⚠ **Corrected 2026-08-02 — see §0(b). "Better or equal on every arm" rested on two
+> informative arms; `greedy-quiet` and `random` tie by construction/in fact.** Original
+> text preserved.
 
 Held-out seeds 1–32, disjoint from the GA's 401–432. Both thief candidates read claims
 (what M7-18 deployed), against a **mixture** of cop worlds including a **quiet** cop

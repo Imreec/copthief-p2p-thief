@@ -1,0 +1,172 @@
+{
+  "version": "1.00",
+  "_comment": "M7-30 champion gate under REFERENCE physics - the CLAUDE.md s5 no-regression half: a vector tuned for book-v1 must not lose to the champion in the physics it was not tuned for. Carries thief-base-deployed, the BASE [strategy.thief] table that actually plays here, so the gate can answer 'should the base change too?' rather than comparing two book-v1 vectors in a world neither was tuned for. Police roster spans BOTH threat axes: chasers (which capture by landing) and SEALERS (which capture by barrier and imprisonment, App E rules 46-47). `quiet` arms carry claim_threshold 2.0, so they never declare - which denies our thief the M7-18 claim channel AND forfeits their own landing captures (scoring table 2). That makes `greedy-quiet` a DEAD COLUMN by construction (a chaser that forfeits every landing and places no barriers can never win: 32/32 to any thief) - it is kept only for continuity with the M7-21 gate and proves nothing. The quiet SEALERS are the arms that matter: going silent costs a walling cop nothing, which is the M7-19 finding read from the other side, and it is the shape of the opponent that beat us on 2026-08-01. Thief rows come in informed/blind pairs so the M7-21 caveat - the gain is conditional on the cop declaring - is measured rather than assumed. Held-out seeds 1..32, disjoint from the GA's 401..432. champion_pin null: a measurement, the CI gate is arena_champion.json.",
+  "police_roster": [
+    {
+      "name": "ref-police",
+      "spec": "ref-police"
+    },
+    {
+      "name": "greedy-loud",
+      "spec": "greedy-manhattan"
+    },
+    {
+      "name": "random",
+      "spec": "random"
+    },
+    {
+      "name": "greedy-quiet",
+      "spec": "greedy-manhattan",
+      "claim_threshold": 2.0
+    },
+    {
+      "name": "sealer-loud",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain"
+    },
+    {
+      "name": "sealer-quiet",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 2.0
+    },
+    {
+      "name": "sealer2-quiet",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 2.0
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-champion",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-champion-blind",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-m7-30",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-m7-30-blind",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-base-deployed",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-base-deployed-blind",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "sealer-loud": {
+      "seal_max_exits": 3.0
+    },
+    "sealer-quiet": {
+      "seal_max_exits": 3.0
+    },
+    "sealer2-quiet": {
+      "seal_max_exits": 2.0
+    },
+    "thief-champion": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 8.928429525952911,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    },
+    "thief-champion-blind": {
+      "ramp_multiplier": 3.546170631626467,
+      "ramp_start_fraction": 0.3,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 8.928429525952911,
+      "w_distance": 4.562212626629817,
+      "w_region": 2.030098462268734,
+      "w_spread": 1.7843591354096908
+    },
+    "thief-m7-30": {
+      "ramp_multiplier": 2.907394487582632,
+      "ramp_start_fraction": 0.34417445543359815,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 0.0,
+      "w_distance": 2.9458345191488204,
+      "w_region": 0.028115724803855012,
+      "w_spread": 0.0
+    },
+    "thief-m7-30-blind": {
+      "ramp_multiplier": 2.907394487582632,
+      "ramp_start_fraction": 0.34417445543359815,
+      "trap_size_fraction": 0.20126612510301556,
+      "w_articulation": 0.0,
+      "w_distance": 2.9458345191488204,
+      "w_region": 0.028115724803855012,
+      "w_spread": 0.0
+    },
+    "thief-base-deployed": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
+    },
+    "thief-base-deployed-blind": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
+    }
+  },
+  "evidence_out": "docs/evidence/m7-30-gate-reference.md"
+}
