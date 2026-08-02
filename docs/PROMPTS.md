@@ -34,6 +34,14 @@
 - **Disclosed limit:** the probe measurements behind §1(a)–(d) of the evidence ran in a
   scratchpad harness that patches core, so they are **not** reproducible from this tree.
   Said so in the document rather than presenting them as repo-backed.
+- **At review (2026-08-02):** he verified the `referee_obs` / `brains.py` / `turns.py`
+  citations first-hand in both repos, answered the overlay question **no** (deployed weights
+  stay — the divergence closes by fixing the instrument, not by moving a weight the gate
+  cannot score), claimed the core fix as **M7-31** police-side, and required the dated
+  corrections to the M7-21 evidence and TODO entry before merge. Writing those found one
+  more error — **mine**: I had said M7-21's gate "rested on three informative arms, not
+  four", and its own generated tables show `random` was 32 v 32 as well, so it rested on
+  **two**. Corrected in both documents.
 
 ## PR #54 — m7-21-thief-retune-informed (the retune that actually worked)
 

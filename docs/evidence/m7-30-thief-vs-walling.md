@@ -141,10 +141,18 @@ distance function — sharper against cops it can see, and predictable to a chas
 `greedy-quiet` (M7-21's gate carried it, and so does this one for continuity) is a **dead
 column by construction**: `claim_threshold` 2.0 means it never declares, the book's scoring
 table 2 makes a landing capture conditional on the declaration, and a chaser that places no
-barriers has no other capture form — so it returns 32/32 to any thief whatsoever. M7-21's
-"124/128, better-or-equal on every arm" therefore rested on three informative arms, not
-four. `sealer2-quiet` is the same story for a different reason (its exit ceiling of 2
-rarely triggers). This is M7-20's `random`-discriminates-0.000 finding, twice more.
+barriers has no other capture form — so it returns 32/32 to any thief whatsoever.
+
+Checked against M7-21's own generated tables rather than asserted: its book-v1 gate had
+`greedy-quiet` at 32 v 32 **and `random` at 32 v 32**, so its "124/128, better-or-equal on
+every arm" was carried by exactly **two** arms — `ref-police` (30 v 21) and `greedy-loud`
+(30 v 21). Its reference gate is the same shape. `sealer2-quiet` here is a third instance
+for a different reason (its exit ceiling of 2 rarely triggers). That is M7-20's
+`random`-discriminates-0.000 finding recurring three times, and it is why this milestone's
+gate runs seven arms in two feed conditions rather than four.
+
+The dated correction is written into `m7-21-informed-thief.md` §0 and the TODO M7-21 entry
+beside their original text (M7-20/#83 precedent), not only here.
 
 The quiet **sealers** are the arms that matter: going silent costs a walling cop nothing,
 because the barrier and imprisonment forms are never claim-gated. That is the M7-19 finding
@@ -152,18 +160,19 @@ read from the opponent's side, and it is the shape of the cop that beat us.
 
 ## 6. Open decision, and the follow-up that is not ours to make here
 
-**For Imree — `w_articulation` on the book-v1 overlay.** The instrument certifies a tie:
-768 games, every cell identical between 8.93 and 0.0. Zeroing it is therefore **not
-justified by a win** — no win on that gene is measurable in this tree at all. It is
-justified by *agreement*: 0.0 is the only value at which the arena and the wire provably
-do the same thing, so it is the only value the gate can honestly stand behind. The
-scratchpad measurements in §1 point the same way (the deployed value is a net negative on
-the wire-aligned instrument), but they are not reproducible here, so they are support and
-not the argument. Left undeployed pending his word.
+**`w_articulation` on the book-v1 overlay — ANSWERED 2026-08-02: NO, the deployed weights
+stay as they are.** The question put to Imree was whether to zero it. The instrument
+certifies a tie (768 games, every cell identical between 8.93 and 0.0), so zeroing it was
+**not justified by a win** — no win on that gene is measurable in this tree at all — only by
+*agreement*: 0.0 is the only value at which arena and wire provably do the same thing. The
+scratchpad measurements in §1 pointed the same way but are not reproducible here, so they
+were support and not the argument. **His decision: no change.** The overlay keeps 8.93, and
+the live-versus-measured divergence it carries is closed by fixing the instrument (M7-31)
+rather than by moving a weight the gate cannot score.
 
-**Follow-up, police-lead (mirrored core, not editable from this repo):**
-`referee_obs.thief_observation` should carry the barrier quota the peer path already
-passes. Until it does, no thief retune can tune trap-awareness, and
+**Follow-up — M7-31, police-lead (mirrored core, not editable from this repo), claimed:**
+`referee_obs.thief_observation` must carry the barrier quota the peer path already passes.
+Until it does, no thief retune can tune trap-awareness, and
 `test_referee_mode_cannot_see_the_gene` is expected to go red the moment it lands — it
 should be deleted by the same commit.
 
