@@ -22,13 +22,22 @@ def thief_observation(
     trail: ScentField,
     gazetteer: Gazetteer | None,
 ) -> Observation:
-    """The thief's view before its move (referee loop, first half of the turn)."""
+    """The thief's view before its move (referee loop, first half of the turn).
+
+    M7-31: carries the barrier quota exactly as the wire does (`peer/turns.py` fills
+    both fields for every role) — `barriers_used` is the agent's OWN placement count,
+    0 for a thief. Without these the Observation defaults made ThiefBrain's quota
+    gate read `0 < 0`, so its whole trap branch was dead in the instrument while
+    always live on the wire (the M7-30 finding: M7-21's headline gene was drift).
+    """
     return Observation(
         board=board,
         position=position,
         move_set=constitution.movement.move_set,
         role="thief",
         step=step,
+        barriers_used=0,
+        max_barriers=constitution.movement.max_barriers,
         survival_threshold=constitution.movement.survival_threshold,
         max_moves=constitution.movement.max_moves,
         gazetteer=gazetteer,
