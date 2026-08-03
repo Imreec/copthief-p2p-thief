@@ -134,7 +134,11 @@ def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
         "role",
     }
     # F8b (observed live): the reference's declaration writer group_block() KeyErrors
-    # unless the identity carries all seven reference keys.
+    # unless the identity carries all seven reference keys. M7-35 (Round 23) adds
+    # `counted_games_played` (book §9.2.1 mutual declarations) and `github_commit`
+    # (the two-channel rule — sourced from the sealed step-0 this session carries, so
+    # negotiate and step-0 agree by construction); same safety argument as every
+    # extra: the reference dereferences only its seven, extras are ignored.
     assert set(payload["identity"]) == {
         "group_id",
         "group_name",
@@ -142,6 +146,8 @@ def test_negotiate_payload_carries_the_reference_identity_shape() -> None:
         "repos",
         "mcp_servers",
         "llm_model",
+        "counted_games_played",
+        "github_commit",
         "spec",
     }
     assert payload["identity"]["group_id"] == PRIVATE.group_id

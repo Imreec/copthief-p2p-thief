@@ -76,3 +76,27 @@ def test_live_spec_record_falls_back_to_the_runner_for_builtin_brains() -> None:
 def test_live_spec_record_without_a_role_keeps_the_historical_value() -> None:
     record = live_spec_record(PRIVATE, CONSTITUTION, sub_game_number=1)
     assert record.payload["github_commit"] == current_commit_hash()
+
+
+def test_handshake_identity_declares_count_and_step0_commit() -> None:
+    """M7-35 (Round 23): the wire identity carries the game-count declaration AND the
+    commit — the opponent team's two-channel rule: negotiate declares in plaintext
+    what step-0 seals, sourced FROM the sealed record so they agree by construction
+    (a mismatch between a peer's own channels is itself a finding)."""
+    from copthief_core.peer.sealing import live_spec_record
+    from copthief_core.peer.session import PeerSession
+
+    spec = live_spec_record(_SHIPPED, CONSTITUTION, sub_game_number=1, role="police")
+    session = PeerSession(CONSTITUTION, _SHIPPED, role="police", seed=1, spec_record=spec)
+    identity = session.negotiate_payload()["identity"]
+    assert identity["counted_games_played"] == _SHIPPED.counted_games_played
+    assert identity["github_commit"] == spec.payload["github_commit"]
+
+
+def test_handshake_identity_omits_the_commit_without_a_sealed_record() -> None:
+    from copthief_core.peer.session import PeerSession
+
+    session = PeerSession(CONSTITUTION, _SHIPPED, role="thief", seed=2)
+    identity = session.negotiate_payload()["identity"]
+    assert "github_commit" not in identity  # never invented (dev sessions seal none)
+    assert identity["counted_games_played"] == 0

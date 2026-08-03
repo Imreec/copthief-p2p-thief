@@ -80,7 +80,11 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
         registry.declared_key(INFO_MODE): session.info_mode_hash,
         # F8b: all seven keys the reference's declaration writer dereferences; the
         # spec comes from OUR sealed step-0 record (M6-3) so the identity we hand the
-        # opponent and the declaration we seal can never disagree.
+        # opponent and the declaration we seal can never disagree. M7-35 (Round 23,
+        # the opponent team's two-channel rule): the identity also declares our
+        # game-count (book §9.2.1 mutual declarations) and, when a step-0 exists,
+        # the commit it seals — negotiate says in plaintext what step-0 proves, from
+        # the SAME record, so our two channels agree by construction.
         "identity": {
             "group_id": session.private.group_id,
             "group_name": session.private.group_name,
@@ -88,8 +92,15 @@ def negotiate_payload(session: PeerSession) -> dict[str, Any]:
             "repos": dict(session.private.repos),
             "mcp_servers": dict(session.private.mcp_servers),
             "llm_model": session.private.llm_model,
+            "counted_games_played": session.private.counted_games_played,
             "spec": (
                 session.spec_record.payload["spec"] if session.spec_record is not None else {}
+            ),
+            **(
+                {"github_commit": session.spec_record.payload["github_commit"]}
+                if session.spec_record is not None
+                and "github_commit" in session.spec_record.payload
+                else {}
             ),
         },
     }
