@@ -20,6 +20,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from copthief_core.domain.step_zero import revealed_commit
+
 __all__ = ["SummaryRebuildError", "summary_from_log"]
 
 _WINNERS = {"capture": "police", "survival": "thief"}
@@ -82,6 +84,12 @@ def summary_from_log(
         "started_at": _started_at(events),
         "duration_seconds": duration_seconds,
         "tokens_total": tokens_total,
+        # M7-36: their revealed step-0's commit, read from the archived audit_received
+        # exactly as the live path reads it at settlement (domain/step_zero) — the
+        # 16:00 window proved only the in-memory path knew the field.
+        "opponent_github_commit": revealed_commit(
+            list((_last(events, "audit_received") or {}).get("raw", {}).get("records", []))
+        ),
         "audit": {
             "passed": bool(settled.get("audit_ok")),
             "verified_steps": len(history) if settled.get("audit_ok") else 0,
