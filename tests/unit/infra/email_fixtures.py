@@ -30,17 +30,41 @@ class FakeTransport:
         self.sends: list[dict[str, Any]] = []
 
     def create_draft(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         self.drafts.append(
-            {"to": tuple(to), "subject": subject, "body": body, "attachment": attachment_name}
+            {
+                "to": tuple(to),
+                "subject": subject,
+                "body": body,
+                "attachment": attachment_name,
+                "extra": list(extra_attachments),
+            }
         )
 
     def send(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         self.sends.append(
-            {"to": tuple(to), "subject": subject, "body": body, "attachment": attachment_name}
+            {
+                "to": tuple(to),
+                "subject": subject,
+                "body": body,
+                "attachment": attachment_name,
+                "extra": list(extra_attachments),
+            }
         )
 
 

@@ -18,7 +18,8 @@ from typing import Any
 
 from copthief_core.domain.crypto import series_game_id
 from copthief_core.domain.terms import terms_from_config
-from copthief_core.infra.email_sender import EmailTransport, build_report_sender
+from copthief_core.infra.email_build import build_report_sender
+from copthief_core.infra.email_sender import EmailTransport
 from copthief_core.peer.match import _locked_log
 from copthief_core.peer.sealing import live_spec_record
 from copthief_core.peer.series import run_peer_series

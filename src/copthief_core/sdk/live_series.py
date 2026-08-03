@@ -26,11 +26,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from copthief_core.domain.crypto import series_game_id
+from copthief_core.infra.email_build import build_report_sender
 from copthief_core.infra.email_sender import (
     EmailSender,
     EmailTransport,
     ReportUndeliverableError,
-    build_report_sender,
 )
 from copthief_core.peer.series import opposite_role
 from copthief_core.report.schemas import result_filename
