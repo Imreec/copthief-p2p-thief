@@ -116,11 +116,30 @@ def opponent_identity_from_logs(logs: list[Path], opponent_group: str) -> dict[s
         "repos": dict(declared.get("repos", {})),
         "mcp_servers": dict(declared.get("mcp_servers", {})),
         "llm_model": str(declared.get("llm_model", "")),
-        "spec": dict(declared.get("spec", {})),
+        "spec": _spec_from(declared),
         # M7-34: their game-count declaration; None when they declared none (never
         # invented — the league fields fall back to 0-played, the honest floor).
         "counted_games_played": int(count) if count is not None else None,
     }
+
+
+def _spec_from(declared: dict[str, Any]) -> dict[str, Any]:
+    """The hardware spec under EITHER wire spelling (M7-38 — the 16:00 nulls).
+
+    Ours ships `spec` (reference F8b, sysinfo key names); the opponent team ships
+    `hardware_spec` (the book-attached declaration shape, `gpu_model`). Accept both,
+    remapped to the sysinfo names downstream expects — their real values must reach
+    our declaration, and absence stays empty rather than invented.
+    """
+    if declared.get("spec"):
+        return dict(declared["spec"])
+    declaration_shaped = declared.get("hardware_spec")
+    if not isinstance(declaration_shaped, dict):
+        return {}
+    remapped = dict(declaration_shaped)
+    if "gpu_model" in remapped:
+        remapped["gpu_type"] = remapped.pop("gpu_model")
+    return remapped
 
 
 def _game_uid(logs: list[Path]) -> str:

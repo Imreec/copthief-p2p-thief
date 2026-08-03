@@ -116,3 +116,35 @@ def test_opponent_identity_capture_passes_the_declared_count_through(
 def test_private_settings_carry_the_league_ledger_defaults() -> None:
     assert SHIPPED.counted_games_played == 0
     assert SHIPPED.counted_opponents == ()
+
+
+def test_opponent_identity_reads_the_declaration_shaped_hardware_key(
+    tmp_path: Path,
+) -> None:
+    """M7-38 (the 16:00 nulls, solved): their identity ships `hardware_spec` in the
+    book-attached declaration shape; ours ships `spec` in the reference F8b shape.
+    The reader accepts both — declaration-shaped keys are remapped to the sysinfo
+    names downstream expects (gpu_model -> gpu_type), so their real values reach our
+    declaration instead of nulls. Never invented: absent stays empty."""
+    log = tmp_path / "g01.jsonl"
+    event = {
+        "event": "agreement_received",
+        "raw": {
+            "identity": {
+                "group_id": "team-b",
+                "hardware_spec": {
+                    "cpu_type": "TestCPU",
+                    "cpu_freq_mhz": 3418,
+                    "cpu_cores": 24,
+                    "ram_gb": 32,
+                    "gpu_model": "TestGPU",
+                    "vram_gb": 24,
+                },
+            }
+        },
+    }
+    log.write_text(json.dumps(event) + "\n", encoding="utf-8", newline="\n")
+    captured = opponent_identity_from_logs([log], "team-b")
+    assert captured["spec"]["gpu_type"] == "TestGPU"
+    assert captured["spec"]["cpu_freq_mhz"] == 3418
+    assert captured["spec"]["vram_gb"] == 24
