@@ -39,6 +39,7 @@ def series_artifact_from_logs(
     out_root: Path,
     opponent_identity: dict[str, Any] | None = None,
     durations: dict[int, float] | None = None,
+    counted: bool = False,
 ) -> dict[str, Any]:
     """Write the whole-series artifact set from `logs` in sub-game order (Input: one
     settled log per sub-game + the signed constitution + our private identity + how long
@@ -74,6 +75,11 @@ def series_artifact_from_logs(
         terms=terms_from_config(constitution),
         table=constitution.scoring,
         out_root=out_root,
+        counted=counted,
+        # M7-34: one counted game per pair (book §9.2.1), so the ledger of counted
+        # opponents decides the first-meeting flag; the default empty ledger reads
+        # "no counted game against anyone yet" — true until Imree records one.
+        first_meeting=opponent_group not in private.counted_opponents,
     )
 
 
@@ -102,6 +108,7 @@ def opponent_identity_from_logs(logs: list[Path], opponent_group: str) -> dict[s
             break
         if declared:
             break
+    count = declared.get("counted_games_played")
     return {
         "group_id": group_id,
         "group_name": str(declared.get("group_name", "")),
@@ -110,6 +117,9 @@ def opponent_identity_from_logs(logs: list[Path], opponent_group: str) -> dict[s
         "mcp_servers": dict(declared.get("mcp_servers", {})),
         "llm_model": str(declared.get("llm_model", "")),
         "spec": dict(declared.get("spec", {})),
+        # M7-34: their game-count declaration; None when they declared none (never
+        # invented — the league fields fall back to 0-played, the honest floor).
+        "counted_games_played": int(count) if count is not None else None,
     }
 
 

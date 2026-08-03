@@ -16,7 +16,7 @@ from copthief_core.domain.crypto import commit as crypto_commit
 from copthief_core.domain.crypto import make_nonce
 from copthief_core.shared.config_model import Constitution, PrivateSettings
 from copthief_core.shared.locked_models import SCENT_MODEL
-from copthief_core.shared.sysinfo import collect_spec, current_commit_hash
+from copthief_core.shared.sysinfo import collect_spec, commit_for_module, current_commit_hash
 
 
 def state_string(grid_size: int, position: Coord, barriers: frozenset[Coord]) -> str:
@@ -114,17 +114,40 @@ def seal_spec_record(
     return SealedTurn(payload=payload, nonce=nonce, commit=crypto_commit(payload, nonce))
 
 
+def _role_commit(private: PrivateSettings, role: str | None) -> str:
+    """The commit of the repo whose brain plays `role` (M7-33 role-aware provenance).
+
+    The book's example result shows commits varying per sub-game — a two-repo team's
+    thief games carry the thief repo's HEAD (the junction resolves its package from
+    that checkout). A builtin brain keyword ("random") has no module and plays from
+    the runner's checkout, so the runner's HEAD stays the honest value — as does any
+    resolution failure ("unknown" would under-claim what we DO know).
+    """
+    if role is None:
+        return current_commit_hash()
+    class_path = private.police_class if role == "police" else private.thief_class
+    if ":" not in class_path:
+        return current_commit_hash()
+    resolved = commit_for_module(class_path.split(":")[0].rsplit(".", 1)[0])
+    return resolved if resolved != "unknown" else current_commit_hash()
+
+
 def live_spec_record(
-    private: PrivateSettings, constitution: Constitution, *, sub_game_number: int | None = None
+    private: PrivateSettings,
+    constitution: Constitution,
+    *,
+    sub_game_number: int | None = None,
+    role: str | None = None,
 ) -> SealedTurn:
-    """The real host's step-0 record: probed spec + this checkout's HEAD + the signed
-    game-count. `sub_game_number` overrides the TOML value in a series (M6-6)."""
+    """The real host's step-0 record: probed spec + the played repo's HEAD + the
+    signed game-count. `sub_game_number` overrides the TOML value in a series
+    (M6-6); `role` selects the brain repo whose commit is sealed (M7-33)."""
     return seal_spec_record(
         spec=collect_spec(),
         model=private.llm_model,
         group_name=private.group_name,
         sub_game_number=private.sub_game_number if sub_game_number is None else sub_game_number,
-        github_commit=current_commit_hash(),
+        github_commit=_role_commit(private, role),
         num_games_declared=constitution.league.num_games,
         scent_model_sha256=private.locked_models.hash(SCENT_MODEL, private.scent_model),
     )

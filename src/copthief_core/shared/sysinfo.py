@@ -15,6 +15,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from functools import cache
+from pathlib import Path
 from typing import Any
 
 # Operational probe budget (not a game value): a hung external probe (nvidia-smi,
@@ -121,6 +122,36 @@ def current_commit_hash() -> str:
     def head() -> str:
         out = subprocess.run(
             ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=_PROBE_TIMEOUT_SECONDS,
+            check=True,
+        )
+        value = out.stdout.strip()
+        return value if len(value) == 40 else ""
+
+    result = _probe(head)
+    return result if isinstance(result, str) else "unknown"
+
+
+@cache
+def commit_for_module(module: str) -> str:
+    """HEAD of the git checkout that owns `module` (M7-33 role-aware provenance).
+
+    A two-repo team's thief games run brain code from the thief repo (junction on
+    PYTHONPATH), so "the exact commit played" is that repo's HEAD, not the runner's.
+    Resolves the module's file and asks git from its directory; "unknown" when the
+    module, its file, or a surrounding checkout cannot be resolved.
+    """
+
+    def head() -> str:
+        import importlib
+
+        source = getattr(importlib.import_module(module), "__file__", None)
+        if source is None:
+            return ""
+        out = subprocess.run(
+            ["git", "-C", str(Path(source).parent), "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             timeout=_PROBE_TIMEOUT_SECONDS,

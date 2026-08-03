@@ -84,6 +84,8 @@ def load_private_settings(
         group_id=str(game["group_id"]),
         sub_game_number=int(game["sub_game_number"]),
         members=tuple(str(m) for m in game.get("members", [])),
+        counted_games_played=int(game.get("counted_games_played", 0)),
+        counted_opponents=tuple(str(g) for g in game.get("counted_opponents", [])),
         repos={str(k): str(v) for k, v in game.get("repos", {}).items()},
         mcp_servers={str(k): str(v) for k, v in game.get("mcp_servers", {}).items()},
         llm_model=str(game.get("llm_model", "")),

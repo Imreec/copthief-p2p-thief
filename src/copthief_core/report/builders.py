@@ -124,10 +124,14 @@ def build_result(
     sub_games: list[dict[str, Any]],
     aggregate_out: dict[str, Any],
     mutual_sha256: str,
+    league: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Template 4: the aggregated final result; `confirmed` derives from every
-    sub-game's audit (never declared — PRD FR-11)."""
+    sub-game's audit (never declared — PRD FR-11). `league` = the M7-34 standings
+    fields (game-count declarations, first meeting, diversity reward), appended
+    AFTER the signed symmetric outcome is derived — they are per-side claims."""
     final_result = {**aggregate_out, "tokens_total_series": tokens_series(sub_games, group_ids)}
+    final_result.update(league or {})
     return {
         "_schema": SCHEMA_RESULT,
         "schema_version": SCHEMA_VERSION,

@@ -52,7 +52,7 @@ def _side(
             seed=base_seed + n,
             gazetteer=gazetteer,
             hint_trust=hint_trust,
-            spec_record=live_spec_record(private, constitution, sub_game_number=n),
+            spec_record=live_spec_record(private, constitution, sub_game_number=n, role=role),
         )
 
     return run_peer_series(

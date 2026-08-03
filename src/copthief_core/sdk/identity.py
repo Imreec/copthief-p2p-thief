@@ -20,4 +20,7 @@ def identity_block(private: PrivateSettings) -> dict[str, Any]:
         "mcp_servers": dict(private.mcp_servers),
         "llm_model": private.llm_model,
         "spec": collect_spec(),
+        # M7-34 (book §9.2.1): the mutual game-count declaration the diversity
+        # weighting reads — the opponent team's client already sends theirs.
+        "counted_games_played": private.counted_games_played,
     }
