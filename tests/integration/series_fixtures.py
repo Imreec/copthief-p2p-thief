@@ -104,17 +104,41 @@ class RecordingMail:
         self.fails_with = fails_with
 
     def send(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         if self.fails_with is not None:
             raise self.fails_with
         self.sends.append(
-            {"to": tuple(to), "subject": subject, "body": body, "attachment": attachment_name}
+            {
+                "to": tuple(to),
+                "subject": subject,
+                "body": body,
+                "attachment": attachment_name,
+                "extra": list(extra_attachments),
+            }
         )
 
     def create_draft(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         self.drafts.append(
-            {"to": tuple(to), "subject": subject, "body": body, "attachment": attachment_name}
+            {
+                "to": tuple(to),
+                "subject": subject,
+                "body": body,
+                "attachment": attachment_name,
+                "extra": list(extra_attachments),
+            }
         )

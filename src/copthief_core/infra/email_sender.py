@@ -13,8 +13,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Protocol
 
+from copthief_core.infra.evidence_set import evidence_set
 from copthief_core.report.email_interlock import decide_email_action
-from copthief_core.shared.config_model import EmailSettings, PrivateSettings, RateLimits
+from copthief_core.shared.config_model import EmailSettings
 from copthief_core.shared.gatekeeper import ApiGatekeeper
 
 
@@ -31,37 +32,24 @@ class EmailTransport(Protocol):
     """What the sender needs from a mail backend (GmailTransport or a test fake)."""
 
     def create_draft(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None: ...
 
     def send(
-        self, *, to: Sequence[str], subject: str, body: str, attachment_name: str | None = None
+        self,
+        *,
+        to: Sequence[str],
+        subject: str,
+        body: str,
+        attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None: ...
-
-
-def build_report_sender(
-    *,
-    private: PrivateSettings,
-    limits: RateLimits,
-    transport: EmailTransport | None = None,
-    lecturer_addressable: bool = False,
-) -> EmailSender:
-    """Assemble the report rail the one way (Input: the private settings carrying
-    `[email]`, the operational limits, and whether this run may address the lecturer;
-    Output: a sender whose gatekeeper holds the daily cap).
-
-    Extracted so the self-play series and the live series build the identical rail
-    (CLAUDE.md §1 #11): the quota is the signed daily cap, and `lecturer_addressable`
-    defaults closed so a caller that forgets cannot reach him (M7-9).
-    """
-    from copthief_core.shared.gatekeeper_build import build_gatekeeper
-
-    return EmailSender(
-        settings=private.email,
-        gatekeeper=build_gatekeeper("email", limits, quota_units=limits.email_daily_cap),
-        transport=transport,
-        lecturer_addressable=lecturer_addressable,
-    )
 
 
 def report_subject(result: dict[str, Any], role: str) -> str:
@@ -136,6 +124,7 @@ class EmailSender:
         raw = result_path.read_bytes()  # FileNotFoundError is the loud refusal
         result = json.loads(raw.decode("utf-8"))
         game_uid = str(result.get("game_uid", ""))
+        extras = evidence_set(result_path, str(result.get("game_id", "")))
         recipients = self._settings.recipient
         decision = decide_email_action(
             enabled=self._settings.enabled,
@@ -149,6 +138,9 @@ class EmailSender:
             "reason": decision.reason,
             "game_uid": game_uid,
             "recipients": list(recipients),
+            # M7-37: what actually rode, visible in every runner log — a thin mail is
+            # a loud finding, never a silent one.
+            "attachments": [name for name, _payload in extras] + [result_path.name],
         }
         if decision.action == "refuse":
             return outcome
@@ -160,5 +152,6 @@ class EmailSender:
             subject=report_subject(result, role),
             body=body,
             attachment_name=result_path.name,  # App E rule 34: attached JSON file
+            extra_attachments=extras,  # M7-37: the rest of the four-template set
         )
         return outcome

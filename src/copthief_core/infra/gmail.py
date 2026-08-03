@@ -44,12 +44,15 @@ class GmailTransport:
         subject: str,
         body: str,
         attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> str:
         """The base64url-encoded RFC-822 message Gmail's API expects (pure, no SDK).
 
         Input: recipients (joined into one `To` header — scope does not constrain their
-        count), subject, the artifact bytes as text, and the artifact filename when it
-        should also ride as an attachment. Output: the base64url string.
+        count), subject, the artifact bytes as text, the artifact filename when it
+        should also ride as an attachment, and the rest of the evidence set as
+        (filename, bytes) pairs (M7-37 — Moodle item 4's four-template mandate).
+        Output: the base64url string.
         """
         message = MIMEMultipart()
         message["To"] = ", ".join(to)
@@ -59,6 +62,10 @@ class GmailTransport:
         if attachment_name is not None:
             part = MIMEApplication(body.encode("utf-8"), _subtype="json")
             part.add_header("Content-Disposition", "attachment", filename=attachment_name)
+            message.attach(part)
+        for name, payload in extra_attachments:
+            part = MIMEApplication(payload, _subtype="json")
+            part.add_header("Content-Disposition", "attachment", filename=name)
             message.attach(part)
         return base64.urlsafe_b64encode(message.as_bytes()).decode()
 
@@ -91,10 +98,17 @@ class GmailTransport:
         subject: str,
         body: str,
         attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         """Park the report as a Gmail draft — retained for a compose-scoped token, and
         unreachable on the shipped send-only one (Gmail would refuse it)."""
-        raw = self.build_raw(to=to, subject=subject, body=body, attachment_name=attachment_name)
+        raw = self.build_raw(
+            to=to,
+            subject=subject,
+            body=body,
+            attachment_name=attachment_name,
+            extra_attachments=extra_attachments,
+        )
         service = self._service()
         service.users().drafts().create(userId="me", body={"message": {"raw": raw}}).execute()
 
@@ -105,8 +119,15 @@ class GmailTransport:
         subject: str,
         body: str,
         attachment_name: str | None = None,
+        extra_attachments: Sequence[tuple[str, bytes]] = (),
     ) -> None:
         """Deliver via the Gmail API — reachable only with a configured recipient."""
-        raw = self.build_raw(to=to, subject=subject, body=body, attachment_name=attachment_name)
+        raw = self.build_raw(
+            to=to,
+            subject=subject,
+            body=body,
+            attachment_name=attachment_name,
+            extra_attachments=extra_attachments,
+        )
         service = self._service()
         service.users().messages().send(userId="me", body={"raw": raw}).execute()
