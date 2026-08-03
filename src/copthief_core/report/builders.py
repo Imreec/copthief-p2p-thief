@@ -125,20 +125,25 @@ def build_result(
     aggregate_out: dict[str, Any],
     mutual_sha256: str,
     league: dict[str, Any] | None = None,
+    github: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Template 4: the aggregated final result; `confirmed` derives from every
     sub-game's audit (never declared — PRD FR-11). `league` = the M7-34 standings
     fields (game-count declarations, first meeting, diversity reward), appended
-    AFTER the signed symmetric outcome is derived — they are per-side claims."""
+    AFTER the signed symmetric outcome is derived — they are per-side claims.
+    `github` = both teams' cop+thief repo links (M7-39 — rule 49 + book p.96: the
+    game-end email's JSON carries all four; the opponent team's `links.github`
+    shape, concurred; book-above-examples since the samples lack the key)."""
     final_result = {**aggregate_out, "tokens_total_series": tokens_series(sub_games, group_ids)}
     final_result.update(league or {})
+    result_links: dict[str, Any] = {**links(game_id), "github": github or {}}
     return {
         "_schema": SCHEMA_RESULT,
         "schema_version": SCHEMA_VERSION,
         "report_type": "final_game_result",
         "game_id": game_id,
         "game_uid": game_uid,
-        "links": links(game_id),
+        "links": result_links,
         "timezone": DEFAULT_TIMEZONE,
         "groups": list(group_ids),
         "num_sub_games": len(sub_games),

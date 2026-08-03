@@ -13,7 +13,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Protocol
 
-from copthief_core.infra.evidence_set import evidence_set
 from copthief_core.report.email_interlock import decide_email_action
 from copthief_core.shared.config_model import EmailSettings
 from copthief_core.shared.gatekeeper import ApiGatekeeper
@@ -124,7 +123,6 @@ class EmailSender:
         raw = result_path.read_bytes()  # FileNotFoundError is the loud refusal
         result = json.loads(raw.decode("utf-8"))
         game_uid = str(result.get("game_uid", ""))
-        extras = evidence_set(result_path, str(result.get("game_id", "")))
         recipients = self._settings.recipient
         decision = decide_email_action(
             enabled=self._settings.enabled,
@@ -138,9 +136,13 @@ class EmailSender:
             "reason": decision.reason,
             "game_uid": game_uid,
             "recipients": list(recipients),
-            # M7-37: what actually rode, visible in every runner log — a thin mail is
-            # a loud finding, never a silent one.
-            "attachments": [name for name, _payload in extras] + [result_path.name],
+            # M7-40 (Round 29, supersedes M7-37's superset): the mail is result-only
+            # again — the chatbot's direct ruling, the reference's own emit_series
+            # ("returns the result for emailing") and pair symmetry with the opponent
+            # team, who flipped first. The other three template types stay visible in
+            # the REPOS (the agreed exit criterion), never in the mail. What rode
+            # stays visible in every runner log.
+            "attachments": [result_path.name],
         }
         if decision.action == "refuse":
             return outcome
@@ -152,6 +154,5 @@ class EmailSender:
             subject=report_subject(result, role),
             body=body,
             attachment_name=result_path.name,  # App E rule 34: attached JSON file
-            extra_attachments=extras,  # M7-37: the rest of the four-template set
         )
         return outcome

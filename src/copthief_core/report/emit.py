@@ -25,7 +25,7 @@ from copthief_core.report.builders import (
 )
 from copthief_core.report.consensus import consensus_signature
 from copthief_core.report.hebrew import build_report
-from copthief_core.report.league import league_facts
+from copthief_core.report.league import github_links, league_facts
 from copthief_core.report.schemas import (
     DEFAULT_TIMEZONE,
     config_filename,
@@ -166,8 +166,9 @@ def emit_series(
     league = league_facts(
         own_identity, opponent_identity, aggregate, counted=counted, first_meeting=first_meeting
     )
+    github = github_links(own_identity, opponent_identity)
     result = build_result(
-        game_id, game_uid, sorted([own_gid, opp_gid]), sub_games, aggregate, mutual, league
+        game_id, game_uid, sorted([own_gid, opp_gid]), sub_games, aggregate, mutual, league, github
     )
     validate_artifact("result", result)
     write_artifact(own_dir, result_filename(game_id), result)
