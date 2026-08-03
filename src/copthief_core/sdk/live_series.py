@@ -133,8 +133,13 @@ def run_live_series(
             opponent_group=opponent_group,
             out_root=out_root,
             durations=durations,
-            # M7-34: strict-rules mode IS the counted run (M7-9 governance axis).
-            counted=sdk.mode.strict_rules,
+            # M7-36 (the 16:00 window's false record): the league bump keys on
+            # COUNTED_SERIES, never on strict_rules — a rehearsal runs the full
+            # rulebook without counting ("a counted game minus the counting"), and
+            # handing this layer the RULES flag is exactly the confusion RunMode
+            # exists to remove (its own docstring). The 16:00 friendly artifact
+            # claimed a counted first meeting + a diversity reward because of it.
+            counted=sdk.mode.counted_series,
         )
     except SummaryRebuildError as problem:
         record["refused"] = "a sub-game never settled — the series has no honest report"

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from copthief_core.domain.state_machine import GameState
+from copthief_core.domain.step_zero import revealed_commit
 from copthief_core.peer import events
 from copthief_core.peer.audit_flow import build_audit, verify_audit, wire_result
 from copthief_core.peer.scent_check import emit_scent_physics
@@ -39,22 +40,13 @@ class PeerGameResult:
     # step-0) — the summary's `verified_steps` when the verification passed.
     opponent_records: int = 0
     # M7-33: the commit their revealed step-0 declared — the book's example result
-    # fills BOTH columns, and the step-0 record is its designed carrier.
+    # fills BOTH columns, and the step-0 record is its designed carrier. Read via
+    # domain/step_zero so the live path and the log rebuild can never disagree.
     opponent_github_commit: str = "unknown"
 
 
-def opponent_commit(records: list[dict[str, Any]]) -> str:
-    """The opponent's declared commit from their revealed records ("unknown" absent).
-
-    Reads both step-0 spellings — our/the reference's `system_spec` and the book
-    example's `step_zero` — the field is what matters, not the label.
-    """
-    for record in records:
-        payload = record.get("payload", {})
-        if isinstance(payload, dict) and payload.get("type") in ("system_spec", "step_zero"):
-            value = payload.get("github_commit")
-            return str(value) if value else "unknown"
-    return "unknown"
+# Re-exported name (M7-36 moved the reader to domain/ so report/ may share it).
+opponent_commit = revealed_commit
 
 
 def validate_opponent_audit(

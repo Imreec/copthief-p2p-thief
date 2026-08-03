@@ -123,3 +123,39 @@ def test_a_sub_game_that_left_no_log_at_all_refuses_the_same_way(tmp_path: Path)
     is the emptiest case of the same fact — this game has no honest summary."""
     with pytest.raises(SummaryRebuildError, match="no log"):
         summary_from_log(tmp_path / "never_written.jsonl", sub_game_number=1, group_name="G")
+
+
+def test_the_opponents_revealed_step_zero_commit_is_read(tmp_path: Path) -> None:
+    """M7-36: the 16:00 window emitted "unknown" opponent commits while the driver had
+    them — the live path rebuilds summaries FROM THE LOG, and the log-side rebuild
+    never learned the M7-33 field. Their reveal rides `audit_received`; read it."""
+    rows = _log_rows()
+    rows.append(
+        {
+            "event": "audit_received",
+            "receiver": "thief",
+            "raw": {
+                "sender": "police",
+                "records": [
+                    {
+                        "payload": {
+                            "step": 0,
+                            "type": "step_zero",
+                            "github_commit": "ba" * 20,
+                        },
+                        "nonce": "aa" * 16,
+                        "commit": "bb" * 32,
+                    }
+                ],
+            },
+        }
+    )
+    summary = summary_from_log(_write(tmp_path, rows), sub_game_number=1, group_name="G")
+    assert summary["opponent_github_commit"] == "ba" * 20
+
+
+def test_a_log_without_their_audit_leaves_the_opponent_commit_unknown(
+    tmp_path: Path,
+) -> None:
+    summary = summary_from_log(_write(tmp_path, _log_rows()), sub_game_number=1, group_name="G")
+    assert summary["opponent_github_commit"] == "unknown"
