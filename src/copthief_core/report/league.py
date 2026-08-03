@@ -38,3 +38,15 @@ def league_facts(
             gid: bool(counted and first_meeting and winner == gid) for gid in (own_gid, opp_gid)
         },
     }
+
+
+def github_links(own_identity: dict[str, Any], opponent_identity: dict[str, Any]) -> dict[str, Any]:
+    """Both teams' cop+thief repo links keyed by group id (M7-39, rule 49 + p.96).
+
+    The opponent's come from what THEY declared at handshake; {} when they declared
+    none — never invented.
+    """
+    return {
+        str(own_identity["group_id"]): dict(own_identity.get("repos", {})),
+        str(opponent_identity["group_id"]): dict(opponent_identity.get("repos", {})),
+    }

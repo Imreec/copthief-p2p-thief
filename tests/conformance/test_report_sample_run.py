@@ -90,5 +90,14 @@ def test_schema_strings_match_the_reference_generation() -> None:
     assert load("config")["_schema"] == schema_text.SCHEMA_CONFIG
     assert load("log")["_schema"] == schema_text.SCHEMA_LOG
     assert load("result")["_schema"] == schema_text.SCHEMA_RESULT
-    assert load("declaration")["links"]["_remark"] == schema_text.LINKS_REMARK
+    # M7-39 (Round-28, dated deviation): the reference's remark ends with "The names
+    # below are examples for game_id=S01R02-team07-vs-team13." — TRUE in the sample,
+    # FALSE in every real artifact (our names are derived from the real game_id). We
+    # emit a truthful final sentence instead; the divergence is EXACTLY that sentence.
+    sample_remark = load("declaration")["links"]["_remark"]
+    shared_prefix = sample_remark.rsplit("The names below", 1)[0]
+    assert schema_text.LINKS_REMARK.startswith(shared_prefix)
+    assert schema_text.LINKS_REMARK.endswith(
+        "The names below are derived from this report's own game_id."
+    )
     assert load("result")["schema_version"] == SCHEMA_VERSION
