@@ -38,6 +38,23 @@ class PeerGameResult:
     # M6-6: how many revealed records the opponent's audit carried (their steps +
     # step-0) — the summary's `verified_steps` when the verification passed.
     opponent_records: int = 0
+    # M7-33: the commit their revealed step-0 declared — the book's example result
+    # fills BOTH columns, and the step-0 record is its designed carrier.
+    opponent_github_commit: str = "unknown"
+
+
+def opponent_commit(records: list[dict[str, Any]]) -> str:
+    """The opponent's declared commit from their revealed records ("unknown" absent).
+
+    Reads both step-0 spellings — our/the reference's `system_spec` and the book
+    example's `step_zero` — the field is what matters, not the label.
+    """
+    for record in records:
+        payload = record.get("payload", {})
+        if isinstance(payload, dict) and payload.get("type") in ("system_spec", "step_zero"):
+            value = payload.get("github_commit")
+            return str(value) if value else "unknown"
+    return "unknown"
 
 
 def validate_opponent_audit(
@@ -79,7 +96,12 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     uid = session.game_uid or ""
 
     def result(
-        *, audit_ok: bool, claim: str, problems: tuple[str, ...], opponent_records: int = 0
+        *,
+        audit_ok: bool,
+        claim: str,
+        problems: tuple[str, ...],
+        opponent_records: int = 0,
+        opponent_github_commit: str = "unknown",
     ) -> PeerGameResult:
         return PeerGameResult(
             role=session.role,
@@ -90,6 +112,7 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
             opponent_claim=claim,
             problems=problems,
             opponent_records=opponent_records,
+            opponent_github_commit=opponent_github_commit,
         )
 
     if session.machine.state is not GameState.GAME_OVER:
@@ -139,9 +162,11 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
         }
     )
     theirs_records = theirs.get("records")
+    listed = theirs_records if isinstance(theirs_records, list) else []
     return result(
         audit_ok=not problems,
         claim=claim,
         problems=tuple(problems),
-        opponent_records=len(theirs_records) if isinstance(theirs_records, list) else 0,
+        opponent_records=len(listed),
+        opponent_github_commit=opponent_commit(listed),
     )

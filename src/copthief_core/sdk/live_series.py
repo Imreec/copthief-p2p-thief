@@ -133,6 +133,8 @@ def run_live_series(
             opponent_group=opponent_group,
             out_root=out_root,
             durations=durations,
+            # M7-34: strict-rules mode IS the counted run (M7-9 governance axis).
+            counted=sdk.mode.strict_rules,
         )
     except SummaryRebuildError as problem:
         record["refused"] = "a sub-game never settled — the series has no honest report"

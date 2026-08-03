@@ -41,6 +41,8 @@ def build_summary(
         "started_at": started_at,
         "duration_seconds": duration_seconds,
         "tokens_total": session.tokens_total,
+        # M7-33: their revealed step-0's commit, for the result's opponent column.
+        "opponent_github_commit": result.opponent_github_commit,
         "audit": {
             "passed": result.audit_ok,
             "verified_steps": result.opponent_records if result.audit_ok else 0,

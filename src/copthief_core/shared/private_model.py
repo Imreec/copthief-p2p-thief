@@ -114,6 +114,12 @@ class PrivateSettings:
     # "belief" = the field reaches decisions only through the belief layer — the
     # posture the M7-23 firewall enforces; the declaration makes it a checkable lock.
     info_mode: str = "belief"
+    # M7-34 league ledger (book §9.2.1): counted games played so far (declared
+    # mutually at game start — the diversity weighting's input) and the opponents
+    # they were played against (first-meeting derivation). Imree updates both after
+    # every counted series; warm-ups never move them.
+    counted_games_played: int = 0
+    counted_opponents: tuple[str, ...] = ()
 
     def strategy_options(self, role: str) -> dict[str, float]:
         """The effective brain knobs for `role`: the base `[strategy.<role>]` table

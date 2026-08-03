@@ -25,6 +25,7 @@ from copthief_core.report.builders import (
 )
 from copthief_core.report.consensus import consensus_signature
 from copthief_core.report.hebrew import build_report
+from copthief_core.report.league import league_facts
 from copthief_core.report.schemas import (
     DEFAULT_TIMEZONE,
     config_filename,
@@ -92,7 +93,13 @@ def subgame_entry(
         "result": summary["result"],
         "winner_group": winner,
         "tie": winner is None,
-        "github_commit": {own_gid: _own_commit(summary), opp_gid: "unknown"},
+        "github_commit": {
+            own_gid: _own_commit(summary),
+            # M7-33: the book's example fills BOTH columns; theirs arrives in the
+            # audit reveal (step-0) and rides the summary. "unknown" when a peer
+            # reveals no step-0 (the reference's own omission).
+            opp_gid: str(summary.get("opponent_github_commit", "unknown")),
+        },
         "tokens": {own_gid: summary["tokens_total"], opp_gid: 0},
         "score": subgame_score(summary["result"], roles, table),
         "log_files": {
@@ -114,6 +121,8 @@ def emit_series(
     terms: dict[str, Any],
     table: ScoringTable,
     out_root: Path,
+    counted: bool = False,
+    first_meeting: bool = True,
 ) -> dict[str, Any]:
     """Write all artifacts for a finished series; return the result dict.
 
@@ -154,8 +163,11 @@ def emit_series(
 
     aggregate = aggregate_groups(sub_games, table.tie_score)
     mutual = consensus_signature(symmetric_outcome(game_id, aggregate, sub_games))
+    league = league_facts(
+        own_identity, opponent_identity, aggregate, counted=counted, first_meeting=first_meeting
+    )
     result = build_result(
-        game_id, game_uid, sorted([own_gid, opp_gid]), sub_games, aggregate, mutual
+        game_id, game_uid, sorted([own_gid, opp_gid]), sub_games, aggregate, mutual, league
     )
     validate_artifact("result", result)
     write_artifact(own_dir, result_filename(game_id), result)

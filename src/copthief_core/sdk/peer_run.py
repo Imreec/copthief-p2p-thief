@@ -105,7 +105,7 @@ def run_peer_flow(
         # game itself carries the false claim (rules 37-38). Omitted => the configured
         # value, which is right for a one-off game and wrong for a series.
         spec_record=live_spec_record(
-            sdk.private, sdk.constitution, sub_game_number=sub_game_number
+            sdk.private, sdk.constitution, sub_game_number=sub_game_number, role=role
         ),
     )
     sink = JsonlEventLogger(log_path).log if log_path is not None else None
