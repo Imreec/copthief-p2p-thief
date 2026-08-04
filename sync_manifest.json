@@ -229,7 +229,7 @@
     "tests/unit/infra/test_transport_budgets.py": "36c61a1acfb464ce55b42b3374a7631030849a135b67380abd5fb122d5f3a137",
     "tests/unit/peer/test_audit_flow.py": "b8c08045914cbd39734fe5e90aee24aa237b2e7f07781dfd661d8f0d0b25a1f9",
     "tests/unit/peer/test_claims.py": "65454ddf3cc1bca9594be928abe67bd5fd61dfb53e6df821b03c023ce4f4b19b",
-    "tests/unit/peer/test_commit_columns.py": "e34b468f7f322cd406aba7e6ee630ca005577fec2b1fe921ef64b2dd5c5f2479",
+    "tests/unit/peer/test_commit_columns.py": "14a656d40a127a1ef154c1ce44f1cc5067edf84cb010c0dd3c046e09bba34287",
     "tests/unit/peer/test_handshake_pairing.py": "52e5556de538254c19ff802c7b495f9cebad660867a2194961e830244f07ace3",
     "tests/unit/peer/test_hint_seam.py": "8031c1ed0412f278fe2a3fcf0e45a36fe1ffae4300347eba0e6bce88c135121c",
     "tests/unit/peer/test_inbox_closing.py": "d03fe25aa03daf1deeb6adb2a7cbdca16b006efb26a2a5ceb8331098caea7eaf",
@@ -264,7 +264,7 @@
     "tests/unit/report/test_emit.py": "b2d7bd371bacedbd11b1d01ad6c969160161ef634e1ef712e12fcf7665aafe66",
     "tests/unit/report/test_emit_commits.py": "f0f384d0e2d5b43d362377f93d117bf3c47698a5f5c396b3339765cf4ffcce0c",
     "tests/unit/report/test_hebrew.py": "4aa0e28dc409b671778911d495b078c213e516c83c000881f21befce4728d87a",
-    "tests/unit/report/test_league_fields.py": "4a4a43ab58a1520b65f4a5e05c5a5a856b324dc106cbc5b5df44d513866d7089",
+    "tests/unit/report/test_league_fields.py": "80cfcd9ce86f07cfe19bd8cd0841667ecc4b9fc17dc5e9571b317643f8f07141",
     "tests/unit/report/test_lecturer_guard.py": "b6c8da194665e82273b7f2e6197d15fa70612949e26d6952c77a8d64027db4f6",
     "tests/unit/report/test_result_links.py": "931180f27e202d4d02e8291a5c2ae3470bbd0f2bb410b767fb342b555e070b78",
     "tests/unit/report/test_schemas.py": "2c87e51af6ca4c9e514d3911b2535b6ff8c92c82801441fe63a5f425c450962d",
@@ -309,7 +309,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "cd17fb4",
+  "source_commit": "704fd04",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "2d9420742eab3b2ccf89ac4a82793cba920beb8ae282d617b0c8ac234b1427c5"
+  "tree_hash": "b6960150cf350f5bfdc39acc5516dcf7a48fa4324daafb8a82f0230a44e1d1f7"
 }

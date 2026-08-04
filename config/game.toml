@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.02"
+version = "1.03"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -12,6 +12,13 @@ sub_game_number = 1
 # whole-match declaration; the reference's writer requires every key.
 members = ["Imree Cohen", "Eyal Shtinmetz"]
 llm_model = "none"
+# M7-41 league ledger (book §9.2.1; rules 37-38) — MUST stay identical to the police
+# repo's config/game.toml: either repo can be the one declaring at a handshake, and a
+# stale count makes the NEXT counted game declare a false first meeting (rule 38 =
+# project-level disqualification). Advanced 2026-08-04 after the first counted series
+# vs anrbj666 (30-90). Warm-ups never move these numbers.
+counted_games_played = 1
+counted_opponents = ["anrbj666"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"

@@ -90,7 +90,9 @@ def test_a_counted_repeat_meeting_applies_no_reward(
 
 def test_our_identity_block_declares_the_counted_game_count() -> None:
     block = identity_block(SHIPPED)
-    assert block["counted_games_played"] == SHIPPED.counted_games_played == 0
+    # What rules 37-38 require is that the DECLARED count equals what we actually
+    # carry — never a literal, which changes after every counted series (M7-41).
+    assert block["counted_games_played"] == SHIPPED.counted_games_played
 
 
 def test_opponent_identity_capture_passes_the_declared_count_through(
@@ -113,9 +115,19 @@ def test_opponent_identity_capture_passes_the_declared_count_through(
     assert opponent_identity_from_logs([bare], "x").get("counted_games_played") is None
 
 
-def test_private_settings_carry_the_league_ledger_defaults() -> None:
-    assert SHIPPED.counted_games_played == 0
-    assert SHIPPED.counted_opponents == ()
+def test_private_settings_carry_a_coherent_league_ledger() -> None:
+    """The ledger is LIVE state, not a constant: it advances after every counted series
+    (M7-41 set it to 1/["anrbj666"] the night the first counted game was played), and it
+    differs per repo. So this pins the INVARIANTS a false declaration would break —
+    rules 37-38 — rather than today's values, which would go red in the sibling and
+    again after every counted game (gotcha #9)."""
+    assert isinstance(SHIPPED.counted_games_played, int)
+    assert SHIPPED.counted_games_played >= 0
+    assert isinstance(SHIPPED.counted_opponents, tuple)
+    # One counted game per opponent (book §9.2.1), so the names cannot repeat, and the
+    # count can never be smaller than the number of distinct opponents played.
+    assert len(set(SHIPPED.counted_opponents)) == len(SHIPPED.counted_opponents)
+    assert SHIPPED.counted_games_played >= len(SHIPPED.counted_opponents)
 
 
 def test_opponent_identity_reads_the_declaration_shaped_hardware_key(
