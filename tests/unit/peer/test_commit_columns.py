@@ -99,4 +99,6 @@ def test_handshake_identity_omits_the_commit_without_a_sealed_record() -> None:
     session = PeerSession(CONSTITUTION, _SHIPPED, role="thief", seed=2)
     identity = session.negotiate_payload()["identity"]
     assert "github_commit" not in identity  # never invented (dev sessions seal none)
-    assert identity["counted_games_played"] == 0
+    # The declared count is whatever the ledger holds — it advances after every counted
+    # series (M7-41), so pinning a literal here would go red on the next one.
+    assert identity["counted_games_played"] == _SHIPPED.counted_games_played
