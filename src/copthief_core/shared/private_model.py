@@ -72,6 +72,10 @@ class PrivateSettings:
     # M7-8: how many steps ahead of the awaited one we buffer before calling it a
     # flood (at-least-once delivery can put two of the opponent's pushes in flight).
     inbound_buffer_limit: int
+    # M7-43: how many times a window whose HANDSHAKE never completed may be retried
+    # at the SAME sub-game index before the series gives up. A window that produced
+    # a result (including a technical loss) spends its index and is never retried.
+    handshake_retry_budget: int
     # [belief] evidence-trust tuning (PRD_belief §5) — private, never negotiated.
     smell_trust_weight: float
     hint_trust_default: float

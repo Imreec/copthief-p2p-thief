@@ -95,6 +95,7 @@ def load_private_settings(
         poll_interval_seconds=float(network["poll_interval_seconds"]),
         connect_timeout_seconds=float(network["connect_timeout_seconds"]),
         inbound_buffer_limit=int(network["inbound_buffer_limit"]),
+        handshake_retry_budget=int(network["handshake_retry_budget"]),
         smell_trust_weight=float(belief["smell_trust_weight"]),
         hint_trust_default=float(belief["hint_trust_default"]),
         profile_hint_floor=float(belief["profile_hint_floor"]),

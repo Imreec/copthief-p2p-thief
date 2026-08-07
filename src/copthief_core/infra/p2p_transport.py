@@ -71,6 +71,7 @@ class McpTransport:
         deadline = time.time() + self._connect_timeout
         delivered = False
         failure: Exception | None = None
+        theirs: dict[str, Any] | None = None
         while True:
             try:
                 self._client.call("negotiate", signed)
@@ -78,14 +79,25 @@ class McpTransport:
                 failure = error
             else:
                 delivered = True
-            theirs = take_one(self._inboxes.agreements, self._retry_interval)
-            if theirs is not None:
+            # Poll every lap even once we hold theirs: the wait paces the re-greeting,
+            # and a duplicate is just their own re-greeting of the message we have.
+            arrived = take_one(self._inboxes.agreements, self._retry_interval)
+            theirs = theirs or arrived
+            # M7-44 (live, uoh-sqak sub-game 3): BOTH halves must have crossed. We used
+            # to return the moment theirs arrived, without checking our own push had
+            # ever landed — so a lap where our push raised AND their greeting arrived
+            # completed the handshake on our side alone. The peer logged `negotiated`
+            # and waited for a first turn while the opponent had received nothing and
+            # never believed a game existed (26 of their windows pushed at a peer that
+            # was already in-game). Receiving theirs says they are ready; it says
+            # nothing about whether they know we are.
+            if theirs is not None and delivered:
                 return theirs
             if time.time() >= deadline:
                 break
         if not delivered:
             raise TransportError(f"negotiate: opponent unreachable: {failure}")
-        return None
+        return theirs
 
     def send_turn(self, message: dict[str, Any]) -> None:
         self._push_with_retry("receive_turn", message, budget=self._turn_push_timeout)

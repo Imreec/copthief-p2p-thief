@@ -133,7 +133,9 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     port = args.port if args.port is not None else sdk.private.my_port
     opponent_url = args.opponent_url if args.opponent_url is not None else sdk.private.opponent_url
+    from copthief_core.peer.handshake import NegotiationError
     from copthief_core.peer.port_guard import PeerAlreadyRunningError
+    from copthief_core.sdk.series_pacing import handshake_failed_result
 
     try:
         peer_result = _play_peer(sdk, args, port=port, opponent_url=opponent_url)
@@ -142,6 +144,13 @@ def main(argv: list[str] | None = None) -> int:
         # refusal — one JSON object and exit 2, never a traceback in an ops window. The
         # series driver parses this and records WHICH sub-game did not start, and why.
         print(json.dumps({"refused": "another live peer holds this role", "why": str(refusal)}))
+        return 2
+    except NegotiationError as failed:
+        # M7-43: a window where NO GAME HAPPENED is a first-class result, not a dead
+        # child. Reported so the series driver can hold the index and retry, and
+        # carrying whatever index the opponent declared so it can catch up instead of
+        # deadlocking on a number they have already left behind.
+        print(json.dumps(handshake_failed_result(str(failed), failed.peer_sub_game)))
         return 2
     print(json.dumps(asdict(peer_result)))
     return 0

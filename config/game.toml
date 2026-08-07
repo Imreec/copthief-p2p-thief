@@ -129,6 +129,10 @@ connect_timeout_seconds = 60
 # a protocol violation, not a tunnel artifact. 1 covers the realistic race (one step
 # ahead) - raise it only with a drill that shows a deeper reorder actually happening.
 inbound_buffer_limit = 1
+# M7-43: a window whose HANDSHAKE never completed is retried at the SAME sub-game
+# index this many times before the series gives up. A window that produced a result
+# (including a technical loss) spends its index instead.
+handshake_retry_budget = 3
 
 [email]
 # M7-6 automatic report rail (ADR-0008, police repo; PRD_reporting s5a). App E rule
