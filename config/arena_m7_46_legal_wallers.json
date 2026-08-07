@@ -1,0 +1,111 @@
+{
+  "version": "1.00",
+  "_comment": "M7-46 legality check (measurement instrument, champion_pin null): does the siege response help or HURT against cops that wall heavily but LEGALLY (a wall costs the step)? The uoh-sqak evidence is all double-tempo; the shipped roster barely walls, so the condition is inert there. These arms are the untested middle - the M7-30 sealers armed, the barrier-capture bracket, and best2934 at contact range. CLAIM CHANNEL MODELLED (M7-45 correction): their cop claims ungated, so a claims-off run measures our thief with one of its main sensors disconnected. Regenerate: uv run python scripts/arena_run.py --config config/arena_m7_46_legal_wallers.json",
+  "police_roster": [
+    {
+      "name": "sealer-corner",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 0.0
+    },
+    {
+      "name": "sealer-edge",
+      "spec": "copthief_thief.adversary:SealerPoliceBrain",
+      "claim_threshold": 0.0
+    },
+    {
+      "name": "barrier-capture",
+      "spec": "copthief_thief.adversary:BarrierCapturePoliceBrain",
+      "claim_threshold": 0.0
+    },
+    {
+      "name": "best2934-police",
+      "spec": "best2934-police",
+      "claim_threshold": 0.0
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-siege-off",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-siege-on",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "sealer-corner": {
+      "seal_max_exits": 2.0
+    },
+    "sealer-edge": {
+      "seal_max_exits": 3.0
+    },
+    "barrier-capture": {
+      "seal_max_exits": 3.0
+    },
+    "best2934-police": {
+      "barrier_engage_range": 1.0,
+      "barrier_min_gain": 1.0,
+      "barrier_endgame_reserve": 3.0
+    },
+    "thief-siege-off": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "siege_min_walls": 99.0
+    },
+    "thief-siege-on": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
+    }
+  },
+  "evidence_out": "docs/evidence/m7-46-legal-wallers-arena.md"
+}

@@ -1,0 +1,96 @@
+{
+  "version": "1.00",
+  "_comment": "M7-47 informed-ramp A/B (measurement instrument, champion_pin null): the SHIPPED thief against itself with the confidence gate provably shut (sharp_ramp_mass 2.0 - a probability can never reach it), which is the pre-M7-47 brain. best2934-police carries their FIELDED contact-range walling and its UNGATED claim channel; a claims-off run measures our thief with one of its main sensors disconnected (the M7-45 correction). The claims-off world is the CI-gated arena, where this change is byte-identical by construction. Regenerate: uv run python scripts/arena_run.py --config config/arena_m7_47_ramp.json",
+  "police_roster": [
+    "random",
+    "greedy-manhattan",
+    {
+      "name": "ref-police",
+      "spec": "ref-police"
+    },
+    {
+      "name": "best2934-police",
+      "spec": "best2934-police",
+      "claim_threshold": 0.0
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-sharp-off",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    },
+    {
+      "name": "thief-sharp-on",
+      "spec": "copthief_thief.brain:ThiefBrain",
+      "claim_feed": "truth"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "best2934-police": {
+      "barrier_engage_range": 1.0,
+      "barrier_min_gain": 1.0,
+      "barrier_endgame_reserve": 3.0
+    },
+    "thief-sharp-off": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "sharp_ramp_mass": 2.0
+    },
+    "thief-sharp-on": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
+    }
+  },
+  "evidence_out": "docs/evidence/m7-47-ramp-arena.md"
+}

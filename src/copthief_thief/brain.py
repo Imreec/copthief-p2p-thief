@@ -18,6 +18,7 @@ from copthief_thief.articulation import articulation_points, min_sealed_componen
 from copthief_thief.deception import DeceptionClock, SelfMirror
 from copthief_thief.features import (
     resolve_options,
+    support_width,
     survival_ramp,
     trap_ceiling,
     truncated_support,
@@ -40,11 +41,11 @@ class ThiefBrain(BrainBase):
         opts = resolve_options(self._options)
         board = observation.board
         dest = board.apply_move(observation.position, move)
-        support = truncated_support(belief, int(opts["top_k"]))
+        support = truncated_support(belief, support_width(opts, observation))
         cap = int(opts["region_cap"])
-        ramp = survival_ramp(opts, observation)
-        score = opts["w_distance"] * ramp * worst_case_distance(dest, support)
         threat = belief.argmax()
+        ramp = survival_ramp(opts, observation, belief.prob_at(threat))
+        score = opts["w_distance"] * ramp * worst_case_distance(dest, support)
         score += opts["w_region"] * safe_region_size(board, dest, threat, observation.move_set, cap)
         if observation.barriers_used < observation.max_barriers:
             cuts = articulation_points(board, observation.position, observation.move_set, cap)
