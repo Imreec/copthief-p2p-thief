@@ -41,4 +41,4 @@ Per-pairing outcomes:
 
 ## DoD win-rate floors
 
-**DoD series `M5-3 thief DoD - ThiefBrain vs the reference heuristic`** - ref-police (police) vs thief-brain (thief), 32 scenarios: thief wins 27/32 = **84%** (floor 60%) - **PASS**.
+**DoD series `M5-3 thief DoD - ThiefBrain vs the reference heuristic`** - ref-police (police) vs thief-brain (thief), 32 scenarios: thief wins 28/32 = **88%** (floor 60%) - **PASS**.

@@ -41,9 +41,10 @@ class ThiefBrain(BrainBase):
         opts = resolve_options(self._options)
         board = observation.board
         dest = board.apply_move(observation.position, move)
-        support = truncated_support(belief, support_width(opts, observation))
-        cap = int(opts["region_cap"])
         threat = belief.argmax()
+        gap = abs(observation.position[0] - threat[0]) + abs(observation.position[1] - threat[1])
+        support = truncated_support(belief, support_width(opts, observation, gap))
+        cap = int(opts["region_cap"])
         ramp = survival_ramp(opts, observation, belief.prob_at(threat))
         score = opts["w_distance"] * ramp * worst_case_distance(dest, support)
         score += opts["w_region"] * safe_region_size(board, dest, threat, observation.move_set, cap)
