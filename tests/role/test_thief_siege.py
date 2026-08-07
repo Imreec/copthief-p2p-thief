@@ -82,3 +82,26 @@ def test_siege_reads_the_board_not_the_thief_quota() -> None:
         barriers=frozenset({(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6)}),
     )
     assert under_siege(OPTS, observation(board, (3, 3), step=7)) is True
+
+
+def test_a_distant_threat_keeps_the_tuned_hedge() -> None:
+    """Far away, which exact cell the cop occupies barely moves the flight vector."""
+    assert support_width(OPTS, sieged(0, 5), 6) == int(OPTS["top_k"])
+
+
+def test_a_close_threat_narrows_to_the_argmax() -> None:
+    """M7-51. In the 2026-08-08 friendly our thief stepped WEST from (0,6) onto the cop
+    at (0,5) with the argmax already CORRECT — averaging four candidate cells, not the
+    belief, chose that move. Inside `close_threat_distance` we flee the argmax itself."""
+    assert support_width(OPTS, sieged(0, 5), 2) == int(OPTS["siege_top_k"])
+
+
+def test_the_close_threat_gate_is_configurable_and_can_be_shut() -> None:
+    opts = resolve_options({"close_threat_distance": -1.0})
+    assert support_width(opts, sieged(0, 5), 0) == int(opts["top_k"])
+
+
+def test_omitting_the_gap_reproduces_the_pre_m7_51_width() -> None:
+    """Callers that do not pass a gap must be byte-identical to before."""
+    assert support_width(OPTS, sieged(0, 5)) == int(OPTS["top_k"])
+    assert support_width(OPTS, sieged(6, 7)) == int(OPTS["siege_top_k"])

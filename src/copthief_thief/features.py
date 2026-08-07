@@ -26,6 +26,7 @@ DEFAULT_OPTIONS: dict[str, float] = {
     "siege_top_k": 1.0,  # truncation once the cop walls every turn (M7-46)
     "siege_min_walls": 2.0,  # walls before a rate means anything (one early wall is noise)
     "siege_wall_rate": 0.5,  # walls per elapsed step at/above which it IS a siege
+    "close_threat_distance": 2.0,  # gap at/inside which we flee the ARGMAX, not a cloud
     "w_distance": 3.0,  # per-cell worst-case-distance reward
     "w_region": 1.0,  # per-cell two-front safe-region reward
     "w_articulation": 20.0,  # flat penalty for entering a cheaply-sealable pocket
@@ -65,16 +66,33 @@ def under_siege(opts: Mapping[str, float], observation: Observation) -> bool:
     return walls / max(observation.step - 1, 1) >= opts["siege_wall_rate"]
 
 
-def support_width(opts: Mapping[str, float], observation: Observation) -> int:
+def support_width(
+    opts: Mapping[str, float], observation: Observation, threat_gap: int | None = None
+) -> int:
     """How many belief cells the flight vector averages over this turn.
 
     The `top_k` hedge buys robustness against a pursuer we localise loosely, and costs
-    us against one that walls every turn — a siege closes the gap faster than a smeared
-    support lets us flee (the 2026-08-07 uoh-sqak friendly, all three thief sub-games).
-    Off siege this returns `top_k` unchanged, so a cop that rarely walls sees exactly
-    the brain the GA tuned.
+    us whenever precision starts to matter more than breadth. Two triggers narrow it to
+    `siege_top_k`, and both are read off things we can actually see:
+
+    SIEGE — the opponent's wall RATE (M7-46). A cop spending its turns on barriers is
+    shrinking our world faster than a smeared support lets us flee.
+
+    CLOSE THREAT — the believed cop is within `close_threat_distance` (M7-51). Far away,
+    which exact cell it occupies barely changes the flight vector and the hedge is free;
+    inside three steps the difference between fleeing the argmax and fleeing the average
+    of four candidates is the difference between escaping and stepping into it. In the
+    2026-08-08 friendly our thief walked WEST from (0,6) onto the cop at (0,5) with the
+    argmax already correct — the hedge, not the belief, chose that move.
+
+    Off both triggers this returns `top_k` unchanged, so a distant, quiet cop sees
+    exactly the brain the GA tuned.
     """
-    return int(opts["siege_top_k"] if under_siege(opts, observation) else opts["top_k"])
+    if under_siege(opts, observation):
+        return int(opts["siege_top_k"])
+    if threat_gap is not None and threat_gap <= opts["close_threat_distance"]:
+        return int(opts["siege_top_k"])
+    return int(opts["top_k"])
 
 
 def survival_ramp(
