@@ -1,0 +1,96 @@
+{
+  "version": "1.00",
+  "_comment": "M7-46 top_k A/B (measurement instrument, champion_pin null): the DEPLOYED thief against itself with only truncated_support(top_k) changed. Motivated by the 2026-08-07 uoh-sqak friendly, where the smeared 4-cell support diluted the flight vector while our belief ARGMAX was right 12 of 14 steps. Regenerate: uv run python scripts/arena_run.py --config config/arena_m7_46_topk.json",
+  "police_roster": [
+    "random",
+    "greedy-manhattan",
+    "ref-police"
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-topk4-deployed",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-topk2",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-topk1",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "thief-topk4-deployed": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "top_k": 4.0
+    },
+    "thief-topk2": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "top_k": 2.0
+    },
+    "thief-topk1": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "top_k": 1.0
+    }
+  },
+  "evidence_out": "docs/evidence/m7-46-topk-arena.md"
+}

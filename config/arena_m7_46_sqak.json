@@ -1,0 +1,85 @@
+{
+  "version": "1.00",
+  "_comment": "M7-46 uoh-sqak arm (measurement instrument, champion_pin null): the DEPLOYED thief with the siege response on, against the same brain with it disabled (siege_min_walls above the barrier quota = provably never fires = the pre-M7-46 thief). sqak-apex is their published ApexCop L2 under OUR move-XOR-wall turn law and WITHOUT their endgame layer, so it is a LOWER BOUND on the live cop - see src/copthief_thief/sqak_apex.py and docs/evidence/m7-46-sqak-thief.md. Regenerate: uv run python scripts/arena_run.py --config config/arena_m7_46_sqak.json",
+  "police_roster": [
+    "random",
+    "greedy-manhattan",
+    "ref-police",
+    {
+      "name": "sqak-apex",
+      "spec": "copthief_thief.sqak_apex:SqakApexPoliceBrain"
+    }
+  ],
+  "thief_roster": [
+    {
+      "name": "thief-siege-off",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    },
+    {
+      "name": "thief-siege-on",
+      "spec": "copthief_thief.brain:ThiefBrain"
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "scenario_min_separation": 4,
+  "champion_pin": null,
+  "dod_series": [],
+  "brain_options": {
+    "ref-police": {
+      "ref_police_barrier_chance": 0.15
+    },
+    "thief-siege-off": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655,
+      "siege_min_walls": 99.0
+    },
+    "thief-siege-on": {
+      "ramp_multiplier": 1.3136,
+      "ramp_start_fraction": 0.9496,
+      "trap_size_fraction": 0.2945,
+      "w_articulation": 8.1599,
+      "w_distance": 5.2704,
+      "w_region": 1.8097,
+      "w_spread": 1.0655
+    }
+  },
+  "evidence_out": "docs/evidence/m7-46-sqak-arena.md"
+}

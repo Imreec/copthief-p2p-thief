@@ -3,6 +3,43 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR — m7-46-47-siege-and-informed-ramp (two opponents, two conditional responses)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** improve the thief against uoh-sqak's cop, which took all three thief
+  sub-games of the 2026-08-07 friendly with identical play; read their PUBLISHED source
+  rather than infer; keep every existing arm at beat-or-tie; do not repeat M7-21's
+  unmeasured weight change.
+- **Outcome, M7-46:** their `ApexCop` was ported and **reproduces the friendly turn for
+  turn, 14 of 14** — every barrier cell and every cop cell — which validated the port and,
+  with it, three corrections. The loss was not our thief "camping": their depth-8 solver had
+  PROVEN the capture two plies earlier. Their belief on us is EXACT every turn, so deception
+  never reaches this cop. And the thing that actually decided it was **tempo** — their cop
+  took a step AND a wall in the same turn, which chapter 3's Barrier Law does not grant.
+  Under the book's turn law their policy captured nothing in 64 games. Shipped
+  `features.support_width`: narrow the flight vector only once the opponent's wall RATE
+  proves a siege. 0/32 → 10/32 at their live tempo, signed start flips to survival.
+- **Outcome, M7-47:** gating M7-46 surfaced that best2934's cop — our OTHER counted
+  opponent — was taking 14 of 32 off us, including the signed start. **First number reported
+  was 23/32 and was wrong**: measured with the capture-claim channel off, the exact
+  unmodelled-channel error `m7-45-best2934.md` already warns about. Cause: the base table's
+  `ramp_start_fraction` 0.9496 arms the flight ramp at step 33 of 35, so it never fires.
+- **The trap, recorded because the gate nearly missed it:** arming the ramp early
+  unconditionally scores 32/32 against best2934 and collapses us **8/8 → 0/8** against a
+  quiet chaser, DoD 84% → 62% — **and the regression gate still reported GREEN**, because
+  the pin only fires when a challenger TOPS a champion. Our own brain regressing is
+  invisible to it. On a thief change the per-arm rows are the evidence, never the verdict.
+- **What shipped instead:** the ramp arms on the BELIEF (peak mass ≥ 0.9 — i.e. the cop
+  declared its cell) on its own separate multiplier, so the GA-tuned clock ramp is untouched
+  and a quiet cop leaves the brain bit-for-bit as tuned. Informed world 128/128,
+  better-or-equal on every arm; CI arena byte-identical; M7-46 unmoved.
+- **Named, not fixed:** `config/ga.json` bounds `ramp_start_fraction` to [0.3, 0.95] — every
+  value that helps is below 0.3, so the GA could not have found this and did not. A null
+  result from a search that cannot reach the answer is not a null result.
+- **Rejected and kept as labelled negatives:** unconditional `top_k` 4 → 1 (wins vs uoh-sqak,
+  regresses every existing arm) and a centrality term aimed at their solver's trigger
+  (0/16 at every weight).
+
 ## PR #61 — m7-30-thief-vs-walling (the retune that did not work, and why it could not)
 
 - **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
