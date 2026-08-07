@@ -76,8 +76,9 @@ def test_a_wall_it_proposes_is_always_legal() -> None:
         state = observation(board, (0, 1))
         decision = brain.decide(state, make_belief(board, thief))
         if decision.barrier is not None:
-            assert is_legal_barrier(board, (0, 1), decision.barrier,
-                                    barriers_used=0, max_barriers=14)
+            assert is_legal_barrier(
+                board, (0, 1), decision.barrier, barriers_used=0, max_barriers=14
+            )
 
 
 def test_it_never_moves_and_walls_in_one_turn() -> None:
@@ -105,8 +106,7 @@ def test_it_prefers_the_wall_that_strangles_the_most_area() -> None:
     walls = frozenset({(0, 2), (1, 2), (2, 2), (2, 1)})
     board = make_board(walls)
     brain = SqakApexPoliceBrain(seed=1)
-    decision = brain.decide(observation(board, (1, 0), barriers_used=4),
-                            make_belief(board, (0, 0)))
+    decision = brain.decide(observation(board, (1, 0), barriers_used=4), make_belief(board, (0, 0)))
     assert decision.barrier == (2, 0)
 
 

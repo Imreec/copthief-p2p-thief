@@ -46,7 +46,9 @@ def constitution() -> Constitution:
 def deployed_options() -> dict[str, float]:
     """The weights `config/game.toml` actually fields, so the pin tracks the agent."""
     table = tomllib.loads((CONFIG / "game.toml").read_text(encoding="utf-8"))
-    return {k: float(v) for k, v in table["strategy"]["thief"].items() if isinstance(v, int | float)}
+    return {
+        k: float(v) for k, v in table["strategy"]["thief"].items() if isinstance(v, int | float)
+    }
 
 
 def play_at_live_tempo(constitution: Constitution, thief_brain: ThiefBrain) -> tuple[Outcome, int]:
@@ -57,36 +59,60 @@ def play_at_live_tempo(constitution: Constitution, thief_brain: ThiefBrain) -> t
     thief, cop = constitution.board.thief_start, constitution.board.cop_start
     cop_brain = SqakApexPoliceBrain(seed=1, options=PRE_FIX_COP)
     belief = referee_belief(constitution, start=cop, smell_trust=SMELL_TRUST)
-    thief_trail, cop_trail, feed = referee_trail(constitution), referee_trail(constitution), ScentFeed()
+    thief_trail, cop_trail, feed = (
+        referee_trail(constitution),
+        referee_trail(constitution),
+        ScentFeed(),
+    )
 
     for step in range(1, min(threshold, constitution.movement.max_moves) + 1):
         decision = thief_brain.decide(
-            thief_observation(constitution, board=board, position=thief, step=step,
-                              trail=thief_trail, gazetteer=None),
+            thief_observation(
+                constitution,
+                board=board,
+                position=thief,
+                step=step,
+                trail=thief_trail,
+                gazetteer=None,
+            ),
             belief,
         )
         thief = board.apply_move(thief, decision.move)
         thief_trail.advance(thief, intensity)
-        ending = check_end(board, cop_pos=cop, thief_pos=thief, steps_survived=step,
-                           survival_threshold=threshold, max_moves=constitution.movement.max_moves)
+        ending = check_end(
+            board,
+            cop_pos=cop,
+            thief_pos=thief,
+            steps_survived=step,
+            survival_threshold=threshold,
+            max_moves=constitution.movement.max_moves,
+        )
         if ending is not None:
             return ending, step
         # Their tempo: the wall does NOT cost the step (book ch.3 says it must — see the
         # module docstring; this harness models THEM, it does not endorse the reading).
-        cop_view = police_observation(constitution, board=board, position=cop, step=step,
-                                      trail=cop_trail)
+        cop_view = police_observation(
+            constitution, board=board, position=cop, step=step, trail=cop_trail
+        )
         cop_truth = referee_belief(constitution, start=thief, smell_trust=SMELL_TRUST)
         walled = cop_brain._decide(cop_view, cop_truth).barrier
         if walled is not None:
             board = board.with_barrier(walled)
             belief.note_barrier(walled)
-            cop_view = police_observation(constitution, board=board, position=cop, step=step,
-                                          trail=cop_trail)
+            cop_view = police_observation(
+                constitution, board=board, position=cop, step=step, trail=cop_trail
+            )
         cop = board.apply_move(cop, cop_brain._pick_move(cop_view, cop_truth))
         cop_trail.advance(cop, intensity)
         belief = feed.observe(belief, trail=cop_trail, truth=cop, board=board)
-        ending = check_end(board, cop_pos=cop, thief_pos=thief, steps_survived=step,
-                           survival_threshold=threshold, max_moves=constitution.movement.max_moves)
+        ending = check_end(
+            board,
+            cop_pos=cop,
+            thief_pos=thief,
+            steps_survived=step,
+            survival_threshold=threshold,
+            max_moves=constitution.movement.max_moves,
+        )
         if ending is not None:
             return ending, step
     return Outcome.THIEF_SURVIVAL, threshold
@@ -100,6 +126,8 @@ def test_the_pre_m7_46_thief_loses_the_signed_start(constitution: Constitution) 
 
 
 def test_the_shipped_thief_survives_the_signed_start(constitution: Constitution) -> None:
-    outcome, steps = play_at_live_tempo(constitution, ThiefBrain(seed=1, options=deployed_options()))
+    outcome, steps = play_at_live_tempo(
+        constitution, ThiefBrain(seed=1, options=deployed_options())
+    )
     assert outcome is Outcome.THIEF_SURVIVAL
     assert steps == constitution.movement.survival_threshold
