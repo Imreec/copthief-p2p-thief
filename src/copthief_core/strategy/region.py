@@ -7,7 +7,11 @@ reachable from a cell — and CLAUDE.md #11 forbids two copies of it.
 
 from __future__ import annotations
 
+from collections import deque
+
 from copthief_core.domain.board import Board, Coord
+
+__all__ = ["path_length", "region_size"]
 
 
 def region_size(
@@ -34,3 +38,29 @@ def region_size(
                 frontier.append(dest)
     cache[start] = len(seen)
     return len(seen)
+
+
+def path_length(board: Board, start: Coord, goal: Coord, move_set: tuple[str, ...]) -> int | None:
+    """Steps along the shortest open path from `start` to `goal` (BFS).
+
+    Output: the step count, or None when no open path exists. The None case is the
+    load-bearing one: it is how a cop rejects a wall that would seal it away from the
+    thief it is chasing, which greedy area-shrinking would otherwise happily place.
+    """
+    if board.is_blocked(goal):
+        return None
+    if start == goal:
+        return 0
+    seen = {start}
+    frontier: deque[tuple[Coord, int]] = deque([(start, 0)])
+    while frontier:
+        cell, steps = frontier.popleft()
+        for move in move_set:
+            dest = board.apply_move(cell, move)
+            if dest in seen or board.is_blocked(dest):
+                continue
+            if dest == goal:
+                return steps + 1
+            seen.add(dest)
+            frontier.append((dest, steps + 1))
+    return None
