@@ -17,6 +17,23 @@ from copthief_core.wire.audit import AuditPayload
 # Internal outcome -> the reference's wire result vocabulary (spike notes §2 F5).
 _WIRE_RESULTS = {"thief_survival": "survival", "cop_capture": "capture"}
 
+# Sealed record `type` values that are NOT moves in the game chain (M7-42). Public so a
+# peer implementation can see exactly which spellings we excuse: `system_spec` is the
+# reference's step-0 declaration (we emit that spelling, the book prints `step_zero`,
+# and readers accept both), `control` is a sealed control message, and `equivocation` is
+# uoh-sqak's sealed evidence of a peer sending two commits for one step.
+#
+# Deliberately a CLOSED set: an unknown type keeps counting as a game step, so this can
+# never be used to empty the continuity check. That safe default has a cost uoh-sqak
+# named (2026-08-06): the list can only ever hold types that existed when it was written,
+# and they had shipped `equivocation` — carrying a POSITIVE step — hours before we wrote
+# it. It would have broken this very check the first time either side equivocated.
+# They now stamp every non-move record with a DESCENDING NEGATIVE step, so any
+# `step >= 1` filter excuses them with no agreement about type names at all; that is the
+# durable fix and it is theirs. This list stays as the belt to their braces, because the
+# next league team will not have made that change.
+NON_GAME_RECORD_TYPES = frozenset({"system_spec", "step_zero", "control", "equivocation"})
+
 
 def wire_result(result: str) -> str:
     """The result string as the reference speaks it on the wire ("survival", ...)."""
@@ -40,15 +57,25 @@ def verify_audit(audit: AuditPayload) -> list[str]:
     """Every problem found in an opponent's audit; empty list == Verified OK.
 
     Checks: each record re-hashes to its commit (our serializer, kit §3), and the
-    revealed GAME steps run 1..N with no gaps. Records with step < 1 (the reference
-    seals a step-0 system_spec declaration — observed in the M2 smoke) are re-hashed
-    but excluded from continuity. The scent-physics extension joins at M3+ (PRD FR-11).
+    revealed GAME steps run 1..N with no gaps. Non-game records are re-hashed but
+    excluded from continuity: the reference seals a step-0 `system_spec` declaration
+    (observed in the M2 smoke), and a peer may seal control messages too.
+
+    Identifying those by step NUMBER was the M7-42 defect: it assumed a non-game record
+    is always numbered 0. uoh-sqak seals `control` records inside the GAME step space
+    (friendly g01, 2026-08-06), so their revealed steps read [1, 2, 1, 2, 3, … 35] and
+    every audit failed — two honest peers, one refused settlement. Records are
+    self-describing, so ask what a record IS. Only KNOWN non-game types are excused:
+    an unrecognised type still counts, so a peer cannot empty this check by inventing
+    one. The scent-physics extension joins at M3+ (PRD FR-11).
     """
     problems: list[str] = []
     game_steps: list[int] = []
     for record in audit.records:
         step = record.payload.get("step")
-        if isinstance(step, int) and step >= 1:
+        if record.payload.get("type") in NON_GAME_RECORD_TYPES:
+            pass  # sealed and tamper-checked below, but not a move in the game chain
+        elif isinstance(step, int) and step >= 1:
             game_steps.append(step)
         elif not isinstance(step, int):
             game_steps.append(-1)  # malformed step still breaks continuity below

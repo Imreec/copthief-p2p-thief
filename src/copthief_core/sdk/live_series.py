@@ -20,7 +20,6 @@ contradictory report rule 35 punishes.
 
 from __future__ import annotations
 
-import time
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -32,10 +31,10 @@ from copthief_core.infra.email_sender import (
     EmailTransport,
     ReportUndeliverableError,
 )
-from copthief_core.peer.series import opposite_role
 from copthief_core.report.schemas import result_filename
 from copthief_core.report.series_from_logs import series_artifact_from_logs
 from copthief_core.report.summary_from_log import SummaryRebuildError
+from copthief_core.sdk.series_windows import missing_sub_games, play_windows
 
 if TYPE_CHECKING:
     from copthief_core.sdk.simulation import SimulationSdk
@@ -102,21 +101,18 @@ def run_live_series(
                 "problems": [str(problem)],
             }
     log_dir.mkdir(parents=True, exist_ok=True)
-    logs: list[Path] = []
-    played: list[dict[str, Any]] = []
-    durations: dict[int, float] = {}
-
-    for n in range(1, sdk.constitution.league.num_games + 1):
-        # F2: the natural role plays the odd sub-games, so a six-game series splits 3/3.
-        role = natural_role if n % 2 else opposite_role(natural_role)
-        log_path = sub_game_log_path(log_dir, game_id, n)
-        started = time.monotonic()
-        # Every sub-game is played out even after one fails: a series is six games, and
-        # abandoning it early would leave the opponent playing a match we had quit.
-        result = play(sub_game_number=n, role=role, log_path=log_path, seed=seed + n)
-        durations[n] = round(time.monotonic() - started, 1)
-        logs.append(log_path)
-        played.append({"sub_game_number": n, "role": role, **result})
+    # M7-43: the index is NOT a for-loop counter — a window where no game happened
+    # must not spend a sub-game, and a peer strictly ahead must be followed. The
+    # rules are pure (sdk/series_pacing); the loop is sdk/series_windows.
+    run = play_windows(
+        play=play,
+        log_path_for=lambda n: sub_game_log_path(log_dir, game_id, n),
+        natural_role=natural_role,
+        num_games=sdk.constitution.league.num_games,
+        retry_budget=sdk.private.handshake_retry_budget,
+        seed=seed,
+    )
+    played, logs, durations = run.played, run.logs, run.durations
 
     record: dict[str, Any] = {
         "game_id": game_id,
@@ -124,6 +120,16 @@ def run_live_series(
         "logs": [str(path) for path in logs],
         "email": None,
     }
+    # M7-43b: a report that quietly drops a game is the contradictory report rule 35
+    # punishes, so a partial series is refused outright (see series_windows).
+    absent = missing_sub_games(played, sdk.constitution.league.num_games)
+    if absent:
+        record["refused"] = (
+            f"only {len(played)} of {sdk.constitution.league.num_games} sub-games "
+            "settled — a partial series has no honest report"
+        )
+        record["problems"] = [f"sub-game {n} never settled" for n in absent]
+        return record
     try:
         result = series_artifact_from_logs(
             logs=logs,

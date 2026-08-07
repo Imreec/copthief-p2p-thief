@@ -65,7 +65,12 @@ def run(
         if sub_game_number == hollow:
             log_path.parent.mkdir(parents=True, exist_ok=True)
             log_path.write_text('{"event": "negotiated", "sender": "x"}\n', encoding="utf-8")
-            return {"outcome": "timeout", "steps": 0, "audit_ok": False}
+            # M7-43: steps > 0 on purpose. This fixture models a game that PLAYED
+            # and then left an unrebuildable log — the rehearsal's s6 shape. A timeout
+            # at ZERO turns now means "no game happened" and is retried at the same
+            # index (sdk/series_pacing), which is a different property, pinned in
+            # test_series_pacing / test_live_series_pacing.
+            return {"outcome": "timeout", "steps": 2, "audit_ok": False}
         sub_game_log(
             log_path,
             role=role,

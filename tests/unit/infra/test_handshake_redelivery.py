@@ -89,3 +89,53 @@ def test_a_reachable_but_silent_opponent_returns_none_within_the_budget() -> Non
     client = _Client(swallow=10**6)
     assert _transport(client, budget=0.05).exchange_agreement(AGREEMENT) is None
     assert client.calls  # we did keep trying
+
+
+class _FailsThenWorks:
+    """Our push fails for the first `fail` laps; THEIR agreement lands regardless.
+
+    The uoh-sqak sub-game 3 shape (2026-08-07): they construct the next sub-game's
+    runtime only after the previous audit exchange, so our `negotiate` can fail while
+    their server is up, and their greeting then arrives once their runtime binds.
+    """
+
+    def __init__(self, *, fail: int, deliver_theirs_on_lap: int) -> None:
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+        self._fail = fail
+        self._deliver_on = deliver_theirs_on_lap
+        self.inboxes: PeerQueues | None = None
+
+    def call(self, tool: str, payload: dict[str, Any]) -> dict[str, Any]:
+        self.calls.append((tool, payload))
+        lap = len(self.calls)
+        if lap == self._deliver_on and self.inboxes is not None:
+            self.inboxes.agreements.put({"theirs": True})
+        if lap <= self._fail:
+            raise ConnectionError("their runtime for this sub-game is not up yet")
+        return {"ok": True}
+
+
+def test_their_agreement_does_not_complete_a_handshake_our_push_never_landed() -> None:
+    """M7-44, from the live uoh-sqak sub-game 3.
+
+    We returned as soon as THEIR agreement arrived, without checking that OUR push had
+    ever been delivered. The peer then logged `negotiated` and waited for a first turn,
+    while the opponent had received nothing and never believed a game existed — 26 of
+    their windows pushing at a peer that was already in-game. A handshake is complete
+    only when BOTH halves crossed.
+    """
+    client = _FailsThenWorks(fail=2, deliver_theirs_on_lap=1)
+    theirs = _transport(client).exchange_agreement(AGREEMENT)
+
+    assert theirs == {"theirs": True}
+    # Their greeting arrived on lap 1, but our first two pushes failed: we must keep
+    # pushing until one lands rather than declaring the handshake done.
+    assert len(client.calls) == 3, client.calls
+
+
+def test_a_push_that_never_lands_raises_even_though_theirs_arrived() -> None:
+    """The dangerous case in its pure form: we hold their agreement and our own push
+    never crossed. Returning it would start a game only one side is playing."""
+    client = _FailsThenWorks(fail=10_000, deliver_theirs_on_lap=1)
+    with pytest.raises(TransportError):
+        _transport(client, budget=0.05).exchange_agreement(AGREEMENT)

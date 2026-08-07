@@ -30,7 +30,17 @@ if TYPE_CHECKING:  # annotation-only: the session imports THIS module at runtime
 
 
 class NegotiationError(RuntimeError):
-    """The pre-game gate refused: terms drift or a bad signature (kit §4)."""
+    """The pre-game gate refused: terms drift or a bad signature (kit §4).
+
+    `peer_sub_game` carries the highest sub-game index the opponent declared while we
+    refused them (M7-43). A series driver needs it to tell "nobody arrived" from "our
+    counterpart is at a DIFFERENT index and we must catch up" — the asymmetric drift
+    that killed the uoh-sqak friendly. None when the opponent never spoke.
+    """
+
+    def __init__(self, message: str, *, peer_sub_game: int | None = None) -> None:
+        super().__init__(message)
+        self.peer_sub_game = peer_sub_game
 
 
 class PairingRefusalError(NegotiationError):
