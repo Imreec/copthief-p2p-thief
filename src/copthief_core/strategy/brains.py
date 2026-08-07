@@ -139,6 +139,8 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
     `package.module:Class` — the role packages' door into the arena and the peer
     loop; core itself stays role-blind.
     """
+    from copthief_core.strategy.best2934_cop import Best2934CopBrain
+    from copthief_core.strategy.best2934_thief import Best2934ThiefBrain
     from copthief_core.strategy.evader_brains import BeliefEvaderBrain
     from copthief_core.strategy.reference_brains import RefPoliceBrain, RefThiefBrain
 
@@ -148,6 +150,8 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
         "ref-police": RefPoliceBrain,
         "ref-thief": RefThiefBrain,
         "belief-evader": BeliefEvaderBrain,
+        "best2934-police": Best2934CopBrain,
+        "best2934-thief": Best2934ThiefBrain,
     }
     if name in core:
         return core[name](seed=seed, options=options)
