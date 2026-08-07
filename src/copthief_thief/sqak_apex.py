@@ -32,11 +32,12 @@ are preserved in `docs/evidence/m7-46-sqak-thief.md`.
 from __future__ import annotations
 
 from copthief_core.domain.belief import BeliefFilter
-from copthief_core.domain.board import STAY, Board, Coord
+from copthief_core.domain.board import STAY, Coord
 from copthief_core.domain.rules import is_legal_barrier, legal_moves
 from copthief_core.strategy.brains import BrainBase, Observation
 from copthief_core.strategy.decision import Decision
 from copthief_core.strategy.region import region_size
+from copthief_thief.sqak_ensemble import worst_escape
 
 __all__ = ["APEX_DEFAULTS", "SqakApexPoliceBrain"]
 
@@ -51,63 +52,16 @@ APEX_DEFAULTS: dict[str, float] = {
 }
 
 
-def _wall_dist(board: Board, cell: Coord) -> int:
-    """Their `endgame.wall_dist` — steps to the nearest board edge."""
-    low = board.axis_start_index
-    high = low + board.grid_size - 1
-    return min(cell[0] - low, high - cell[0], cell[1] - low, high - cell[1])
-
-
 class SqakApexPoliceBrain(BrainBase):
     """Their `ApexCop` L2 best-response, under our turn law (Input: the police
-    Observation + our belief over the thief; Output: a step or a wall, never both)."""
+    Observation + our belief over the thief; Output: a step or a wall, never both).
+
+    The objective it minimises lives in `sqak_ensemble` — their `escape_value` over
+    their three-archetype opponent model. This class is only the search around it.
+    """
 
     def _opts(self) -> dict[str, float]:
         return {**APEX_DEFAULTS, **self._options}
-
-    def _escape_value(
-        self, board: Board, cop: Coord, thief: Coord, move_set: tuple[str, ...]
-    ) -> float:
-        """Their `escape_value`: how free the thief is at `thief` with the cop at `cop`."""
-        opts = self._opts()
-        area = region_size(board, thief, move_set, int(opts["apex_region_cap"]), {})
-        gap = abs(cop[0] - thief[0]) + abs(cop[1] - thief[1])
-        return (
-            opts["apex_w_reach"] * area
-            + opts["apex_w_dist"] * gap
-            + opts["apex_w_wall"] * _wall_dist(board, thief)
-        )
-
-    def _replies(
-        self, board: Board, thief: Coord, cop: Coord, move_set: tuple[str, ...]
-    ) -> set[Coord]:
-        """Their ensemble = thief_v1 + naive_edge + still, unioned (union, so the
-        `max` below is over ALL three archetypes' predicted cells)."""
-        targets = [board.apply_move(thief, m) for m in legal_moves(board, thief, move_set)]
-        if not targets:
-            return {thief}
-        best_v1 = max(
-            targets,
-            key=lambda t: (
-                (abs(t[0] - cop[0]) + abs(t[1] - cop[1]))
-                + 0.3 * sum(not board.is_blocked(n) for n in board.neighbors(t))
-                - (1.0 if abs(t[0] - cop[0]) + abs(t[1] - cop[1]) <= 1 else 0.0)
-            ),
-        )
-        low = board.axis_start_index
-        high = low + board.grid_size - 1
-        corners = [(low, low), (low, high), (high, low), (high, high)]
-        goal = max(corners, key=lambda c: abs(c[0] - cop[0]) + abs(c[1] - cop[1]))
-        edge = min(targets, key=lambda t: abs(t[0] - goal[0]) + abs(t[1] - goal[1]))
-        return {best_v1, edge, thief}  # "still" is the thief standing its ground
-
-    def _worst_escape(
-        self, board: Board, cop: Coord, thief: Coord, move_set: tuple[str, ...]
-    ) -> float:
-        return max(
-            self._escape_value(board, cop, r, move_set)
-            for r in self._replies(board, thief, cop, move_set)
-        )
 
     def _walls(self, observation: Observation, thief: Coord) -> list[Coord]:
         """Their `_topk_barriers`: adjacent open cells, best area-gain first."""
@@ -141,8 +95,12 @@ class SqakApexPoliceBrain(BrainBase):
         return min(
             candidates,
             key=lambda m: (
-                self._worst_escape(
-                    board, board.apply_move(observation.position, m), thief, observation.move_set
+                worst_escape(
+                    board,
+                    board.apply_move(observation.position, m),
+                    thief,
+                    observation.move_set,
+                    self._opts(),
                 ),
                 m,
             ),
@@ -153,14 +111,16 @@ class SqakApexPoliceBrain(BrainBase):
         thief = belief.argmax()
         board, move_set = observation.board, observation.move_set
         move = self._pick_move(observation, belief)
-        best_step = self._worst_escape(
-            board, board.apply_move(observation.position, move), thief, move_set
+        best_step = worst_escape(
+            board, board.apply_move(observation.position, move), thief, move_set, self._opts()
         )
         cost = self._opts()["apex_barrier_cost"]
         best_wall, wall_cell = float("inf"), None
         for cell in self._walls(observation, thief):
             value = (
-                self._worst_escape(board.with_barrier(cell), observation.position, thief, move_set)
+                worst_escape(
+                    board.with_barrier(cell), observation.position, thief, move_set, self._opts()
+                )
                 + cost
             )
             if value < best_wall:
