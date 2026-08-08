@@ -3,6 +3,21 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR — chore/m8-todo-truth-pass (the TODO stops being a second journal)
+
+- **Driver:** Imree (asked for a pre-M8 cleanup of the drift sources in both repos) ·
+  **Author:** Claude (terminal) · **Reviewer:** pending (AG).
+- **What was asked:** the same truth-pass as the cop repo's, applied to this copy. This copy was
+  the staler one: M7-3 (first friendly), M7-6 (email posture, synced here as PR #35 on 2026-07-20)
+  and M7-10 still showed ☐; M7-46/47/51 showed ◐ though merged (#72/#73); and standing rule S-5
+  still carried the pre-ADR-0008 draft wording the cop repo corrected on 2026-07-20 — a
+  standing-rule divergence between the two repos.
+- **Outcome:** every status re-verified against `git log` (incl. the sync commits as the arrival
+  record for cop-led milestones); ☑ entries compressed to status + pointers (dossiers remain in
+  git history); dispositions on all open items mirror the cop TODO (M7-0/1/2/5/8 + the new M7-55
+  pointer to the unmerged opponent-identity fix, cop-led); S-5 reworded to the ADR-0008 form with
+  the divergence disclosed in-line. Header gains the entry-discipline rule.
+
 ## PR — m7-46-47-siege-and-informed-ramp (two opponents, two conditional responses)
 
 - **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** pending (AG).
