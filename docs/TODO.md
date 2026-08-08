@@ -113,7 +113,7 @@
 - ☑ **M7-52** 🏁 **SECOND COUNTED SERIES WON** 60–40 (4–2) vs uoh-sqak (2026-08-08) — App F pass floor met, +10 diversity; ledger advanced to 2 here (PR #74).
 - ☑ **M7-53** Absorb the opponent's opening handover (via sync #75).
 - ☑ **M7-54** A signature refusal names the construction (via sync #76).
-- ☐ **M7-55** 🚦 Opponent identity at negotiate (cop-led, mirrored core): our `negotiate` accepts ANY caller — fix on the cop repo's `rescue/m7-opponent-identity`, **UNMERGED**; arrives here via sync once decided.
+- ◐ **M7-55** 🚦 Opponent identity at negotiate (cop-led, mirrored core): our `negotiate` accepts ANY caller — the rescued fix is re-landed as **cop PR #117**, awaiting Imree's merge word; arrives here via the sync ritual after it merges.
 
 ## Phase M8 — Submission hardening
 
