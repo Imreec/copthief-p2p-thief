@@ -25,8 +25,20 @@ ACCEPTED = "accepted"
 DUPLICATE = "duplicate"
 BUFFERED = "buffered"
 ILLEGAL = "illegal"
+# M7-53: the opponent's opening nil turn — a token handover carrying no action, which
+# best2934 and gal-roy1 both send at step 0 before their cop's first real move. It is
+# not a game step, so it is absorbed here rather than classified as one.
+HANDOVER = "handover"
 
-__all__ = ["ACCEPTED", "BUFFERED", "DUPLICATE", "ILLEGAL", "InboundSequencer", "Verdict"]
+__all__ = [
+    "ACCEPTED",
+    "BUFFERED",
+    "DUPLICATE",
+    "HANDOVER",
+    "ILLEGAL",
+    "InboundSequencer",
+    "Verdict",
+]
 
 
 @dataclass(frozen=True)
@@ -50,6 +62,7 @@ class InboundSequencer:
         self._limit = buffer_limit
         self._seen: set[str] = set()
         self._held: dict[int, tuple[str, dict[str, Any]]] = {}
+        self.handover_seen = False  # M7-53: the one opening nil turn we absorb
 
     def seen(self, commit: str) -> bool:
         """True once `commit` has been consumed (the redelivery test)."""

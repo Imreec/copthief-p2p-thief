@@ -32,8 +32,33 @@ def _tolerated(step: int, disposition: str) -> dict[str, Any]:
     return {"status": "ok", "step": step, "disposition": disposition}
 
 
+def _is_opening_handover(session: PeerSession, raw: dict[str, Any]) -> bool:
+    """Is this the opponent's opening nil turn? (M7-53)
+
+    Input: the session and the RAW frame — this is decided before `TurnMessage`
+    validation, because a handover carries no commit, hint, smell grid or timestamp and
+    would be rejected as a malformed game turn on its way past.
+    Output: True only for a step-0 frame arriving before any real turn, at most once.
+
+    Keyed on the step ALONE. Their nil turn's field set is theirs to choose, and a
+    tolerance that guessed at its shape would break the first time they added a field.
+    """
+    if session.inbound or session.sequencer.handover_seen:
+        return False
+    try:
+        return int(raw.get("step", -1)) == 0
+    except (TypeError, ValueError):
+        return False
+
+
 def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any]:
     """Validate the inbound turn BEFORE any state change; then advance the machine."""
+    # M7-53: absorbed ahead of validation and of the sequencer. It is not a game step:
+    # nothing is sealed, the belief does not move, the machine does not advance, and
+    # the step we await is unchanged — so their first REAL move still lands as step 1.
+    if _is_opening_handover(session, raw):
+        session.sequencer.handover_seen = True
+        return _tolerated(0, inbox_order.HANDOVER)
     try:
         message = TurnMessage.from_wire(raw)
     except WireValidationError as error:
