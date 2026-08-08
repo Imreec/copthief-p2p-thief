@@ -77,3 +77,52 @@ def test_the_role_comparison_ignores_case_and_padding() -> None:
     """Same reasoning: a spelling difference must not decide a game."""
     assert _problem({ROLE_KEY: " Police "}, role="police") is not None
     assert _problem({ROLE_KEY: "THIEF"}, role="police") is None
+
+
+def test_a_stranger_is_refused_when_we_know_who_we_are_playing() -> None:
+    """M7-45, from uoh-sqak's 2026-08-07 fix and our own worse version of the hole.
+
+    We checked the declared index and role and never checked WHO answered. A stranger
+    declaring a matching index and the complementary role was therefore ACCEPTED — we
+    would have played them and sealed the game into the series under the real opponent's
+    group id. Their bug burned windows; ours would have produced a false record.
+    """
+    stranger = {SUB_GAME_KEY: 3, ROLE_KEY: "thief", "identity": {"group_id": "najamjad"}}
+    problem = pairing_problem(
+        sub_game_number=3, role="police", declared=stranger, expected_group="uoh-sqak"
+    )
+    assert problem is not None
+    assert "najamjad" in problem  # names who actually answered
+    assert "uoh-sqak" in problem  # and who we were expecting
+
+
+def test_the_declared_opponent_is_accepted() -> None:
+    theirs = {SUB_GAME_KEY: 3, ROLE_KEY: "thief", "identity": {"group_id": "uoh-sqak"}}
+    assert (
+        pairing_problem(
+            sub_game_number=3, role="police", declared=theirs, expected_group="uoh-sqak"
+        )
+        is None
+    )
+
+
+def test_an_unknown_opponent_accepts_whoever_answers() -> None:
+    """Empty stays permissive: self-tests, the reference oracle and unplanned peers all
+    negotiate without anyone having named an opponent in advance."""
+    anyone = {SUB_GAME_KEY: 3, ROLE_KEY: "thief", "identity": {"group_id": "whoever"}}
+    assert (
+        pairing_problem(sub_game_number=3, role="police", declared=anyone, expected_group=None)
+        is None
+    )
+
+
+def test_an_undeclared_group_never_refuses() -> None:
+    """Omission never refuses — the same rule the index and role checks use, and the
+    reference declares no group id at all."""
+    silent = {SUB_GAME_KEY: 3, ROLE_KEY: "thief"}
+    assert (
+        pairing_problem(
+            sub_game_number=3, role="police", declared=silent, expected_group="uoh-sqak"
+        )
+        is None
+    )
