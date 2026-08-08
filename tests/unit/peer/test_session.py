@@ -172,3 +172,29 @@ def test_control_message_is_answered_without_touching_game_state() -> None:
     response = thief.handle_receive_control({"sender": "police", "kind": "status"})
     assert response["status"] == "ok"
     assert thief.machine.state is before
+
+
+def test_a_signature_refusal_names_the_construction() -> None:
+    """M7-54 (best2934, kit #45): "signature verification failed" tells a peer nothing
+    it can act on. The construction reads three ways in prose — bare concatenation, one
+    pipe, two — and only a single U+007C reproduces the kit vector. A peer that guessed
+    wrong fails EVERY handshake with no diagnostic, and the natural next move is to diff
+    fourteen terms that already agree. Naming the construction turns that hunt into a
+    one-line fix, and costs us one string.
+    """
+    from copthief_core.domain.crypto import make_nonce
+    from copthief_core.domain.terms import terms_from_config
+
+    _police, thief = _pair()
+    nonce = make_nonce()
+    wrong = {
+        "terms": terms_from_config(CONSTITUTION),
+        "nonce": nonce,
+        "signature": "0" * 64,  # any peer that joined with "||" or with nothing
+        "identity": {"group_id": "someone", "group_name": "Someone"},
+    }
+    with pytest.raises(NegotiationError) as refusal:
+        thief.handle_negotiate(wrong)
+    text = str(refusal.value)
+    assert "canonical_json(terms)|nonce" in text
+    assert "single" in text.lower()
