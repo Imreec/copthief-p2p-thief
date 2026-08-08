@@ -144,7 +144,16 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
     if canonical_str(theirs) != canonical_str(ours):
         raise NegotiationError("terms mismatch: opponent terms do not value-equal ours")
     if terms_signature(ours, str(raw.get("nonce"))) != raw.get("signature"):
-        raise NegotiationError("signature verification failed over our terms")
+        # M7-54 (best2934, kit #45): name the construction rather than only refusing.
+        # It reads three ways in prose — bare concatenation, one pipe, two — and only a
+        # single U+007C reproduces the kit vector. A peer that guessed wrong fails EVERY
+        # handshake with no diagnostic, and the obvious next move is to diff fourteen
+        # terms that already agree. One string turns that hunt into a one-line fix.
+        raise NegotiationError(
+            "signature verification failed over our terms — expected "
+            "SHA256(canonical_json(terms)|nonce), joined by a SINGLE U+007C pipe "
+            "with no other delimiter (kit vectors/terms_signature.json)"
+        )
     # M7-10: BEFORE the game_uid is locked. Identical terms give identical game_uids, so
     # by the time an artifact exists a mispairing is already invisible — the handshake is
     # the only place it can still be seen.
