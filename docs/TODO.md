@@ -96,7 +96,7 @@
 - ☑ **M7-3** League outreach + first external friendly 2026-07-25 (imreeyal 75–35 vs anrbj666, all audits clean, one auto-report to both teams). Lead evidence cop-side (`docs/evidence/m7-3-first-external-friendly.md` there).
 - ☑ **M7-4** First counted series — discharged by M7-41 (cop TODO; ledger advanced here in sync #69).
 - ☑ **M7-4b** Live-series machinery (sealed `--sub-game` index — the defect bit THIS repo directly on odd sub-games; `summary_from_log`/`series_from_logs`; `sdk/live_series` owner) — via syncs; `num_games` 1→6 parity committed here.
-- ◐ **M7-5** Counted series vs distinct teams — **two played, App F pass floor met** (anrbj666 lost 30–90; uoh-sqak WON 60–40, +10 diversity). Third candidate best2934 blocked on a mutual code-level handshake gap (their negotiate carries no kit-CORE terms/nonce/signature; both sides informed 2026-08-08).
+- ◐ **M7-5** Counted series vs distinct teams — **two played, App F pass floor met** (anrbj666 lost 30–90; uoh-sqak WON 60–40, +10 diversity). Third candidate best2934: their kit-CORE handshake gap closed BY THEM (`05b3886`); the 2026-08-08 19:00 friendly did not play — tool-name dialects disjoint except `negotiate`, they are adopting our four-tool dialect (kit pins it); T unnamed pending their build. gal-roy1 counted offer (kit #48) held on Imree's word.
 - ☑ **M7-6** 🚦 Email posture correction (cop ADR-0008) — mirrored here as thief PR #35 (main `9ab4dce`): automatic send, recipient = the authorization, `gmail.send`-only shared token, this repo's CLAUDE.md #16/§4 amended.
 - ☑ **M7-7** 🚦 Real-tunnel kill-drill defects — fixed cop-side, closed here via sync (all four in mirrored core; `state_*.json` git-ignore parity here).
 - ◐ **M7-8** At-least-once inbound tolerance — code half closed here via sync (`InboundSequencer`; `[network] inbound_buffer_limit` + v1.01 parity committed here). **Live us→them-dedup and reorder halves never drilled; two clean counted series retired the practical risk. Disposition: accepted residual — KNOWN_LIMITATIONS candidate at M8.**
@@ -113,7 +113,7 @@
 - ☑ **M7-52** 🏁 **SECOND COUNTED SERIES WON** 60–40 (4–2) vs uoh-sqak (2026-08-08) — App F pass floor met, +10 diversity; ledger advanced to 2 here (PR #74).
 - ☑ **M7-53** Absorb the opponent's opening handover (via sync #75).
 - ☑ **M7-54** A signature refusal names the construction (via sync #76).
-- ◐ **M7-55** 🚦 Opponent identity at negotiate (cop-led, mirrored core): our `negotiate` accepts ANY caller — the rescued fix is re-landed as **cop PR #117**, awaiting Imree's merge word; arrives here via the sync ritual after it merges.
+- ☑ **M7-55** Opponent identity at negotiate (cop-led): a stranger naming a different group is refused without consuming the window; omission never refuses. Merged as cop PR #117 (`ee88445`), **arrived here via sync PR #78 (main `3c0b2fe`, 992 tests green before the sync commit).**
 
 ## Phase M8 — Submission hardening
 
