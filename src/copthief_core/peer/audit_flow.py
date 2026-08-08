@@ -8,6 +8,7 @@ DERIVED from protocol events and cross-checked against the revealed records
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from copthief_core.domain.crypto import verify
@@ -53,13 +54,29 @@ def build_audit(sender: str, records: list[SealedTurn], result_claim: str) -> di
     ).to_wire()
 
 
-def verify_audit(audit: AuditPayload) -> list[str]:
+def verify_audit(
+    audit: AuditPayload, *, live_commits: Mapping[int, str] | None = None
+) -> list[str]:
     """Every problem found in an opponent's audit; empty list == Verified OK.
 
-    Checks: each record re-hashes to its commit (our serializer, kit §3), and the
-    revealed GAME steps run 1..N with no gaps. Non-game records are re-hashed but
-    excluded from continuity: the reference seals a step-0 `system_spec` declaration
-    (observed in the M2 smoke), and a peer may seal control messages too.
+    Checks: each record re-hashes to its commit (our serializer, kit §3), the disclosed
+    commit MATCHES THE ONE THAT ARRIVED LIVE (M7-56), and the revealed GAME steps run
+    1..N with no gaps. Non-game records are re-hashed but excluded from continuity: the
+    reference seals a step-0 `system_spec` declaration (observed in the M2 smoke), and a
+    peer may seal control messages too.
+
+    M7-56, and it is the check that makes the other one mean anything: re-hashing a
+    record against the commit carried INSIDE it proves only that the record is
+    self-consistent — which a rewritten record also is, because the rewriter wrote both
+    halves. Commit-reveal binds only if the commitment is fixed BEFORE the reveal, so
+    the commitment that counts is the one we were handed during play. `live_commits`
+    maps step -> the commit received on the wire; a step absent from it is checked
+    against its own seal alone, because a turn that never reached us must not become an
+    accusation of forgery. Omitting the argument entirely is the pre-M7-56 behaviour,
+    for the referee harness and the replay tooling, which have no wire history.
+
+    Raised independently by gal-roy1 (kit #48) and already implemented by best2934,
+    whose `forged` verdict is exactly this comparison.
 
     Identifying those by step NUMBER was the M7-42 defect: it assumed a non-game record
     is always numbered 0. uoh-sqak seals `control` records inside the GAME step space
@@ -81,6 +98,15 @@ def verify_audit(audit: AuditPayload) -> list[str]:
             game_steps.append(-1)  # malformed step still breaks continuity below
         if not verify(record.payload, record.nonce, record.commit):
             problems.append(f"tamper: step {step} recompute does not match the sealed commit")
+        elif live_commits is not None and isinstance(step, int):
+            # The record is self-consistent; ask the only question that outranks that.
+            sealed_live = live_commits.get(step)
+            if sealed_live is not None and sealed_live != record.commit:
+                problems.append(
+                    f"forged: step {step} discloses commit {record.commit[:12]}… but "
+                    f"{sealed_live[:12]}… arrived on the wire — the disclosure is not "
+                    "what was committed to during play"
+                )
     expected = list(range(1, len(game_steps) + 1))
     # Terminal-message convention (M5 friendly g2 live finding): a caught reference
     # thief seals its mandatory final message at its CURRENT step, so its revealed

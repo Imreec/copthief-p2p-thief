@@ -7,7 +7,7 @@ prior, and the config-floored hint trust a series runner hands the next mini-gam
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -50,7 +50,10 @@ opponent_commit = revealed_commit
 
 
 def validate_opponent_audit(
-    raw: dict[str, Any], *, survival_threshold: int
+    raw: dict[str, Any],
+    *,
+    survival_threshold: int,
+    live_commits: Mapping[int, str] | None = None,
 ) -> tuple[str, list[str]]:
     """(their result claim, every problem found) — empty problems == Verified OK.
 
@@ -61,7 +64,7 @@ def validate_opponent_audit(
         audit = AuditPayload.from_wire(raw)
     except WireValidationError as error:
         return ("invalid", [str(error)])
-    problems = verify_audit(audit)
+    problems = verify_audit(audit, live_commits=live_commits)
     game_steps = [
         r.payload["step"]
         for r in audit.records
@@ -120,7 +123,12 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     if theirs is None:
         return result(audit_ok=False, claim="", problems=("no audit received from opponent",))
     claim, problems = validate_opponent_audit(
-        theirs, survival_threshold=session.constitution.movement.survival_threshold
+        theirs,
+        survival_threshold=session.constitution.movement.survival_threshold,
+        # M7-56: every commitment they handed us during play, keyed by step. This is
+        # what turns "their disclosure is self-consistent" into "their disclosure is
+        # what they committed to" — the only version of the sentence worth settling on.
+        live_commits={m.step: m.commit for m in session.inbound},
     )
     # M6-7 (FR-11, evidence-grade only): diff their transmitted grids against the
     # trail their revealed moves imply — a loud event, never a verdict change (SQ3).
