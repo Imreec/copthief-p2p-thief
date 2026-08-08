@@ -41,9 +41,52 @@ def pairing_declaration(*, sub_game_number: int, role: str) -> dict[str, Any]:
     return {SUB_GAME_KEY: sub_game_number, ROLE_KEY: role}
 
 
-def pairing_problem(*, sub_game_number: int, role: str, declared: dict[str, Any]) -> str | None:
-    """Judge the opponent's declaration (Input: our index and role + their whole
-    negotiate payload; Output: the refusal reason, or None to proceed)."""
+def _wrong_group(declared: dict[str, Any], expected_group: str | None) -> str | None:
+    """The refusal for an agreement from someone we are not playing, or None.
+
+    Omission never refuses — the same rule the index and role checks use, and the
+    reference declares no group id at all. Only a peer that NAMES a different group is
+    turned away; the caller keeps listening inside the same budget, so a stranger costs
+    nothing rather than costing a window.
+    """
+    if not expected_group:
+        return None
+    identity = declared.get("identity")
+    theirs = identity.get("group_id") if isinstance(identity, dict) else declared.get("group_id")
+    if not isinstance(theirs, str) or not theirs.strip():
+        return None
+    if theirs.strip().casefold() == expected_group.strip().casefold():
+        return None
+    return (
+        f"wrong opponent: we are playing {expected_group!r}, this agreement is from "
+        f"{theirs!r} — a stranger's game would be sealed under the wrong group id"
+    )
+
+
+def pairing_problem(
+    *,
+    sub_game_number: int,
+    role: str,
+    declared: dict[str, Any],
+    expected_group: str | None = None,
+) -> str | None:
+    """Judge the opponent's declaration (Input: our index and role, their whole negotiate
+    payload, and who we expect to be playing; Output: the refusal reason, or None).
+
+    M7-45: WHO answered is checked, not just what they claim to be playing. Our endpoint
+    is public and unauthenticated — anyone can call `negotiate` — and a stranger
+    declaring a matching index and the complementary role passed every check we had. We
+    would have played them and sealed the game into the series under the REAL opponent's
+    group id: an artifact naming a team that never played it. uoh-sqak hit the cheaper
+    half of this live (twelve stranger agreements consumed twelve of their windows,
+    2026-08-07); ours would have produced a false record instead of a lost series.
+
+    `expected_group` empty accepts whoever answers — self-tests, the reference oracle and
+    unplanned peers all negotiate without an opponent named in advance.
+    """
+    stranger = _wrong_group(declared, expected_group)
+    if stranger is not None:
+        return stranger
     theirs = declared.get(SUB_GAME_KEY)
     # bool is an int in Python; a True here is a wire accident, not a sub-game.
     if isinstance(theirs, int) and not isinstance(theirs, bool) and theirs != sub_game_number:

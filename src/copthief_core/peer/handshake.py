@@ -158,7 +158,12 @@ def handle_negotiate(session: PeerSession, raw: dict[str, Any]) -> dict[str, Any
     # by the time an artifact exists a mispairing is already invisible — the handshake is
     # the only place it can still be seen.
     mispairing = pairing_problem(
-        sub_game_number=declared_sub_game(session), role=session.role, declared=raw
+        sub_game_number=declared_sub_game(session),
+        role=session.role,
+        declared=raw,
+        # M7-45: a series run knows who it is playing; a one-off game does not and
+        # stays permissive.
+        expected_group=session.expected_opponent_group,
     )
     if mispairing is not None:
         raise PairingRefusalError(mispairing)
