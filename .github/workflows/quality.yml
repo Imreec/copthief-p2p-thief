@@ -7,12 +7,12 @@ on:
     branches: [main]
 
 jobs:
-  quality:
+  # Fast fail-first lane (~3-4 min): every gate EXCEPT the test suite. A lint slip,
+  # type error, size overrun, or mirror drift reports here long before the suite
+  # lane finishes — the suite lane no longer queues behind the cheap checks.
+  gates:
     runs-on: ubuntu-latest
-    # M9: the forcing solver fires inside the arena integration games; the suite went
-    # ~68s -> ~334s locally and past 15m on this runner. Node-capped, so the bound is
-    # firm - 30 keeps a 2x margin. Revisit if a profiling pass shrinks the arena cost.
-    timeout-minutes: 30
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -22,6 +22,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           version: "latest"
+          enable-cache: true
 
       - name: Set up Python 3.12
         run: uv python install 3.12
@@ -51,7 +52,7 @@ jobs:
       - name: Core-mirror manifest check
         run: uv run python scripts/sync_core.py --verify
 
-      # Kit CORE conformance — activates at M1 when tests/conformance lands (CLAUDE.md §1 #13).
+      # Kit CORE conformance — byte-level interop, CI-blocking (CLAUDE.md §1 #13).
       - name: Kit CORE vectors
         run: |
           if [ -d tests/conformance ]; then
@@ -66,5 +67,40 @@ jobs:
       - name: Submission checklist (non-blocking report until M8)
         run: uv run python scripts/check_submission.py
 
+  # The suite lane keeps the historical job id `quality` so anything keyed to that
+  # check name still points at a blocking gate. Runs in PARALLEL with `gates`,
+  # ON THE SELF-HOSTED 24-core runner (label fast24, one registered per repo):
+  # GitHub's 2-core VM ran this suite in ~25 min; the local runner + xdist runs it
+  # in ~2 min. If the runner is offline this lane QUEUES - restart it with the
+  # one-liner in the ops runbook/memory. Arena seeds and the solver node cap stay
+  # untouched: they are the measurement, not speed knobs. --dist loadscope keeps
+  # each test module on one worker so the arena module's shared round-robin
+  # fixture is computed once.
+  quality:
+    runs-on: [self-hosted, fast24]
+    timeout-minutes: 15
+    defaults:
+      run:
+        # The dev machine's PowerShell execution policy blocks the runner's
+        # generated .ps1 step scripts (PSSecurityException); Git Bash sidesteps
+        # policy without changing system state, and is present on the machine.
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
       - name: Tests with coverage
-        run: uv run pytest --cov=src --cov-report=xml --cov-fail-under=85
+        run: uv run pytest -n auto --dist loadscope --cov=src --cov-report=xml --cov-fail-under=85

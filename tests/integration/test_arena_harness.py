@@ -9,7 +9,14 @@ is proven in tests/unit/sdk/test_arena.py).
 
 from pathlib import Path
 
-from copthief_core.sdk.arena import champion_regression, load_champions, run_round_robin
+import pytest
+
+from copthief_core.sdk.arena import (
+    ArenaReport,
+    champion_regression,
+    load_champions,
+    run_round_robin,
+)
 from copthief_core.sdk.arena_config import load_arena_config
 from copthief_core.sdk.simulation import SimulationSdk
 
@@ -20,22 +27,29 @@ def _sdk() -> SimulationSdk:
     return SimulationSdk(Path("config"))
 
 
-def test_every_roster_entry_has_a_standing_in_its_role() -> None:
-    report = run_round_robin(_sdk(), config=CONFIG)
-    assert len(report.series) == len(CONFIG.police_roster) * len(CONFIG.thief_roster)
+@pytest.fixture(scope="module")
+def shipped_report() -> ArenaReport:
+    """ONE round robin for the whole module (M9 CI profile: three tests each
+    recomputed it, ~48s apiece — the fixture pays once; the reproducibility test
+    pays its deliberate second). Keep the module on one xdist worker via
+    --dist loadscope or the sharing is lost."""
+    return run_round_robin(_sdk(), config=CONFIG)
+
+
+def test_every_roster_entry_has_a_standing_in_its_role(shipped_report: ArenaReport) -> None:
+    assert len(shipped_report.series) == len(CONFIG.police_roster) * len(CONFIG.thief_roster)
     for entry in CONFIG.police_roster:
-        assert report.standing(entry.name, "police").games > 0
+        assert shipped_report.standing(entry.name, "police").games > 0
     for entry in CONFIG.thief_roster:
-        assert report.standing(entry.name, "thief").games > 0
+        assert shipped_report.standing(entry.name, "thief").games > 0
 
 
-def test_round_robin_is_reproducible_on_the_shipped_config() -> None:
-    first = run_round_robin(_sdk(), config=CONFIG)
-    again = run_round_robin(_sdk(), config=CONFIG)
-    assert first == again
+def test_round_robin_is_reproducible_on_the_shipped_config(
+    shipped_report: ArenaReport,
+) -> None:
+    assert run_round_robin(_sdk(), config=CONFIG) == shipped_report
 
 
-def test_shipped_champion_pin_passes_the_regression_gate() -> None:
-    report = run_round_robin(_sdk(), config=CONFIG)
+def test_shipped_champion_pin_passes_the_regression_gate(shipped_report: ArenaReport) -> None:
     champions = load_champions(Path("config") / "arena_champion.json")
-    assert champion_regression(report, champions) == []
+    assert champion_regression(shipped_report, champions) == []
