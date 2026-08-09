@@ -15,19 +15,9 @@ from typing import Any
 
 from copthief_core.domain.scent import ScentField
 from copthief_core.domain.scent_models import make_scent_model
+from copthief_core.peer.scent_records import revealed_positions
 from copthief_core.shared.config_model import Constitution, PrivateSettings
 from copthief_core.shared.locked_models import SCENT_MODEL
-
-
-def _revealed_positions(records: list[dict[str, Any]]) -> dict[int, tuple[int, int]]:
-    """step -> revealed position, game records only; malformed entries skipped."""
-    positions: dict[int, tuple[int, int]] = {}
-    for record in records:
-        payload = record.get("payload", {})
-        step, position = payload.get("step"), payload.get("position")
-        if isinstance(step, int) and step >= 1 and isinstance(position, list):
-            positions.setdefault(step, (position[0], position[1]))
-    return positions
 
 
 def scent_physics_mismatches(
@@ -52,7 +42,7 @@ def scent_physics_mismatches(
     534 probed inputs — comparing byte-wise there would manufacture evidence against an
     honest opponent, so a model that does not round is compared within `tolerance`.
     """
-    positions = _revealed_positions(records)
+    positions = revealed_positions(records)
     transmitted = {
         m["step"]: m["smell_grid"]
         for m in inbound
@@ -100,9 +90,27 @@ def emit_scent_physics(
     their_records = theirs.get("records")
     if not isinstance(their_records, list):
         return
+    inbound = [message.to_wire() for message in session.inbound]
+    # M7-58: silence used to mean both "clean" and "I had nothing to compare", and the
+    # second is what actually happened in every cross-team game we have ever played.
+    # A check that cannot run must SAY it cannot run — the WARNINGS §5b shape, ours.
+    grids = sum(1 for m in inbound if isinstance(m.get("smell_grid"), dict) and m["smell_grid"])
+    if grids and not revealed_positions(their_records):
+        emit(
+            {
+                "event": "scent_physics_unavailable",
+                "sender": session.role,
+                "payload": {
+                    "opponent": session.opponent_group,
+                    "reason": "no revealed cell in the opponent's records — nothing to re-walk",
+                    "records": len(their_records),
+                    "grids": grids,
+                },
+            }
+        )
     mismatches = scent_physics_mismatches(
         records=their_records,
-        inbound=[message.to_wire() for message in session.inbound],
+        inbound=inbound,
         constitution=session.constitution,
         private=session.private,
         tolerance=session.private.scent_physics_tolerance,
