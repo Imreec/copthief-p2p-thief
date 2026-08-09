@@ -55,8 +55,27 @@ def test_the_unique_stamp_names_the_emitter_cell() -> None:
 
 
 def test_an_ambiguous_frame_abstains() -> None:
-    """Two age-zero cells (a frame legal physics cannot produce): no decode."""
+    """Two age-zero cells AT THE SAME value (a frame legal physics cannot
+    produce under either snapshot convention): no decode."""
     grid = {"3,4": 0.8, "5,5": 0.8}
+    assert fresh_peak_scores(grid, [(3, 4), (5, 5)], MODEL.age_of) == {}
+
+
+def test_a_pre_decay_frame_decodes_its_maximum() -> None:
+    """The frame-order divergence (best2934's convention): a PRE-decay snapshot
+    carries the fresh centre at 0.9 while last turn's centre still reads 0.8 —
+    two age-zero values, ONE maximum. The decoder must take the unique maximum
+    instead of abstaining, so the sharp tier works under both conventions
+    without taking a side in the kit's frame-order ruling."""
+    grid = {"3,4": 0.9, "3,3": 0.8, "2,4": 0.6, "4,4": 0.5, "3,5": 0.3}
+    support = [(3, 3), (3, 4), (2, 4)]
+    scores = fresh_peak_scores(grid, support, MODEL.age_of)
+    assert scores == {(3, 3): 0.0, (3, 4): 1.0, (2, 4): 0.0}
+
+
+def test_tied_maxima_still_abstain_under_the_pre_decay_form() -> None:
+    """Two cells at 0.9 (impossible for one honest emitter): no decode."""
+    grid = {"3,4": 0.9, "5,5": 0.9, "3,3": 0.8}
     assert fresh_peak_scores(grid, [(3, 4), (5, 5)], MODEL.age_of) == {}
 
 
