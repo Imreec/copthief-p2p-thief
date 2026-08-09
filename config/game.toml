@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.03"
+version = "1.04"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -123,6 +123,12 @@ opponent_url = ""
 turn_timeout_seconds = 180
 poll_interval_seconds = 0.5
 connect_timeout_seconds = 60
+# M7-57: the deadline on ONE outbound tool call. Every budget above bounds a whole
+# exchange; none bounded a single delivered-but-unanswered push, so that push inherited
+# the transport library's own default and blocked for it. Must stay under the SIGNED
+# response_timeout_sec (30) so a first attempt AND a retry both fit inside the deadline
+# the opponent enforces - loader-asserted in shared/budgets.py rule 6.
+call_timeout_seconds = 10
 # M7-8 at-least-once tolerance: how many steps AHEAD of the awaited one we hold before
 # calling it a flood. A lost HTTP ack makes the sender retry, so two of the opponent's
 # pushes can be in flight at once and land out of order; anything past this window is
