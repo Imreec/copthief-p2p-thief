@@ -15,7 +15,14 @@ from copthief_core.peer.session import PeerSession, ProtocolViolationError
 from copthief_core.shared.config import load_all
 from copthief_core.strategy.decision import Decision
 
-CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+CONSTITUTION, _LIVE_PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+# These pins test the claim MECHANISM (carried claim, honest answer, final message),
+# so the M9-5 confidence gate is held open; the gate's own behavior is pinned below
+# in test_low_confidence_move_claims_nothing_under_the_gate.
+PRIVATE = replace(
+    _LIVE_PRIVATE,
+    police_options={**_LIVE_PRIVATE.police_options, "claim_threshold": 0.0},
+)
 
 
 class _ScriptedBrain:
@@ -48,6 +55,20 @@ def test_police_move_turn_carries_its_landing_cell_as_capture_claim() -> None:
     police.brain = _ScriptedBrain(["S"])
     message = police.take_turn(now=1.0)
     assert message["capture_claim"] == list(police.position)
+
+
+def test_low_confidence_move_claims_nothing_under_the_gate() -> None:
+    """The M9-5 gate: with the LIVE config (claim_threshold > 0) and a game-start
+    belief far below it, a moving cop stays silent — the position leak our own
+    published sweep quantified (and anrbj666 shipped back at us) is closed."""
+    assert _LIVE_PRIVATE.strategy_options("police").get("claim_threshold", 0.0) > 0.0
+    police = PeerSession(CONSTITUTION, _LIVE_PRIVATE, role="police", seed=1)
+    thief = PeerSession(CONSTITUTION, _LIVE_PRIVATE, role="thief", seed=2)
+    thief.handle_negotiate(police.negotiate_payload())
+    police.handle_negotiate(thief.negotiate_payload())
+    police.machine.state = GameState.COMPUTING_MOVE
+    police.brain = _ScriptedBrain(["S"])
+    assert police.take_turn(now=1.0)["capture_claim"] is None
 
 
 def test_police_stay_turn_claims_nothing() -> None:

@@ -19,8 +19,12 @@ Pure functions — no filter state, no I/O; the filter owns priors and normaliza
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from copthief_core.domain.board import Board, Coord
+
+if TYPE_CHECKING:
+    from copthief_core.domain.scent_models import ScentModel
 
 Kernel = list[tuple[float, ...]]
 
@@ -57,6 +61,24 @@ def age_voucher_scores(
         )
         for cell in support
     }
+
+
+def fresh_peak_scores(
+    grid: dict[str, float], support: list[Coord], age_of: Callable[[float], int]
+) -> dict[Coord, float]:
+    """The sharp tier (M9-2): the unique age-zero stamp names the emitter cell.
+
+    Under the subtractive form only a centre laid THIS turn can read `fresh_center`
+    (rings are lower, older centres have decayed a step), so exactly one age-zero
+    cell is the opponent's current cell. Anything else — no stamp (stale frame) or
+    several (a field legal physics cannot produce) — abstains to `{}` and the caller
+    falls back to the voucher path. Score 1.0 at the peak, 0.0 elsewhere; the FILTER
+    owns how hard to trust it (SQ3: multiply, never eliminate).
+    """
+    peaks = [cell for cell, value in parse_grid(grid).items() if age_of(value) == 0]
+    if len(peaks) != 1:
+        return {}
+    return {cell: 1.0 if cell == peaks[0] else 0.0 for cell in support}
 
 
 def kernel_match_score(
@@ -111,3 +133,30 @@ def kernel_match_scores(
 ) -> dict[Coord, float]:
     """`kernel_match_score` per support cell over one parsed (or residual) field."""
     return {cell: kernel_match_score(observed, cell, kernel, board) for cell in support}
+
+
+def observation_scores(
+    grid: dict[str, float],
+    support: list[Coord],
+    scent: ScentModel,
+    last_scent: dict[Coord, float] | None,
+    board: Board,
+    smell_trust: float,
+    fresh_peak_trust: float,
+) -> tuple[dict[Coord, float], float, dict[Coord, float] | None]:
+    """One observed field to (scores, trust, next_last_scent) — the filter's whole
+    scent dispatch (moved here at M9-2, 150-line rule): kernel shape-match for
+    spatial models, else the sharp fresh-peak decode when enabled (abstention
+    falls back to the voucher). The filter owns priors and normalization."""
+    kernel = scent.spatial_kernel()
+    if kernel is not None:
+        # Shape-match the INNOVATION: what the decay-predicted past cannot
+        # explain is (up to clamping) one fresh kernel at the current cell.
+        observed = parse_grid(grid)
+        residual = innovation(observed, last_scent, scent.decayed)
+        return kernel_match_scores(residual, support, kernel, board), smell_trust, observed
+    if fresh_peak_trust > 0.0:  # M9-2: the sharp decode outranks the voucher
+        scores = fresh_peak_scores(grid, support, scent.age_of)
+        if scores:
+            return scores, fresh_peak_trust, last_scent
+    return age_voucher_scores(grid, support, scent.age_of), smell_trust, last_scent

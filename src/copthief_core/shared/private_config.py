@@ -100,6 +100,9 @@ def load_private_settings(
         smell_trust_weight=float(belief["smell_trust_weight"]),
         hint_trust_default=float(belief["hint_trust_default"]),
         profile_hint_floor=float(belief["profile_hint_floor"]),
+        # M9-2: omission = 0.0 = the shipped voucher path, so a config that never
+        # heard of the sharp tier plays exactly what M3-3 shipped.
+        fresh_peak_trust=float(belief.get("fresh_peak_trust", 0.0)),
         police_class=str(strategy["police_class"]),
         thief_class=str(strategy["thief_class"]),
         police_options=_scalar_options(strategy.get("police", {})),

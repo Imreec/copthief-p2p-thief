@@ -33,10 +33,23 @@ thief = "https://thief.imreeyal.com/mcp"
 # package.module:Class notation for role brains). The sparring host stays on the
 # generic brain - tuned weights never deploy there (CLAUDE.md s9).
 police_class = "random"
-thief_class = "copthief_thief.brain:ThiefBrain"
+# M9 (ADR-0011 in the lead repo): the doctrine evader — lethal gate above flight,
+# belief-native worst-wall forecast, stay cap, hunted-only flee lift. The counted
+# 30-90 corner deaths refuse at their first step. The old ThiefBrain stays available
+# by flipping this line back; its tuned tables below are inert under the doctrine
+# brain (unknown keys are tolerated, nothing reads them).
+thief_class = "doctrine-evader"
 # M5-6 A/B winner (docs/evidence/m5-template-ab.md): banks measured identical
 # against our closed-vocabulary parser - classic retained on the survivals tiebreak.
 hint_bank = "classic"
+
+[strategy.police]
+# M9-5 claim gate (mirrored gate pin in tests/unit/peer/test_claims.py requires the
+# live config to carry it): claim only when the landing's own belief mass clears
+# this. This repo's police side is the generic sparring stand-in, but the gate is a
+# property of the SHIPPED stack in both repos — 0.1 = the published sweep's point.
+claim_threshold = 0.1
+tie_epsilon = 0.25
 
 [strategy.thief]
 # ThiefBrain knobs: the canonical defaults live in copthief_thief/features.py
@@ -98,6 +111,12 @@ hint_trust_default = 1.0
 # M5-5 profiling: the post-audit lie-rate scales the NEXT mini-game's hint trust
 # down toward (never past) this floor - distrust-but-never-eliminate.
 profile_hint_floor = 0.2
+# M9-2: the sharp fresh-peak tier (lead ADR-0011). Under subtractive_chebyshev_v1 the
+# age-zero stamp names the emitter cell exactly - for the THIEF this is what feeds the
+# lethal gate and the hunted-flee lift with the cop's true cell. Strong multiplier on
+# purpose (x200 on the peak); ambiguous/stale frames abstain to the voucher path; SQ3
+# holds (boost, never eliminate). 0.0 disables (the pre-M9 filter byte-for-byte).
+fresh_peak_trust = 199.0
 
 [gui]
 # Live-view render knobs (PRD_gui_replay s7, police repo): display-only, never

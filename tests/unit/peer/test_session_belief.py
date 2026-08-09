@@ -6,13 +6,20 @@ placed 7 barriers; our thief crossed one cell legally only by luck). These tests
 against the M2-era behavior by construction.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 from copthief_core.domain.rules import legal_moves
 from copthief_core.peer.session import PeerSession
 from copthief_core.shared.config import load_all
 
-CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+CONSTITUTION, _LIVE_PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+# The claim-collapse pins need the sender to actually claim: the M9-5 confidence
+# gate is held open here; the gate itself is pinned in test_claims.py.
+PRIVATE = replace(
+    _LIVE_PRIVATE,
+    police_options={**_LIVE_PRIVATE.police_options, "claim_threshold": 0.0},
+)
 
 
 def _pair() -> tuple[PeerSession, PeerSession]:
