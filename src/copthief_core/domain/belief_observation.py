@@ -66,19 +66,27 @@ def age_voucher_scores(
 def fresh_peak_scores(
     grid: dict[str, float], support: list[Coord], age_of: Callable[[float], int]
 ) -> dict[Coord, float]:
-    """The sharp tier (M9-2): the unique age-zero stamp names the emitter cell.
+    """The sharp tier (M9-2): the freshest stamp names the emitter cell.
 
-    Under the subtractive form only a centre laid THIS turn can read `fresh_center`
-    (rings are lower, older centres have decayed a step), so exactly one age-zero
-    cell is the opponent's current cell. Anything else — no stamp (stale frame) or
-    several (a field legal physics cannot produce) — abstains to `{}` and the caller
-    falls back to the voucher path. Score 1.0 at the peak, 0.0 elsewhere; the FILTER
-    owns how hard to trust it (SQ3: multiply, never eliminate).
+    Under the subtractive form only a centre laid THIS turn can carry the frame's
+    maximum age-zero value — and that holds under BOTH snapshot conventions the
+    league fields (the frame-order divergence): a post-decay frame's fresh centre
+    reads `fresh_center` alone, while a PRE-decay frame carries the fresh centre
+    one step above last turn's centre (0.9 over 0.8), both age-zero to the clamp.
+    The peak is therefore the unique MAXIMUM among age-zero cells, which
+    presupposes neither convention. No age-zero cell (stale frame) or a tied
+    maximum (a field one honest emitter cannot produce) abstains to `{}` and the
+    caller falls back to the voucher path. Score 1.0 at the peak, 0.0 elsewhere;
+    the FILTER owns how hard to trust it (SQ3: multiply, never eliminate).
     """
-    peaks = [cell for cell, value in parse_grid(grid).items() if age_of(value) == 0]
-    if len(peaks) != 1:
+    fresh = [(value, cell) for cell, value in parse_grid(grid).items() if age_of(value) == 0]
+    if not fresh:
         return {}
-    return {cell: 1.0 if cell == peaks[0] else 0.0 for cell in support}
+    top = max(value for value, _ in fresh)
+    winners = [cell for value, cell in fresh if value == top]
+    if len(winners) != 1:
+        return {}
+    return {cell: 1.0 if cell == winners[0] else 0.0 for cell in support}
 
 
 def kernel_match_score(
