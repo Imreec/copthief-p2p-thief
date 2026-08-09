@@ -5,7 +5,7 @@
     ".claude/skills/pr-discipline/SKILL.md": "a2743a764009a4b6dea39caa1156b62dc4d06da398a0e6a7b22a3f052570a226",
     ".claude/skills/self-grade/SKILL.md": "2322978e54d5c5d239359791456cc8b418578345b23b8fae7d6437418982f8b8",
     ".claude/skills/tdd-cycle/SKILL.md": "603b808da80a724a65868452d28e64d3badaa513deed81ed0d0542a31101def1",
-    ".github/workflows/quality.yml": "02846a564061b235518eb7375f45f47447d5b06a80939dc3b6859d7944532a7d",
+    ".github/workflows/quality.yml": "d748acb98283e33fc0be79b946921fa0c233acc1f92c25e51455d14a0bca9d7f",
     "docs/REVIEW_PROCESS.md": "00c0a77abbb89ccc5a22695b44e1c093df6196f4de360ba9182479d20b9c1688",
     "scripts/arena_run.py": "6a9fe56aa19cfcef0768d09068dba6a9715668cc75b7d3fbf9acec1dc10e75bf",
     "scripts/balance_run.py": "4845724ceffe1022fca11714ddd69b2859acb1553de2c08a3a2fe11a8115d521",
@@ -182,7 +182,7 @@
     "tests/integration/live_series_harness.py": "609d5f9873e0701dab2ddf308bf6559d8f925ad67a8302c215e368024dfe38dd",
     "tests/integration/series_fixtures.py": "14775e43b079385a1499ebd4d959dcdf82693e6b2311b91c96453fa22625cf6c",
     "tests/integration/test_arena_dod.py": "6d98cf18b2781054f7a5e29e1be95b4fcf5520fa8ea676ad40ea94702142953f",
-    "tests/integration/test_arena_harness.py": "282d004808716380fa5c4ba41e3d93439659e0dab45e7315af6f7ccf23ce3e62",
+    "tests/integration/test_arena_harness.py": "05e0fa204714c1ace387ccd8ac3e70287703abd82690faf5958b5810553b0a0f",
     "tests/integration/test_belief_vs_baseline.py": "2c903c162ae38687d86aefd7d7aebb9b4dd3a77c9a0abe5841f706a73d1df8c3",
     "tests/integration/test_bookv1_referee.py": "657119edba6119b2ecce8b6f8c19d993e1374b7fadba1f0c0bfc747ab980c0ff",
     "tests/integration/test_frame_check_injection.py": "592644de96724e76abd50f55fd3a0e479f48989c06894b22d56e7c964842970c",
@@ -336,7 +336,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "4c76ed9",
+  "source_commit": "5f85800",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "e524629c691a535c2272a9000707e41fe7d54539bcd61700d7b4210fdec9e85c"
+  "tree_hash": "a93e54f02e16117d7bf6546a5e206f5a75c83d26b6557688509804335a9163e3"
 }

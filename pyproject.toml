@@ -20,6 +20,7 @@ dev = [
     "pre-commit>=3.7",
     # D2 (PRD_gui_replay §8, police repo): analysis-time only — match-time code never
     # imports it; CI needs it for the keyless PNG-export smoke (Agg backend, offline).
+    "pytest-xdist>=3.8.0",
     { include-group = "viz" },
     # M5-7: notebook build/execution + the renders-clean CI pin (nbformat parse).
     { include-group = "notebook" },
