@@ -42,6 +42,25 @@ class ScentFeed:
         return belief
 
 
+class SharpScentFeed(ScentFeed):
+    """The hidden wire with the M9-2 fresh-peak tier armed at `trust`.
+
+    The arena's per-arm door: modeled rivals keep the exact filter their real
+    code fields, while a 'sharp<T>' roster feed arms ours — the same scoping
+    trick as truth-lag<K>. Arming is idempotent, so per-observation is safe.
+    """
+
+    def __init__(self, *, trust: float) -> None:
+        self._trust = trust
+
+    def observe(
+        self, belief: BeliefFilter, *, trail: ScentField, truth: Coord, board: Board
+    ) -> BeliefFilter:
+        """Arm the sharp tier, then advance exactly like the hidden feed."""
+        belief.set_fresh_peak_trust(self._trust)
+        return super().observe(belief, trail=trail, truth=truth, board=board)
+
+
 class TruthFeed:
     """The common-knowledge wire (bookletter-v3): per-step Reveal collapses belief."""
 
@@ -97,6 +116,7 @@ class LagTruthFeed(TruthFeed):
 
 
 _LAG_PREFIX = "truth-lag"
+_SHARP_PREFIX = "sharp"
 
 
 def make_feed(name: str, constitution: Constitution, *, smell_trust: float) -> BeliefFeed:
@@ -109,6 +129,8 @@ def make_feed(name: str, constitution: Constitution, *, smell_trust: float) -> B
     """
     if name == "hidden":
         return ScentFeed()
+    if name.startswith(_SHARP_PREFIX) and name[len(_SHARP_PREFIX) :].isdigit():
+        return SharpScentFeed(trust=float(name[len(_SHARP_PREFIX) :]))
     if name == "truth":
         return TruthFeed(constitution, smell_trust=smell_trust)
     if name.startswith(_LAG_PREFIX) and name[len(_LAG_PREFIX) :].isdigit():

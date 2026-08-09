@@ -88,6 +88,9 @@ class PrivateSettings:
     # M5-5 profiling floor: the shifted hint trust never drops below this
     # (distrust-but-never-eliminate — SQ3 stance).
     profile_hint_floor: float
+    # M9-2: the sharp fresh-peak observation tier (0.0 = off, the pre-M9 voucher
+    # path byte-for-byte). Private trust tuning like the two weights above.
+    fresh_peak_trust: float
     # [strategy] brain selection per role (PLAN §7) — private, never negotiated.
     # [strategy.<role>] sub-tables carry the brain's numeric knobs (M5 weights etc.):
     # config-owned per CLAUDE.md #5, tuned offline (M5-4), never on the sparring host.

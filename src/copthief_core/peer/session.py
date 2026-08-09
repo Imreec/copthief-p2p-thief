@@ -144,6 +144,8 @@ class PeerSession:
             decay=constitution.pheromones.decay,
             smell_trust=private.smell_trust_weight,
             hint_trust=self.hint_trust,
+            # M9-2: the sharp tier rides the same private-trust seam as the weights.
+            fresh_peak_trust=private.fresh_peak_trust,
             # M3-8: one selected model, so the physics we emit and the falloff the
             # filter inverts can never drift apart (PRD_scent §9.3).
             scent_model=self.own_trail.model,

@@ -6,6 +6,7 @@ sealed record stays self-consistent — move `"BARRIER"`, position unchanged, th
 string carries the grown barrier list — and SQ2 holds: no capture_claim on a non-MOVE.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 from copthief_core.domain.belief import BeliefFilter
@@ -15,7 +16,13 @@ from copthief_core.shared.config import load_all
 from copthief_core.strategy.brains import BrainBase, Observation
 from copthief_core.strategy.decision import Decision
 
-CONSTITUTION, PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+CONSTITUTION, _LIVE_PRIVATE, _LIMITS = load_all(Path("config"), counted=False)
+# The move-turns-still-claim pin tests the mechanism; the M9-5 confidence gate is
+# held open here and pinned on its own in test_claims.py.
+PRIVATE = replace(
+    _LIVE_PRIVATE,
+    police_options={**_LIVE_PRIVATE.police_options, "claim_threshold": 0.0},
+)
 
 
 class _Waller(BrainBase):

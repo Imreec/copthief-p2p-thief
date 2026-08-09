@@ -9,7 +9,10 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # M9: the forcing solver fires inside the arena integration games; the suite went
+    # ~68s -> ~334s locally and past 15m on this runner. Node-capped, so the bound is
+    # firm - 30 keeps a 2x margin. Revisit if a profiling pass shrinks the arena cost.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout

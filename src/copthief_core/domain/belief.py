@@ -14,12 +14,7 @@ import math
 from collections.abc import Iterable
 
 from copthief_core.domain.belief_baseline import LastKnownTracker
-from copthief_core.domain.belief_observation import (
-    age_voucher_scores,
-    innovation,
-    kernel_match_scores,
-    parse_grid,
-)
+from copthief_core.domain.belief_observation import observation_scores
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.rules import legal_moves
 from copthief_core.domain.scent_models import ScentModel, SubtractiveChebyshevV1
@@ -43,6 +38,7 @@ class BeliefFilter:
         smell_trust: float,
         hint_trust: float,
         scent_model: ScentModel | None = None,
+        fresh_peak_trust: float = 0.0,
     ) -> None:
         self._board = board
         self._move_set = move_set
@@ -61,10 +57,17 @@ class BeliefFilter:
         )
         self._smell_trust = smell_trust
         self._hint_trust = hint_trust
+        # M9-2: the sharp observation tier, config-gated (0.0 = the shipped voucher
+        # path, byte-identical). Re-landed from M7-46 behind the M9-1 solver.
+        self._fresh_peak_trust = fresh_peak_trust
         self._probs: dict[Coord, float] = {start: 1.0}  # §2.1: the signed-start delta
         self._reachable: set[Coord] = {start}
         # M7-14: the previous observed field, for the kernel path's innovation.
         self._last_scent: dict[Coord, float] | None = None
+
+    def set_fresh_peak_trust(self, trust: float) -> None:
+        """The M9-2 sharp-tier dial (feed/arena seam): 0.0 restores the voucher path."""
+        self._fresh_peak_trust = trust
 
     def note_barrier(self, cell: Coord) -> None:
         """A declared barrier (sealed, audited — certain) blocks motion AND occupancy."""
@@ -113,20 +116,19 @@ class BeliefFilter:
         if self._smell_trust <= 0.0 or not grid:
             return
         support = list(self._probs)
-        kernel = self._scent.spatial_kernel()
-        if kernel is not None:
-            # Shape-match the INNOVATION: what the decay-predicted past cannot
-            # explain is (up to clamping) one fresh kernel at the current cell.
-            observed = parse_grid(grid)
-            residual = innovation(observed, self._last_scent, self._scent.decayed)
-            self._last_scent = observed
-            scores = kernel_match_scores(residual, support, kernel, self._board)
-        else:
-            scores = age_voucher_scores(grid, support, self._scent.age_of)
+        scores, trust, self._last_scent = observation_scores(
+            grid,
+            support,
+            self._scent,
+            self._last_scent,
+            self._board,
+            self._smell_trust,
+            self._fresh_peak_trust,
+        )
         if not scores:
             return
         for cell in support:
-            self._probs[cell] *= 1.0 + self._smell_trust * scores.get(cell, 0.0)
+            self._probs[cell] *= 1.0 + trust * scores.get(cell, 0.0)
         self._normalize()
 
     def update_hint(self, cells: Iterable[Coord], weight: float | None = None) -> None:

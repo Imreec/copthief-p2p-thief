@@ -141,8 +141,12 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
     """
     from copthief_core.strategy.best2934_cop import Best2934CopBrain
     from copthief_core.strategy.best2934_thief import Best2934ThiefBrain
+    from copthief_core.strategy.doctrine_evader import DoctrineEvaderBrain
     from copthief_core.strategy.evader_brains import BeliefEvaderBrain
+    from copthief_core.strategy.hunter_cop import HunterCopBrain
     from copthief_core.strategy.reference_brains import RefPoliceBrain, RefThiefBrain
+    from copthief_core.strategy.vibecode_cop import VibecodeCopBrain
+    from copthief_core.strategy.vibecode_thief import VibecodeThiefBrain
 
     core: dict[str, type[BrainBase]] = {
         "random": RandomBrain,
@@ -150,8 +154,12 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
         "ref-police": RefPoliceBrain,
         "ref-thief": RefThiefBrain,
         "belief-evader": BeliefEvaderBrain,
+        "doctrine-evader": DoctrineEvaderBrain,
         "best2934-police": Best2934CopBrain,
         "best2934-thief": Best2934ThiefBrain,
+        "vibecode-police": VibecodeCopBrain,
+        "vibecode-thief": VibecodeThiefBrain,
+        "hunter-cop": HunterCopBrain,
     }
     if name in core:
         return core[name](seed=seed, options=options)
