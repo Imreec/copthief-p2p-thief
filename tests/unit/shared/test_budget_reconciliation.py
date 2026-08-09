@@ -70,3 +70,26 @@ def test_a_zero_watchdog_budget_is_refused() -> None:
     league = replace(constitution.league, watchdog_timeout_sec=0)
     with pytest.raises(ConfigError):
         reconcile_budgets(replace(constitution, league=league), private)
+
+
+def test_a_call_deadline_at_or_over_the_signed_response_budget_is_refused() -> None:
+    """M7-57 rule 6: ONE outbound call must end inside the deadline the opponent enforces.
+
+    The live defect had no clock at all here — the call inherited the transport library's
+    default, so a delivered-but-unanswered push blocked far past the signed budget and the
+    retry landed 61 s late. Equality is refused too: a call that exactly fills the deadline
+    leaves no room for the retry that is the whole point of having one.
+    """
+    constitution, private, _limits = load_all(CONFIG_DIR, counted=False)
+    signed = constitution.league.response_timeout_sec
+    with pytest.raises(ConfigError) as error:
+        reconcile_budgets(constitution, replace(private, call_timeout_seconds=float(signed)))
+    assert "call_timeout_seconds" in str(error.value)
+    assert "response_timeout_sec" in str(error.value)
+
+
+def test_the_shipped_call_deadline_leaves_room_for_a_retry() -> None:
+    """The value we actually ship must fit a first attempt AND a retry inside the budget."""
+    constitution, private, _limits = load_all(CONFIG_DIR, counted=False)
+    reconcile_budgets(constitution, private)  # the shipped pair reconciles
+    assert private.call_timeout_seconds * 2 < constitution.league.response_timeout_sec

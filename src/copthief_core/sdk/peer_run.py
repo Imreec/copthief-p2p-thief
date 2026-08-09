@@ -76,7 +76,7 @@ def run_peer_flow(
             "play a game whose inbox the opponent cannot reach"
         )
     transport = McpTransport(
-        McpToolClient(opponent_url),
+        McpToolClient(opponent_url, timeout=sdk.private.call_timeout_seconds),
         inboxes,
         connect_timeout=sdk.private.connect_timeout_seconds,
         retry_interval=sdk.private.poll_interval_seconds,

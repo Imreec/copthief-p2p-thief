@@ -18,17 +18,24 @@ _PARAM_NAME = {"submit_audit": "payload"}
 
 
 class McpToolClient:
-    """Outbound tool calls to one peer's MCP endpoint URL (host/port are config-owned)."""
+    """Outbound tool calls to one peer's MCP endpoint URL (host/port are config-owned).
 
-    def __init__(self, url: str) -> None:
+    `timeout` is MANDATORY and has no default (M7-57). Passing none leaves the deadline
+    to the MCP SDK, and a deadline nobody chose is one nobody has reconciled against the
+    SIGNED `response_timeout_sec` the opponent enforces — which is how a delivered-but-
+    unanswered push cost us 61 s inside a 30 s rule budget in the 2026-08-09 friendly.
+    """
+
+    def __init__(self, url: str, *, timeout: float) -> None:
         self._url = url
+        self._timeout = timeout
 
     def call(self, tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Deliver one tool call synchronously; the result must be an object."""
         return asyncio.run(self._call(tool, payload))
 
     async def _call(self, tool: str, payload: dict[str, Any]) -> dict[str, Any]:
-        async with Client(self._url) as client:
+        async with Client(self._url, timeout=self._timeout) as client:
             result = await client.call_tool(tool, {_PARAM_NAME.get(tool, "message"): payload})
         data = result.data
         if not isinstance(data, dict):
@@ -48,5 +55,5 @@ class McpToolClient:
                 return
 
     async def _ping(self) -> None:
-        async with Client(self._url) as client:
+        async with Client(self._url, timeout=self._timeout) as client:
             await client.list_tools()

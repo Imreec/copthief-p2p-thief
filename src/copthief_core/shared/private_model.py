@@ -69,6 +69,12 @@ class PrivateSettings:
     turn_timeout_seconds: float
     poll_interval_seconds: float
     connect_timeout_seconds: float
+    # M7-57: the deadline on ONE outbound tool call. Distinct from every budget above,
+    # which bound a whole exchange: this bounds a single delivered-but-unanswered push,
+    # the case that has no other clock. Reconciled against the SIGNED
+    # `response_timeout_sec` — a single attempt that can outlast the deadline the
+    # opponent enforces makes a retry impossible to fit inside it.
+    call_timeout_seconds: float
     # M7-8: how many steps ahead of the awaited one we buffer before calling it a
     # flood (at-least-once delivery can put two of the opponent's pushes in flight).
     inbound_buffer_limit: int

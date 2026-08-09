@@ -20,6 +20,13 @@ The four rules, in the order they bite:
 5. `inbound_buffer_limit >= 1` (M7-8) — a receiver with no reorder window turns an
    at-least-once retry race into a protocol violation; zero tolerance is not a
    tightening here, it is a self-inflicted technical loss.
+6. `call_timeout_seconds < response_timeout_sec` (M7-57) — ONE outbound call must end
+   well inside the deadline the opponent is entitled to enforce. Every budget above
+   bounds an exchange; none bounds a single delivered-but-unanswered push, so that
+   push inherited the transport library's own default. In the 2026-08-09 friendly two
+   of those hidden waits plus a retry put our turn on the wire 61.0 s after the
+   opponent's — inside a signed 30 s budget. A deadline nobody chose is a deadline
+   nobody reconciled.
 
 Nothing here changes a signed value: rule 4 is satisfied by making the I/O budget
 *derived* (turn budget + the signed watchdog budget as grace), which is why the fix is
@@ -67,6 +74,13 @@ def reconcile_budgets(constitution: Constitution, private: PrivateSettings) -> N
         problems.append(
             f"inbound_buffer_limit ({private.inbound_buffer_limit}) must be at least 1: "
             "at-least-once delivery can put two of the opponent's pushes in flight"
+        )
+    response = constitution.league.response_timeout_sec
+    if private.call_timeout_seconds >= response:
+        problems.append(
+            f"call_timeout_seconds ({private.call_timeout_seconds}) must be under the signed "
+            f"response_timeout_sec ({response}): one delivered-but-unanswered push may not "
+            "outlast the deadline the opponent enforces, or no retry fits inside it"
         )
     if problems:
         raise ConfigError("timing budgets are not reconciled:\n" + "\n".join(problems))
