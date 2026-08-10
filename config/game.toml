@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.04"
+version = "1.05"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -56,6 +56,13 @@ tie_epsilon = 0.25
 # ThiefBrain knobs: the canonical defaults live in copthief_thief/features.py
 # (DEFAULT_OPTIONS data table, AppFTable pattern); keys here override them.
 # The M5-4 GA writes tuned values into this table - code never changes.
+# M10 room-first flight (cop-repo ADR-0012, the vibecode 30-90 lesson): read by
+# the FIELDED doctrine-evader brain (core mirror). Hunted max-distance flight IS
+# the herding gradient - three identical corner deaths with the cop's exact cell
+# known every turn. room_first demotes raw flight below the worst-wall room terms
+# past the flight_floor default (doctrine_evader.py table); 0.0 restores the M9
+# ordering byte-for-byte. Hand-propagated: config never travels with the mirror.
+room_first = 1.0
 ramp_multiplier = 1.3136
 ramp_start_fraction = 0.9496
 trap_size_fraction = 0.2945
