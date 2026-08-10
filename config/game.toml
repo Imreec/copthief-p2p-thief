@@ -16,9 +16,10 @@ llm_model = "none"
 # repo's config/game.toml: either repo can be the one declaring at a handshake, and a
 # stale count makes the NEXT counted game declare a false first meeting (rule 38 =
 # project-level disqualification). Advanced 2026-08-04 after the first counted series
-# vs anrbj666 (30-90). Warm-ups never move these numbers.
-counted_games_played = 2
-counted_opponents = ["anrbj666", "uoh-sqak"]
+# vs anrbj666 (30-90). Warm-ups never move these numbers. Advanced 2026-08-10 after the
+# third counted series vs vibecode (30-90).
+counted_games_played = 3
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
