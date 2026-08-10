@@ -1,103 +1,103 @@
-"""vibecode cop arm pins (M9 study) — the audit-revealed east-waller.
+"""vibecode cop arm pins (M10 rebuild) — scripted opening, clean chase, one seal.
 
-Pins the signature behaviors read off anrbj666's archived logs
-(P2P-Thief/results/log_anrbj666-vs-vibecode_g02/g04/g06.json): the S,S opening, the
-step-3 PLACE_E at (2,1), the east-biased wall habit, the wasted re-placement on an
-already-walled cell, and the wall-blind chase that produced its dithering. Brains
-carry no claim surface, so the claim-less record is pinned structurally: a Decision
-is only ever a move or a barrier.
+Pins the behaviors read off OUR OWN 2026-08-10 friendly logs
+(`logs/imreeyal-vs-vibecode_g02/g04/g06.jsonl`, 43 sealed cop steps): the S,S,S
+opening out of (0,0), a wall-AWARE chase that tracked our thief to Chebyshev 1 by
+~step 10 in every game, and exactly ONE barrier per game — the corner-sealing
+placement on the believed thief's low-escape cell ((0,5) in g04/g06, (6,5) in
+g02). The pre-08-10 model (east-wall habit, wall-blind dithering, wasted
+placements) is DEAD; these pins replace those.
 """
 
-from pathlib import Path
-
-from copthief_core.shared.config import load_all
-from copthief_core.strategy.brains import Observation, make_brain
-from copthief_core.strategy.referee_setup import referee_belief
+from copthief_core.domain.belief import BeliefFilter
+from copthief_core.domain.board import Board, Coord
+from copthief_core.strategy.brains import Observation
 from copthief_core.strategy.vibecode_cop import VibecodeCopBrain
 
-CONSTITUTION, PRIVATE, _ = load_all(Path("config"), counted=False)
-TRUST = PRIVATE.smell_trust_weight
-SPAWN = (0, 0)  # the logged cop spawn, wire [0,0]
+MOVE_SET = ("N", "S", "E", "W", "STAY")
 
 
-def _observation(board: object, position: tuple[int, int], **kw: object) -> Observation:
+def make_board(barriers: frozenset[Coord] = frozenset()) -> Board:
+    return Board(grid_size=7, axis_origin_corner="top-left", axis_start_index=0, barriers=barriers)
+
+
+def make_belief(board: Board, thief_cell: Coord) -> BeliefFilter:
+    return BeliefFilter(
+        board=board,
+        move_set=MOVE_SET,
+        start=thief_cell,
+        center_intensity=0.9,
+        decay=0.1,
+        smell_trust=0.0,
+        hint_trust=0.0,
+    )
+
+
+def make_observation(
+    board: Board, position: Coord, *, step: int = 10, barriers_used: int = 0
+) -> Observation:
     return Observation(
-        board=board,  # type: ignore[arg-type]
+        board=board,
         position=position,
-        move_set=CONSTITUTION.movement.move_set,
+        move_set=MOVE_SET,
         role="police",
-        step=int(kw.pop("step", 1)),
-        barriers_used=int(kw.pop("barriers_used", 0)),
-        max_barriers=int(kw.pop("max_barriers", CONSTITUTION.movement.max_barriers)),
+        step=step,
+        barriers_used=barriers_used,
+        max_barriers=14,
+        max_moves=35,
     )
 
 
-def _delta_belief(cell: tuple[int, int]) -> object:
-    return referee_belief(CONSTITUTION, start=cell, smell_trust=TRUST)
-
-
-def test_it_opens_with_two_south_marches() -> None:
-    """Steps 1-2 in g02/g04/g06: S then S out of the spawn, no barrier."""
-    board = CONSTITUTION.board.make_board()
-    brain = make_brain("vibecode-police", seed=1)
-    belief = _delta_belief((6, 6))
-    position = SPAWN
-    for step in (1, 2):
-        decision = brain.decide(_observation(board, position, step=step), belief)
-        assert (decision.move, decision.barrier) == ("S", None)
+def test_the_opening_is_three_scripted_south_steps() -> None:
+    """g02/g04/g06 steps 1-3: S,S,S out of the (0,0) spawn, all three games."""
+    board = make_board()
+    brain = VibecodeCopBrain(seed=1)
+    position = (0, 0)
+    for step in (1, 2, 3):
+        decision = brain.decide(
+            make_observation(board, position, step=step), make_belief(board, (3, 3))
+        )
+        assert decision.move == "S"
+        assert decision.barrier is None
         position = board.apply_move(position, decision.move)
-    assert position == (2, 0)
+    assert position == (3, 0)
 
 
-def test_the_early_wall_is_the_logged_place_e_at_step_three() -> None:
-    """g02/g04 step 3: PLACE_E from wire [0,2], the barrier at wire [1,2] = (2,1)."""
-    board = CONSTITUTION.board.make_board()
-    decision = VibecodeCopBrain(seed=1).decide(
-        _observation(board, (2, 0), step=3), _delta_belief((6, 6))
-    )
-    assert decision.barrier == (2, 1)
+def test_the_chase_routes_around_walls() -> None:
+    """The 08-10 cop never dithered against a wall (unlike the dead 2026-08 model):
+    with the direct east lane barriered the chase detours instead of bouncing."""
+    board = make_board(frozenset({(3, 1)}))
+    brain = VibecodeCopBrain(seed=1)
+    decision = brain.decide(make_observation(board, (3, 0)), make_belief(board, (3, 3)))
+    assert decision.barrier is None
+    assert decision.move in ("N", "S")
+
+
+def test_the_corner_seal_is_the_g04_wall() -> None:
+    """g04/g06 step 13: cop at (1,5), thief believed at the (0,6) corner — the one
+    barrier of the game lands on (0,5), the corner's open west escape."""
+    board = make_board()
+    brain = VibecodeCopBrain(seed=1)
+    decision = brain.decide(make_observation(board, (1, 5)), make_belief(board, (0, 6)))
+    assert decision.barrier == (0, 5)
     assert decision.move == "STAY"
 
 
-def test_the_wall_habit_places_east_of_itself_mid_board() -> None:
-    """16 of 18 logged placements were PLACE_E; on a habit step the wall is east."""
-    board = CONSTITUTION.board.make_board()
-    decision = VibecodeCopBrain(seed=1).decide(
-        _observation(board, (3, 4), step=7), _delta_belief((6, 6))
-    )
-    assert decision.barrier == (3, 5)
-
-
-def test_a_habit_step_on_a_walled_cell_burns_the_turn() -> None:
-    """g02 steps 31-32: re-attempting an already-walled cell forfeits the move."""
-    board = CONSTITUTION.board.make_board().with_barrier((3, 5))
-    decision = VibecodeCopBrain(seed=1).decide(
-        _observation(board, (3, 4), step=7), _delta_belief((6, 6))
+def test_exactly_one_wall_per_game() -> None:
+    """13 of 43 logged cop steps were wall-eligible chases past the seal; none
+    placed a second barrier — the arm stops walling once its one wall is spent."""
+    board = make_board(frozenset({(0, 5)}))
+    brain = VibecodeCopBrain(seed=1)
+    decision = brain.decide(
+        make_observation(board, (1, 5), barriers_used=1), make_belief(board, (0, 6))
     )
     assert decision.barrier is None
-    assert decision.move == "STAY"
 
 
-def test_off_habit_steps_chase_the_belief_peak_wall_blind() -> None:
-    """The dithering seed: Manhattan descent toward the argmax, never idle."""
-    board = CONSTITUTION.board.make_board()
+def test_an_open_center_target_draws_no_wall() -> None:
+    """The cop never walled the central loop in g02/g04/g06 openings — a 4-escape
+    believed cell is chased, not sealed."""
+    board = make_board()
     brain = VibecodeCopBrain(seed=1)
-    decision = brain.decide(_observation(board, (3, 4), step=8), _delta_belief((6, 6)))
+    decision = brain.decide(make_observation(board, (3, 2)), make_belief(board, (3, 3)))
     assert decision.barrier is None
-    assert decision.move in {"S", "E"}  # both close on (6,6); the tie is deterministic
-    # Wall-blindness: with the direct cell walled it still steps by straight-line
-    # distance (the observed 2-cell dither), not around via a BFS detour.
-    walled = board.with_barrier((3, 5))
-    dither = brain.decide(_observation(walled, (3, 4), step=8), _delta_belief((3, 6)))
-    assert dither.move in {"N", "S"}
-
-
-def test_a_decision_is_only_ever_a_move_or_a_wall() -> None:
-    """No claim surface, no hint intent: the arm never reaches for the verbal layer."""
-    board = CONSTITUTION.board.make_board()
-    brain = VibecodeCopBrain(seed=1)
-    belief = _delta_belief((6, 6))
-    for step in range(1, 12):
-        decision = brain.decide(_observation(board, (2, 2), step=step), belief)
-        assert decision.hint_verdict is None
-        assert decision.hint_landmark is None
