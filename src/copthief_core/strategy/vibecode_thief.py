@@ -1,74 +1,113 @@
-"""vibecode's thief as an arena arm (M9 study) — modeled from audit-revealed play.
+"""vibecode's thief as an arena arm (M10 rebuild) — modeled from OUR OWN logs.
 
-Their repos are PRIVATE, so unlike the best2934/uoh-sqak arms this is not modeled
-from source: it is reconstructed from the `opponent_records` of anrbj666's archived
-counted series against them (anrbj666 won 75-35), where every audited step reveals
-the thief's sealed position and move:
+Rebuilt 2026-08-10 from the audit-revealed positions of the uncounted friendly we
+lost 30–90 (`logs/imreeyal-vs-vibecode_g01/g03/g05.jsonl`, 105 sealed thief steps).
+The pre-08-10 model — a south-edge corner oscillator read off anrbj666's archived
+2026-08 series — is DEAD: the fielded thief never visits a corner and never leaves
+the center. Observed policy, identical in shape across all three games:
 
-    P2P-Police/results/log_anrbj666-vs-vibecode_g01.json  (13 steps, captured)
-    P2P-Police/results/log_anrbj666-vs-vibecode_g03.json  (13 steps, captured)
-    P2P-Police/results/log_anrbj666-vs-vibecode_g05.json  (35 steps, survived)
+- a short opening wander out of the (3,3) spawn (S/N dithering, one STAY);
+- then a fixed six-cell COUNTERCLOCKWISE loop around board center, held for 25+
+  consecutive steps in every game: (3,3)→S→(4,3)→E→(4,4)→N→(3,4)→N→(2,4)→W→
+  (2,3)→S→(3,3);
+- a vertical sprint away from our cop in the final 3-4 steps (N,N,N,N in g03/g05
+  with the cop south; S,S,S,E in g01 with the cop north);
+- never a barrier; exactly ONE STAY per game, each under a diagonal cut ((4,4)@7
+  in g03/g05, (2,2)@11 in g01) — modeled as the hold that answers a cop covering
+  both ring arcs at once.
 
-Observed policy, identical in shape across all three games: from the center start
-march S to the south edge (steps 1-3), run along the edge to a corner — east to the
-(6,6) corner in g01/g03, west to (6,0) in g05, so the pick is input-dependent and
-modeled here as fleeing the believed cop's half of the board — then oscillate between
-the corner and its edge neighbor until the clock ends. It never STAYs and never
-proposes a barrier. Its hints were truthful move-echoes ("moving s"); hints are the
-verbal layer's business, not a brain's, so only movement is modeled.
-
-Fidelity is a BEHAVIORAL APPROXIMATION, not a port: the phase is re-derived from the
-observed position every turn (no hidden state), the corner rule is our best inference
-from a 2-of-3 / 1-of-3 split, and a blocked scripted move degrades through the
-template clamp rather than reproducing whatever their unseen code would do. The
-policy has no free quantitative parameters — every target is board geometry — so
-there is no options table to override.
+Fidelity is a BEHAVIORAL APPROXIMATION, not a port: the opening wander is
+flattened into a greedy walk onto the loop, and the single sprint knob is the one
+free parameter (`VIBECODE_THIEF_DEFAULTS`, arena-overridable). Loop cells are
+board geometry — center plus fixed offsets — so the model scales with the signed
+board. One ingredient is INFERRED, not observed: against our follower cop the
+loop direction never had to change, but a scripted ring with no cop awareness is
+caught in ~5 steps by an intercepting cop, which the real thief demonstrably was
+not (105 steps, 0 captures) — so the model reverses direction when the next ring
+cell sits in the believed cop's step-on reach (the minimal mechanism that makes a
+ring runner uncatchable without walls, matching both the logs and pursuit theory).
+Off the observed data (broken ring, both arcs threatened) the model extrapolates.
 """
 
 from __future__ import annotations
 
 from copthief_core.domain.belief import BeliefFilter
-from copthief_core.domain.board import Board
+from copthief_core.domain.board import Board, Coord
 from copthief_core.strategy.brains import BrainBase, Observation
 
-__all__ = ["VibecodeThiefBrain"]
+__all__ = ["VIBECODE_THIEF_DEFAULTS", "VibecodeThiefBrain"]
+
+VIBECODE_THIEF_DEFAULTS: dict[str, float] = {
+    "sprint_steps": 3.0,  # final steps that break the loop into the vertical sprint
+}
+
+# The observed loop as offsets from board center, in play order (S,E,N,N,W,S).
+_LOOP_OFFSETS: tuple[Coord, ...] = ((0, 0), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0))
+
+_STEP_TO_MOVE: dict[Coord, str] = {(1, 0): "S", (-1, 0): "N", (0, 1): "E", (0, -1): "W"}
 
 
-def _south_row(board: Board) -> int:
-    """The edge row the observed thief always ran to (max row under top-left axes)."""
-    return board.axis_start_index + board.grid_size - 1
+def _loop_cells(board: Board) -> tuple[Coord, ...]:
+    """The six loop cells for this board: center + the logged offsets."""
+    mid = board.axis_start_index + board.grid_size // 2
+    return tuple((mid + dr, mid + dc) for dr, dc in _LOOP_OFFSETS)
 
 
-def _corner_pick(board: Board, belief: BeliefFilter) -> int:
-    """The target corner's column: the one on the far side from the believed cop.
+def _toward(position: Coord, target: Coord) -> str:
+    """One greedy step toward `target` (rows first — the observed S-leaning walk)."""
+    if target[0] != position[0]:
+        return "S" if target[0] > position[0] else "N"
+    return "E" if target[1] > position[1] else "W"
 
-    g01/g03 ran east with the cop opening from the west column; g05 ran west. The
-    logs cannot reveal their belief, so the modeled rule is the simplest consistent
-    one: flee the believed cop's half of the board, east on the exact-center tie.
-    """
-    low = board.axis_start_index
-    high = _south_row(board)
-    peak_col = belief.argmax()[1]
-    return low if peak_col * 2 > low + high else high
+
+def _dodge(board: Board, position: Coord, cop: Coord) -> str:
+    """The extrapolated evasion step: the move maximizing believed-cop distance."""
+    dodges = [(move, board.apply_move(position, move)) for move in ("E", "N", "S", "W")]
+    return max(dodges, key=lambda md: (abs(md[1][0] - cop[0]) + abs(md[1][1] - cop[1]), md[0]))[0]
 
 
 class VibecodeThiefBrain(BrainBase):
-    """South-edge corner oscillator (their audit-revealed thief).
+    """Central hex-loop oscillator + endgame sprint (their audit-revealed thief).
 
     Input:  the observation and our belief over the cop's cell.
-    Output: the scripted move for the current phase — S off the edge, along the edge
-            toward the picked corner, and the endless corner<->neighbor oscillation
-            once there. Never STAY, never a barrier; the template clamps a blocked
-            scripted move to the first sorted legal move.
+    Output: the scripted move for the current phase — the loop's next edge when on
+            a loop cell, a greedy step onto the loop otherwise, and the vertical
+            sprint away from the believed cop once the clock nears the threshold.
+            Never STAY, never a barrier; the template clamps a blocked move.
     """
 
+    _direction: int = 1  # +1 = the observed counterclockwise lap; reversals persist
+
     def _pick_move(self, observation: Observation, belief: BeliefFilter) -> str:
-        board = observation.board
-        row, col = observation.position
-        if row != _south_row(board):
-            return "S"
-        corner_col = _corner_pick(board, belief)
-        if col == corner_col:
-            # At the corner the observed thief always stepped back toward mid-edge.
-            return "E" if corner_col == board.axis_start_index else "W"
-        return "W" if corner_col < col else "E"
+        opts = {**VIBECODE_THIEF_DEFAULTS, **self._options}
+        board, position = observation.board, observation.position
+        cop = belief.argmax()
+        threshold = observation.survival_threshold
+        if threshold > 0 and observation.step > threshold - opts["sprint_steps"]:
+            # The observed break: run the column away from the believed cop.
+            return "N" if cop[0] > position[0] else "S"
+        loop = _loop_cells(board)
+        if position in loop:
+            index = loop.index(position)
+            for direction in (self._direction, -self._direction):
+                nxt = loop[(index + direction) % len(loop)]
+                threatened = abs(nxt[0] - cop[0]) + abs(nxt[1] - cop[1]) <= 1
+                if not board.is_blocked(nxt) and not threatened:
+                    self._direction = direction
+                    return _toward(position, nxt)
+            # Both arcs threatened: the logged answer to a diagonal cut is the one
+            # STAY each game shows ((4,4)@7 in g03/g05, (2,2)@11 in g01) — hold
+            # until the cop commits to a side, then run the other arc. Only when
+            # our own cell is itself in reach does the model dodge off-ring.
+            if abs(position[0] - cop[0]) + abs(position[1] - cop[1]) > 1:
+                return "STAY"
+            return _dodge(board, position, cop)
+        open_loop = [cell for cell in loop if not board.is_blocked(cell)] or list(loop)
+        target = max(
+            open_loop, key=lambda cell: (abs(cell[0] - cop[0]) + abs(cell[1] - cop[1]), cell)
+        )
+        approach = _toward(position, target)
+        landing = board.apply_move(position, approach)
+        if abs(landing[0] - cop[0]) + abs(landing[1] - cop[1]) <= 1:
+            return _dodge(board, position, cop)  # re-enter without crossing the cop
+        return approach

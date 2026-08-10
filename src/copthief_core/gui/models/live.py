@@ -13,6 +13,7 @@ from typing import Any
 
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.state_machine import GameState
+from copthief_core.strategy.decision import BARRIER_MOVE
 
 # Book §7.3.2 fixed banner labels: green while the move is ours, gray once committed.
 BANNER_YOUR_TURN = "YOUR TURN"
@@ -77,7 +78,11 @@ class LiveViewModel:
             self._argmax = str(event["payload"]["argmax"])
         elif kind == "decision" and mine:
             self._step = int(event["payload"]["step"])
-            self._position = self._board.apply_move(self._position, str(event["payload"]["move"]))
+            move = str(event["payload"]["move"])
+            # A wall turn forgoes the step (reference BARRIER semantics, M5-2):
+            # the position holds; the wall itself lands via the turn event.
+            if move != BARRIER_MOVE:
+                self._position = self._board.apply_move(self._position, move)
         elif kind == "turn" and mine:
             self._hint_out = str(event["message"].get("hint") or "")
             self._note_barrier(event["message"].get("barrier_placed"))

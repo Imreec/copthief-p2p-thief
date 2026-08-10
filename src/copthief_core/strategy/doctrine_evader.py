@@ -44,6 +44,12 @@ DEFAULT_OPTIONS: dict[str, float] = {
     "hunted_radius": 4.0,  # Manhattan radius around US that defines "hunted"
     "hunted_mass": 0.5,  # belief mass inside the radius that arms the lift
     "stay_cap_limit": 2.0,  # consecutive STAYs before STAY ranks last
+    # M10 room-first (the 08-10 herding fix): 1.0 demotes raw flight below the
+    # worst-wall room terms once `flight_floor` is met — max distance from an
+    # advancing cop is monotonically the far corner (g02/g04/g06, three identical
+    # corner deaths). 0.0 keeps the M9 ordering byte-for-byte.
+    "room_first": 0.0,
+    "flight_floor": 3.0,  # separation past which room outranks farther flight
 }
 
 
@@ -112,12 +118,19 @@ class DoctrineEvaderBrain(BrainBase):
             # and "beyond the cap" MEANS open — noise must not break genuine ties.
             worst_region = min(int(opts["region_cap"]), min(region for _, region in outcomes))
             mobility = len(legal_moves(board, dest, observation.move_set))
+            # M10 room-first: cap the ruling flight term at the FLOOR so the room
+            # terms govern past bare safety; full capped flight is demoted to a
+            # tie-break (not deleted). Off (0.0), the extra rank is a constant and
+            # the M9 tuple is unchanged.
+            room_first = opts["room_first"] > 0.0
+            ruling_cap = opts["flight_floor"] if room_first else flee_cap
             return (
                 0.0 if lethal else 1.0,
                 stay_ok,
-                min(flight(dest), flee_cap),
+                min(flight(dest), ruling_cap),
                 float(worst_escapes),
                 float(worst_region),
+                min(flight(dest), flee_cap) if room_first else 0.0,
                 float(mobility),
             )
 
