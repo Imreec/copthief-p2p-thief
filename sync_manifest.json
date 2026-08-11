@@ -192,7 +192,7 @@
     "tests/integration/live_series_harness.py": "609d5f9873e0701dab2ddf308bf6559d8f925ad67a8302c215e368024dfe38dd",
     "tests/integration/series_fixtures.py": "14775e43b079385a1499ebd4d959dcdf82693e6b2311b91c96453fa22625cf6c",
     "tests/integration/test_arena_dod.py": "6d98cf18b2781054f7a5e29e1be95b4fcf5520fa8ea676ad40ea94702142953f",
-    "tests/integration/test_arena_harness.py": "05e0fa204714c1ace387ccd8ac3e70287703abd82690faf5958b5810553b0a0f",
+    "tests/integration/test_arena_harness.py": "3aefe4bdd571f654a6b3c297ff764f6dc642e3d66f8d4c480e9bcbaf9cd0b46b",
     "tests/integration/test_belief_vs_baseline.py": "2c903c162ae38687d86aefd7d7aebb9b4dd3a77c9a0abe5841f706a73d1df8c3",
     "tests/integration/test_bookv1_referee.py": "657119edba6119b2ecce8b6f8c19d993e1374b7fadba1f0c0bfc747ab980c0ff",
     "tests/integration/test_frame_check_injection.py": "592644de96724e76abd50f55fd3a0e479f48989c06894b22d56e7c964842970c",
@@ -352,7 +352,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "dbfecba",
+  "source_commit": "aef719c",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "24e6cb746716eee43daab34c73006438b2ff0e2b09d2c39eada569170b0614c7"
+  "tree_hash": "209c504c0693b1888da54c9fd6c6d215a00cec4c74303ce04b3a121010d5f38d"
 }
