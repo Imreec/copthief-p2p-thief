@@ -2,8 +2,8 @@
 
 The thief the counted 30–90 said we needed: it walked to the deepest corner,
 camped, and was sealed by two walls it watched being built. Score order, one
-lexicographic tuple (studied from anrbj666's shipped doctrine after that loss,
-re-implemented and re-measured here):
+lexicographic tuple (studied from anrbj666's doctrine after that loss — repos
+shared by them for study, ADR-0011, no code copied — re-implemented here):
 
 1. LETHAL GATE — a landing that any plausible cop cell can end next turn
    (step-on, rule-46 wall, rule-47 imprisoning wall) ranks below everything

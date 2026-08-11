@@ -1,6 +1,8 @@
 """Hunting-cop stress arm (M9 study) — anrbj666's arena instrument, our idiom.
 
-Re-implemented from their PUBLISHED sparring cop `AgedBeliefTrapCop`
+Re-implemented from the sparring cop `AgedBeliefTrapCop` in the repos anrbj666
+shared with us for study — their explicit offer after our counted pairing was
+played and could not recur (ADR-0011 records the consent basis; no code copied)
 (P2P-Police `src/p2p_police/strategy/arena_aged_cop.py`): the hunting pattern OUR
 thief must survive. It TRUSTS the belief early — pouncing once the peak's mass
 clears a low threshold instead of waiting for certainty, so a camper's beacon is

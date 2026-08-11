@@ -5,7 +5,7 @@
     ".claude/skills/pr-discipline/SKILL.md": "a2743a764009a4b6dea39caa1156b62dc4d06da398a0e6a7b22a3f052570a226",
     ".claude/skills/self-grade/SKILL.md": "2322978e54d5c5d239359791456cc8b418578345b23b8fae7d6437418982f8b8",
     ".claude/skills/tdd-cycle/SKILL.md": "603b808da80a724a65868452d28e64d3badaa513deed81ed0d0542a31101def1",
-    ".github/workflows/quality.yml": "d748acb98283e33fc0be79b946921fa0c233acc1f92c25e51455d14a0bca9d7f",
+    ".github/workflows/quality.yml": "ae48b09f7353ec7cf5830cd535714d59493a090b1f72d7128e9ec77fd8a295e3",
     "docs/REVIEW_PROCESS.md": "00c0a77abbb89ccc5a22695b44e1c093df6196f4de360ba9182479d20b9c1688",
     "scripts/arena_run.py": "6a9fe56aa19cfcef0768d09068dba6a9715668cc75b7d3fbf9acec1dc10e75bf",
     "scripts/balance_run.py": "4845724ceffe1022fca11714ddd69b2859acb1553de2c08a3a2fe11a8115d521",
@@ -138,7 +138,7 @@
     "src/copthief_core/strategy/brains.py": "d250c2d50eeb0c671b351c105a24d04032782d78da67410a6ea6c063fa801395",
     "src/copthief_core/strategy/deception_eval.py": "7bc093a4c0755097a05b48a4668aa66d436187d0c0dbcbe2a3756925be5cb0cf",
     "src/copthief_core/strategy/decision.py": "17928bfde96702f538f01ca62145d7311f147532666a81a3996099028fa0db47",
-    "src/copthief_core/strategy/doctrine_evader.py": "05f43cd444660f7d6fa9548b769e8db0fc08658d1951da3622a8eda14c6d20a2",
+    "src/copthief_core/strategy/doctrine_evader.py": "4b6aa45b75e31b7c30cfe6e21f3ea5b1dbcff2734e10854375d93831c7f00d1f",
     "src/copthief_core/strategy/evader_brains.py": "a2faf8a2245a5c5d4ebd63cb4f8cf17c18a903dd416179bb6753730d84b356a6",
     "src/copthief_core/strategy/genetic/__init__.py": "c7e64949da2cd055f741f1ecb087e01d1fe74dad440dd39e06706e80cdeea70f",
     "src/copthief_core/strategy/genetic/evolve.py": "5da254024480f1a1a2173a4a29ef5040032498694fb6ed1089d3df5b1db37920",
@@ -147,7 +147,7 @@
     "src/copthief_core/strategy/genetic/operators.py": "9ad14763e1158ddfe9a27a1ac942c6c64381aaaed78ad90c6e93fb6689ff8afd",
     "src/copthief_core/strategy/genetic/runs.py": "a1dc23828de502b2669a3683a43a6b46c0f4f9d1006752539b348024fdab9cd4",
     "src/copthief_core/strategy/hints.py": "ade10a390c30aee00841a6cf81f82c6f2774a5ed85367202da2599eeb3d9dcf9",
-    "src/copthief_core/strategy/hunter_cop.py": "145285e1e9233051d68d370c430484b8114120736309639338cbc0f3c08aabc1",
+    "src/copthief_core/strategy/hunter_cop.py": "a28a01b22bd6a64e768be0b3f65580cbb4fba97d6df32fae46337fca95279884",
     "src/copthief_core/strategy/info_feed.py": "83e98f5eb506d7aa0fb4880f432cab45044959845fe3817ca2caac7198acdb6e",
     "src/copthief_core/strategy/profiling.py": "98e7f41cc8eafca8e57751c3c71f5d8a0b4c4b8890a63593082aea20afd2e79b",
     "src/copthief_core/strategy/referee.py": "db9928fcdc016c44bcdecb86ead5e0e301edcbfa74f4b47be65b4f7701e95a89",
@@ -160,7 +160,7 @@
     "src/copthief_core/strategy/verbal.py": "b8beab427978b3c2f6e463894298bdcc76de105c38331a88b078c492f9bac597",
     "src/copthief_core/strategy/vibecode_cop.py": "6cc9fc81377197e2747e7dfc96f3a062074bc2b4cb69c15fe3b1d9df6f3c4256",
     "src/copthief_core/strategy/vibecode_thief.py": "19507c470ae9a43be5ed5ada728f5c38709dd4eb9d3f4b3d9b9079ab80f76fb8",
-    "src/copthief_core/strategy/wall_forecast.py": "1356bacac4a1f5c80387dab19d2c67bba2c47cd409e2c0a90e6b8bf422f84333",
+    "src/copthief_core/strategy/wall_forecast.py": "6f3b86ebc527ed79edd30556cce85b96133062d9b662d6fcef851acbd9cc67fa",
     "src/copthief_core/wire/__init__.py": "c77dd402833f3d6f0f57f05cfbb2b231d4359d3454fa30aaa7f8221904babfde",
     "src/copthief_core/wire/audit.py": "d98088b5a4f6a7554fc14e8750cbd640d381971161c80c7a34e5df0d84e50906",
     "src/copthief_core/wire/turn.py": "7d2f02285cc07f8d7d984557fc094651e9479ee3bf49e8911b24113c04d79ca4",
@@ -342,7 +342,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "d948d5a",
+  "source_commit": "64871a1",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "4f900dc77895fbfb6002af5be81a67b3b99f60fd1753e4837a0e781c98f66b7b"
+  "tree_hash": "9105c70037a3b069eb8fdd4e72c0e4d558aaeca196defd7b27fc6de7f6f2e60a"
 }
