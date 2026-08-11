@@ -17,9 +17,10 @@ llm_model = "none"
 # stale count makes the NEXT counted game declare a false first meeting (rule 38 =
 # project-level disqualification). Advanced 2026-08-04 after the first counted series
 # vs anrbj666 (30-90). Warm-ups never move these numbers. Advanced 2026-08-10 after the
-# third counted series vs vibecode (30-90).
-counted_games_played = 3
-counted_opponents = ["anrbj666", "uoh-sqak", "vibecode"]
+# third counted series vs vibecode (30-90). Advanced 2026-08-11 after the fourth counted
+# series vs nis-yar1 (90-30 sweep, +10 diversity as winner of the first meeting).
+counted_games_played = 4
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
