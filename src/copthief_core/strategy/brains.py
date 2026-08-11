@@ -144,6 +144,7 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
     from copthief_core.strategy.doctrine_evader import DoctrineEvaderBrain
     from copthief_core.strategy.evader_brains import BeliefEvaderBrain
     from copthief_core.strategy.hunter_cop import HunterCopBrain
+    from copthief_core.strategy.nisyar1_thief import NisYar1ThiefBrain
     from copthief_core.strategy.reference_brains import RefPoliceBrain, RefThiefBrain
     from copthief_core.strategy.vibecode_cop import VibecodeCopBrain
     from copthief_core.strategy.vibecode_thief import VibecodeThiefBrain
@@ -160,6 +161,7 @@ def make_brain(name: str, *, seed: int, options: Mapping[str, float] | None = No
         "vibecode-police": VibecodeCopBrain,
         "vibecode-thief": VibecodeThiefBrain,
         "hunter-cop": HunterCopBrain,
+        "nisyar1-thief": NisYar1ThiefBrain,
     }
     if name in core:
         return core[name](seed=seed, options=options)

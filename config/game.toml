@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.05"
+version = "1.06"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -63,6 +63,13 @@ tie_epsilon = 0.25
 # past the flight_floor default (doctrine_evader.py table); 0.0 restores the M9
 # ordering byte-for-byte. Hand-propagated: config never travels with the mirror.
 room_first = 1.0
+# M11-1 cage-escape (cop-repo ADR-0013, the police-m10 32/32 hole + the nis-yar1
+# step-13 corner kills): k-wall pocket forecast + orbit margin + low flight floor.
+cage_escape = 1.0
+forecast_walls = 3.0
+forecast_wall_reach = 2.0
+flight_floor = 2.0
+center_margin_cap = 2.0
 ramp_multiplier = 1.3136
 ramp_start_fraction = 0.9496
 trap_size_fraction = 0.2945
@@ -91,6 +98,12 @@ w_articulation = 8.928429525952911
 w_distance = 4.562212626629817
 w_region = 2.030098462268734
 w_spread = 1.7843591354096908
+# M11 overlay pin (ADR-0013 item 3a): M10/M11 mechanisms unmeasured under
+# book-v1 physics - explicit OFF so base-table arming cannot fall through.
+room_first = 0.0
+cage_escape = 0.0
+flight_floor = 3.0
+center_margin_cap = 0.0
 
 [scent]
 # Which NAMED scent model we play (M3-8, ADR-0004 v2; registrations in

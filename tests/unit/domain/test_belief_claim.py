@@ -1,12 +1,15 @@
-"""Certainty-grade capture claims in the belief filter (PRD_claims §4.1; M7-18).
+"""Capture claims in the belief filter (M7-18, re-scoped by the M11-2 red-team).
 
-A capture claim is a plaintext pre-reveal of a cell already sealed in the same message's
-commit, and the book sanctions a false one with the game (App E rules 21-22, PDF p.145).
-That puts it in the same evidence class as a DECLARED BARRIER — which this filter already
-treats as certain — and not in the scent class, whose never-eliminate invariant (SQ3)
-exists because grids are unauthenticated. So a claim collapses the distribution.
-
-Role-blind by construction: the filter tracks "the opponent", whichever side we are.
+A claim collapses the distribution ONLY when it is kinematically possible. The
+M7-18 unconditional collapse leaned on "a false claim costs the game (rules
+21-22)" — verified vacuous in the M11 red-team: no audit path anywhere compares
+per-turn claims to the revealed track, and the 08-10 vibecode logs (42/43
+speculative claims, both audits Verified OK) show the league treats speculative
+claims as legal probes. So a claim naming a cell the opponent could not possibly
+occupy is free adversarial input, not evidence — refused, counted, and the
+posterior stands. A plausible claim keeps its M7-18 barrier-class certainty:
+for every truthful claimer the gate is a no-op by construction, because a true
+cell is always inside the motion envelope.
 """
 
 from copthief_core.domain.belief import BeliefFilter
@@ -32,33 +35,67 @@ def make_filter(
     )
 
 
-def test_a_claim_collapses_the_distribution_onto_the_claimed_cell() -> None:
+def test_a_plausible_claim_collapses_the_distribution_onto_the_claimed_cell() -> None:
     belief = make_filter(start=(3, 3))
     belief.predict()  # a spread-out prior, as after any opponent turn
     assert len(belief.probs()) > 1
-    belief.note_claim((1, 5))
-    assert belief.probs() == {(1, 5): 1.0}
-    assert belief.argmax() == (1, 5)
-    assert belief.belief_error((1, 5)) == 0.0
+    belief.note_claim((2, 3))  # one legal step from the start: inside the envelope
+    assert belief.probs() == {(2, 3): 1.0}
+    assert belief.argmax() == (2, 3)
+    assert belief.belief_error((2, 3)) == 0.0
 
 
-def test_a_claim_outside_the_current_support_still_collapses() -> None:
-    # The claim is truth and our prior was simply wrong — the filter must follow the
-    # evidence rather than defend its own estimate.
+def test_an_impossible_claim_is_refused_and_counted() -> None:
+    # Zero opponent turns have elapsed: the opponent IS at its signed start. A claim
+    # naming the far corner is physically impossible — the M11-2 gate refuses it.
     belief = make_filter(start=(3, 3))
-    far = (6, 0)
-    assert belief.prob_at(far) == 0.0
-    belief.note_claim(far)
-    assert belief.probs() == {far: 1.0}
+    prior = belief.probs()
+    belief.note_claim((6, 0))
+    assert belief.probs() == prior
+    assert belief.claim_refusals == 1
+
+
+def test_a_plausible_claim_outside_the_support_still_collapses() -> None:
+    # The prior can be WRONG (a lying hint hard-excluded the truth) while the claim
+    # is possible — the filter follows the evidence rather than defend its estimate.
+    belief = make_filter(start=(3, 3))
+    belief.predict()
+    excluded = (2, 3)
+    belief.update_hint([excluded], weight=-1.0)
+    assert belief.prob_at(excluded) == 0.0
+    belief.note_claim(excluded)
+    assert belief.probs() == {excluded: 1.0}
     assert sum(belief.probs().values()) == 1.0
+
+
+def test_the_envelope_grows_one_legal_step_per_predict() -> None:
+    belief = make_filter(start=(3, 3))
+    for _ in range(2):
+        belief.predict()
+    belief.note_claim((3, 5))  # Manhattan 2 in 2 turns: possible
+    assert belief.probs() == {(3, 5): 1.0}
+    belief.note_claim((3, 0))  # Manhattan 3 after only those 2 turns: impossible
+    assert belief.probs() == {(3, 5): 1.0}
+    assert belief.claim_refusals == 1
+
+
+def test_a_claim_on_a_barriered_cell_is_refused() -> None:
+    blocked = (3, 4)
+    belief = make_filter(start=(3, 3))
+    belief.predict()
+    belief.note_barrier(blocked)
+    belief.note_claim(blocked)
+    assert belief.prob_at(blocked) == 0.0
+    assert belief.claim_refusals == 1
 
 
 def test_predict_after_a_claim_spreads_over_exactly_that_cells_legal_moves() -> None:
     # Certainty is not permanent: the very next opponent turn re-spreads it, and the
     # spread honours declared barriers exactly as it does from any other support.
     blocked = (2, 3)
-    belief = make_filter(start=(0, 0), barriers=frozenset({blocked}))
-    belief.note_claim((3, 3))
+    belief = make_filter(start=(3, 4), barriers=frozenset({blocked}))
+    belief.predict()
+    belief.note_claim((3, 3))  # adjacent to the start: plausible
     belief.predict()
     probs = belief.probs()
     assert belief.prob_at(blocked) == 0.0

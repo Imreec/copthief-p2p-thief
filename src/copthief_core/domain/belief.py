@@ -14,6 +14,7 @@ import math
 from collections.abc import Iterable
 
 from copthief_core.domain.belief_baseline import LastKnownTracker
+from copthief_core.domain.belief_envelope import MotionEnvelope
 from copthief_core.domain.belief_observation import observation_scores
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.rules import legal_moves
@@ -61,7 +62,8 @@ class BeliefFilter:
         # path, byte-identical). Re-landed from M7-46 behind the M9-1 solver.
         self._fresh_peak_trust = fresh_peak_trust
         self._probs: dict[Coord, float] = {start: 1.0}  # §2.1: the signed-start delta
-        self._reachable: set[Coord] = {start}
+        self._envelope = MotionEnvelope(start)  # M11-2: physics-only reach
+        self.claim_refusals = 0  # implausible claims refused (observability)
         # M7-14: the previous observed field, for the kernel path's innovation.
         self._last_scent: dict[Coord, float] | None = None
 
@@ -76,17 +78,19 @@ class BeliefFilter:
         self._normalize()
 
     def note_claim(self, cell: Coord) -> None:
-        """A declared capture claim (sealed, sanctioned — certain): collapse onto `cell`.
+        """A PLAUSIBLE declared capture claim collapses the posterior onto `cell`.
 
-        M7-18 / PRD_claims §4.1. The claim is a plaintext pre-reveal of a position already
-        sealed in the same message's commit, and a false one costs the game with no appeal
-        (App E rules 21-22) — so it is barrier-class evidence, not scent-class. The
-        never-eliminate invariant (SQ3) guards against UNAUTHENTICATED grids and does not
-        reach here. A claim outside the current support still collapses: the claim is
-        truth, and our prior was simply wrong.
+        M7-18 gave every claim barrier-class certainty citing the rules-21/22
+        sanction — verified vacuous by the M11-2 red-team (no audit path checks
+        per-turn claims; vibecode's speculative claims passed every 08-10
+        audit). The gate is physics, not trust: a claim inside the motion
+        envelope collapses exactly as before (no-op for every truthful claimer
+        by construction); an impossible one is refused, counted, and ignored.
         """
+        if not self._envelope.plausible(cell, self._board):
+            self.claim_refusals += 1
+            return
         self._probs = {cell: 1.0}
-        self._reachable.add(cell)
 
     def predict(self) -> None:
         """One opponent turn: mass splits uniformly over each support cell's legal
@@ -103,7 +107,7 @@ class BeliefFilter:
                 dest = self._board.apply_move(cell, move)
                 spread[dest] = spread.get(dest, 0.0) + share
         self._probs = spread
-        self._reachable |= set(spread)
+        self._envelope.spread(self._board, self._move_set)
         self._normalize()
 
     def update_scent(self, grid: dict[str, float]) -> None:
@@ -147,7 +151,7 @@ class BeliefFilter:
         self._probs = {c: p for c, p in self._probs.items() if p > 0.0}
         total = sum(self._probs.values())
         if not math.isfinite(total) or total <= 0.0:
-            live = [c for c in sorted(self._reachable) if not self._board.is_blocked(c)]
+            live = self._envelope.live_cells(self._board)
             if not live:  # every reachable cell barriered: fall back to the open board
                 origin = self._board.axis_start_index
                 span = range(origin, origin + self._board.grid_size)

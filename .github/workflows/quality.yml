@@ -78,7 +78,7 @@ jobs:
   # fixture is computed once.
   quality:
     runs-on: [self-hosted, fast24]
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       # Persistent LOCAL uv cache (2026-08-11): with the hosted cache
       # (enable-cache: true) every runner restart cost a ~10-minute cold run —

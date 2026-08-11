@@ -170,7 +170,11 @@ def test_the_same_cop_still_declares_when_it_believes_it_has_landed() -> None:
     police, _thief = _pair_with_threshold(0.9)
     police.machine.state = GameState.COMPUTING_MOVE
     police.brain = _ScriptedBrain(["S"])
-    police.belief.note_claim(_landing_cell(police, "S"))  # certainty on the landing cell
+    # Certainty on the landing cell, installed through the M11-2 plausibility
+    # gate: grow the motion envelope to mid-game width first, then collapse.
+    for _ in range(12):
+        police.belief.predict()
+    police.belief.note_claim(_landing_cell(police, "S"))
     message = police.take_turn(now=1.0)
     assert message["capture_claim"] == list(police.position)
 
