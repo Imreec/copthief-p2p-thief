@@ -79,6 +79,14 @@ jobs:
   quality:
     runs-on: [self-hosted, fast24]
     timeout-minutes: 15
+    env:
+      # Persistent LOCAL uv cache (2026-08-11): with the hosted cache
+      # (enable-cache: true) every runner restart cost a ~10-minute cold run —
+      # network cache restore + full venv rebuild — on a box that keeps its own
+      # disk. Local dir survives restarts and reboots; only the self-hosted lane
+      # uses it (the ubuntu gates lane keeps the hosted cache, which is correct
+      # for an ephemeral VM).
+      UV_CACHE_DIR: D:\uv-ci-cache
     defaults:
       run:
         # The dev machine's PowerShell execution policy blocks the runner's
@@ -94,7 +102,9 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           version: "latest"
-          enable-cache: true
+          # Hosted cache OFF here: it would override UV_CACHE_DIR and re-download
+          # the environment after every runner restart (see job env above).
+          enable-cache: false
 
       - name: Set up Python 3.12
         run: uv python install 3.12

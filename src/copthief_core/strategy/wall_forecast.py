@@ -16,8 +16,9 @@ turn and score the worst case. Two graded instruments:
 Belief-native by construction: callers run these from EVERY plausible support
 cell and take the MIN — a kill line through any plausible cell disqualifies
 (a lone stale argmax dodges phantom walls and walks into real ones). Concept
-studied from anrbj666's doctrine layer after the counted 30–90; re-implemented
-and re-measured here. Pure geometry: no I/O, no RNG, no config reads.
+studied from anrbj666's doctrine layer (repos shared by them for study —
+ADR-0011, no code copied) after the counted 30–90; re-implemented and
+re-measured here. Pure geometry: no I/O, no RNG, no config reads.
 """
 
 from __future__ import annotations
