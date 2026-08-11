@@ -23,11 +23,13 @@ re-measured here. Pure geometry: no I/O, no RNG, no config reads.
 
 from __future__ import annotations
 
+from itertools import combinations
+
 from copthief_core.domain.board import Board, Coord
 from copthief_core.domain.rules import is_imprisoned
 from copthief_core.strategy.region import region_size
 
-__all__ = ["lethal_landing", "worst_wall_outcome"]
+__all__ = ["lethal_landing", "worst_wall_outcome", "worst_walls_region"]
 
 
 def _cop_reach(board: Board, cop: Coord) -> tuple[Coord, ...]:
@@ -66,6 +68,81 @@ def worst_wall_outcome(
             continue
         outcomes.append(outcome(board.with_barrier(cell)))
     return min(outcomes) if outcomes else outcome(board)
+
+
+def worst_walls_region(
+    board: Board,
+    landing: Coord,
+    cop: Coord,
+    move_set: tuple[str, ...],
+    *,
+    walls: int,
+    reach: int,
+) -> int:
+    """The worst reachable region a stationary builder can leave `landing` in.
+
+    Input: the CURRENT board, our candidate landing, one hypothesized cop cell,
+    the wall budget to credit (`walls` — callers clamp to the live quota) and the
+    builder's Manhattan `reach` (1 = the barrier law's own-cell-plus-neighbors;
+    2 credits one walk step between investments). Output: the minimum uncapped
+    region from `landing` over every wall SET of that size — a cage is priced
+    while its gap still exists, not one wall before it closes (M11-1; the M10
+    exposure was exactly this blindness). Walls on the landing itself are the
+    rule-46 kill line and belong to `lethal_landing`, not here. NB a landing-
+    distance site prune was tried for speed and REVERTED: it erased all four
+    signed-start survivals vs police-m10 — distant walls close the LARGE
+    forming cages that a persistent builder still converts. Batch callers use
+    `worst_walls_regions` (same semantics, one scan for many landings).
+    """
+    return worst_walls_regions(board, [landing], cop, move_set, walls=walls, reach=reach)[landing]
+
+
+def worst_walls_regions(
+    board: Board,
+    landings: list[Coord],
+    cop: Coord,
+    move_set: tuple[str, ...],
+    *,
+    walls: int,
+    reach: int,
+) -> dict[Coord, int]:
+    """`worst_walls_region` for many landings in one combo scan (per-board BFS
+    cache shared across landings — the affordability fix for the armed arena)."""
+    cap = board.grid_size * board.grid_size
+    low = board.axis_start_index
+    span = range(low, low + board.grid_size)
+    sites = [
+        (r, c)
+        for r in span
+        for c in span
+        if abs(r - cop[0]) + abs(c - cop[1]) <= reach and not board.is_blocked((r, c))
+    ]
+    base_cache: dict[Coord, int] = {}
+    worst = {cell: region_size(board, cell, move_set, cap, base_cache) for cell in landings}
+    count = min(walls, len(sites))
+    if count <= 0:
+        return worst
+    for combo in combinations(sites, count):
+        candidate = board
+        for cell in combo:
+            candidate = candidate.with_barrier(cell)
+        cache: dict[Coord, int] = {}
+        for cell in landings:
+            # A wall ON a landing is the rule-46 kill line (lethal gate's job),
+            # so a combo containing this landing does not price it here.
+            if cell not in combo and worst[cell] > 1:
+                worst[cell] = min(worst[cell], region_size(candidate, cell, move_set, cap, cache))
+    if count >= len(sites):
+        # Tiny site sets: the only combo contained the landing itself — price
+        # the per-landing equivalent (every OTHER site walled) instead.
+        for cell in landings:
+            if cell in set(sites) and worst[cell] > 1:
+                candidate = board
+                for site in sites:
+                    if site != cell:
+                        candidate = candidate.with_barrier(site)
+                worst[cell] = min(worst[cell], region_size(candidate, cell, move_set, cap, {}))
+    return worst
 
 
 def lethal_landing(

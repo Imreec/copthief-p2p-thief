@@ -133,15 +133,34 @@ def test_consuming_a_claim_does_not_disturb_the_honest_response_duty() -> None:
     }
 
 
-def test_the_receiver_follows_a_claim_that_contradicts_its_own_estimate() -> None:
+def test_the_receiver_follows_a_plausible_claim_that_contradicts_its_estimate() -> None:
+    # The claim is rewritten to a cell the cop COULD occupy (its own signed start —
+    # a STAY away) that is not where it actually landed: still followed, because
+    # a plausible claim keeps its M7-18 barrier-class certainty.
+    police, thief = _pair()
+    message = _claimed_turn(police, thief)
+    elsewhere = CONSTITUTION.board.cop_start
+    assert list(elsewhere) != message["capture_claim"]
+    message["capture_claim"] = list(elsewhere)
+    thief.handle_receive_turn(message)
+    assert thief.belief.probs() == {elsewhere: 1.0}  # the claim wins over the prior
+    thief.belief.predict()  # certainty is not permanent — tracking continues from there
+    assert len(thief.belief.probs()) > 1
+
+
+def test_an_impossible_claim_no_longer_hijacks_the_receivers_belief() -> None:
+    # The M11-2 red-team pin at the peer seam: no audit path enforces the rules-21/22
+    # sanction, so a claim naming a cell the cop could not possibly have reached (the
+    # far corner, one turn in) is adversarial input — refused, counted, posterior kept.
     police, thief = _pair()
     message = _claimed_turn(police, thief)
     elsewhere = (6, 0) if tuple(message["capture_claim"]) != (6, 0) else (0, 6)
     message["capture_claim"] = list(elsewhere)
     thief.handle_receive_turn(message)
-    assert thief.belief.probs() == {elsewhere: 1.0}  # the claim is truth; our prior was wrong
-    thief.belief.predict()  # certainty is not permanent — tracking continues from there
-    assert len(thief.belief.probs()) > 1
+    assert thief.belief.prob_at(elsewhere) < 1.0  # no collapse onto the lie
+    assert thief.belief.claim_refusals == 1
+    # The honest RESPONSE duty (p.38) is untouched by the belief-side refusal:
+    assert thief.pending_claim_response == {"claim": list(elsewhere), "caught": False}
 
 
 def test_a_turn_without_a_claim_leaves_the_belief_pipeline_untouched() -> None:

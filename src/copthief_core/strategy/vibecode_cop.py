@@ -38,6 +38,10 @@ VIBECODE_COP_DEFAULTS: dict[str, float] = {
     "seal_range": 2.0,  # BFS gap within which the seal wall is considered
     "seal_escapes": 2.0,  # believed cell must be this penned before walling
     "max_walls": 1.0,  # observed: exactly one barrier per game
+    # M11 (nis-yar1 arm, shares this class): hold the diagonal against a penned
+    # prey instead of closing — their g02/g04/g06 cop STAYED at Chebyshev 1 for
+    # three turns until zugzwang, then sealed. 0.0 = the vibecode arm unchanged.
+    "pin_enabled": 0.0,
 }
 
 
@@ -103,7 +107,14 @@ class VibecodeCopBrain(BrainBase):
         opts = {**VIBECODE_COP_DEFAULTS, **self._options}
         if observation.step <= opts["opening_steps"]:
             return Decision(move="S")
-        wall = self._seal_wall(observation, belief.argmax(), opts)
+        prey = belief.argmax()
+        wall = self._seal_wall(observation, prey, opts)
         if wall is not None:
             return Decision(move=STAY, barrier=wall)
+        if opts["pin_enabled"] > 0.0:
+            board = observation.board
+            gap = path_length(board, observation.position, prey, observation.move_set)
+            escapes = sum(1 for cell in board.neighbors(prey) if not board.is_blocked(cell))
+            if gap == 2 and escapes <= opts["seal_escapes"]:
+                return Decision(move=STAY)  # the observed zugzwang hold
         return Decision(move=self._pick_move(observation, belief))
