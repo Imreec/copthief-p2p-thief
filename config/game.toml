@@ -19,8 +19,11 @@ llm_model = "none"
 # vs anrbj666 (30-90). Warm-ups never move these numbers. Advanced 2026-08-10 after the
 # third counted series vs vibecode (30-90). Advanced 2026-08-11 after the fourth counted
 # series vs nis-yar1 (90-30 sweep, +10 diversity as winner of the first meeting).
-counted_games_played = 4
-counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1"]
+# Advanced 2026-08-13 after the fifth counted series vs najamjad (30-90; all audits
+# Verified OK ×6, both reports auto-fired to the lecturer, +10 diversity theirs as
+# winner of the first meeting).
+counted_games_played = 5
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
