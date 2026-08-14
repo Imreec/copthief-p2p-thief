@@ -29,7 +29,7 @@
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
     "scripts/selfplay_gate.py": "712b0280a18c58a52800b0d82f910c0996a8ba6dc5709aa0363fc8c10ee5f8dc",
     "scripts/selfplay_loop.py": "928c130442a3a0f2f14ed8354ca6df2c53d64b7278188d0d53235eaf013e9e57",
-    "scripts/solver_defer_probe.py": "6d30aa355210aa0085dcd730e3838ea730af3d041874f2eebef1e8fd3a5b03ad",
+    "scripts/solver_defer_probe.py": "d7d8fa7bc5c21fdfaadf84db53325aa403abe0c1ccc33707ef263c484a74e739",
     "scripts/sync_core.py": "3c8ca23345d0d0ab1382c12edc876754180249eb3efa5d74cbd15deb9900edac",
     "src/copthief_core/__init__.py": "36228893a32a52b09aceaa062a7ea99fc0e3a64e8328514590f26c3ed96c9232",
     "src/copthief_core/domain/__init__.py": "f2a030c99c021e72c2960a9ff2b55dce2ec64dae40a0e153ff57be3db5eef7d5",
@@ -366,5 +366,5 @@
   },
   "source_commit": "7d3ca33",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "8cfaef99ded71a6e8ce83a5dc495a3e338f4145bd1d95339626ea66fab5a0167"
+  "tree_hash": "5c0d84a42ebcec241952bebafcec894f5aa938b6f6dbce60a8abe8297ad776df"
 }
