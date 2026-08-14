@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.06"
+version = "1.07"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -69,11 +69,21 @@ tie_epsilon = 0.25
 room_first = 1.0
 # M11-1 cage-escape (cop-repo ADR-0013, the police-m10 32/32 hole + the nis-yar1
 # step-13 corner kills): k-wall pocket forecast + orbit margin + low flight floor.
+# M11 part 2 (cop-repo ADR-0014): the self-play harvest, adopted through the
+# real-opponent pool gate (survival vs police-m11 3/32 -> 18/32; anrbj666-police
+# gap closed 22->32/32; every other arm held; m11p2-selfplay.md). The harvest
+# arms the M9 doctrine knobs too (earlier hunted trigger, max safe_distance) -
+# full precision kept: these are the measured values, rounding is a new brain.
 cage_escape = 1.0
-forecast_walls = 3.0
-forecast_wall_reach = 2.0
-flight_floor = 2.0
-center_margin_cap = 2.0
+forecast_walls = 1.7077724887827392
+forecast_wall_reach = 2.291547293741782
+flight_floor = 1.6081389068646288
+center_margin_cap = 1.6587821646865204
+safe_distance = 6.0
+flee_cap_hunted = 5.0258790436073335
+hunted_radius = 3.749533704442913
+hunted_mass = 0.2396036306544369
+stay_cap_limit = 2.281202991194793
 ramp_multiplier = 1.3136
 ramp_start_fraction = 0.9496
 trap_size_fraction = 0.2945

@@ -65,6 +65,10 @@ class GaConfig:
     # whole point is a mixture where some opponents read our claims and others do not.
     claim_threshold: float | None = None
     claim_feed: str | None = None
+    # M11 part 2: the CANDIDATE's own information feed. Every armed brain we field
+    # reads a configured feed; None = the historical hidden run (no committed GA
+    # artifact is retroactively invalidated by the door landing).
+    candidate_feed: str | None = None
 
     def claim_feed_for(self, member: Mapping[str, Any]) -> str | None:
         """This opponent's claim-reading channel: its own key wins, else the run's."""
@@ -120,6 +124,9 @@ def load_ga_config(path: Path) -> GaConfig:
                 None if raw.get("claim_threshold") is None else float(raw["claim_threshold"])
             ),
             claim_feed=(None if raw.get("claim_feed") is None else str(raw["claim_feed"])),
+            candidate_feed=(
+                None if raw.get("candidate_feed") is None else str(raw["candidate_feed"])
+            ),
         )
     except (KeyError, TypeError, ValueError, IndexError) as error:
         raise ConfigError(f"{path.name}: malformed GA config — {error}") from error
