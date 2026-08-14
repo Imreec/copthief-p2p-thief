@@ -15,6 +15,7 @@ from copthief_core.domain.state_machine import GameState
 from copthief_core.domain.step_zero import revealed_commit
 from copthief_core.peer import events
 from copthief_core.peer.audit_flow import build_audit, verify_audit, wire_result
+from copthief_core.peer.outcome_check import emit_outcome_check
 from copthief_core.peer.scent_check import emit_scent_physics
 from copthief_core.peer.session import PeerSession
 from copthief_core.peer.transport import PeerTransport
@@ -133,6 +134,9 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     # M6-7 (FR-11, evidence-grade only): diff their transmitted grids against the
     # trail their revealed moves imply — a loud event, never a verdict change (SQ3).
     emit_scent_physics(session, theirs, emit)
+    # M11p2 follow-up (the best2934 false-survival finding): diff their survival
+    # claim against their own revealed trail — same loud-event posture.
+    emit_outcome_check(theirs, session.board, emit)
     if not problems:  # M5-5: a VERIFIED audit is profiling evidence for the series
         profile = profile_records(theirs["records"])
         emit(
