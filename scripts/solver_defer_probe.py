@@ -22,12 +22,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-import copthief_police.brain as police_brain_module  # noqa: E402
 from copthief_core.domain.board import Board, Coord  # noqa: E402
 from copthief_core.sdk.arena_config import load_arena_config  # noqa: E402
 from copthief_core.sdk.simulation import SimulationSdk  # noqa: E402
 from copthief_core.strategy.scenarios import scenario_suite  # noqa: E402
-from copthief_police.endgame import Action, forced_action  # noqa: E402
 
 RESCUE_CAP = 500_000  # 25x the shipped cap; "rescued" below always means at this bound
 TALLY = {"calls": 0, "proof": 0, "no_proof": 0, "budget_abort": 0}
@@ -42,7 +40,12 @@ def _instrumented(
     *,
     barriers_used: int,
     max_barriers: int,
-) -> Action | None:
+) -> tuple[str, str | Coord] | None:
+    # Lazy import: a COP-repo instrument, but `scripts/` mirrors whole and the two
+    # repos classify `copthief_police` differently for import sorting — module scope
+    # stays core-only so the SAME bytes lint green in both trees.
+    from copthief_police.endgame import forced_action
+
     TALLY["calls"] += 1
     got = forced_action(
         board, cop, support, move_set, opts, barriers_used=barriers_used, max_barriers=max_barriers
@@ -63,7 +66,12 @@ def _instrumented(
     return got  # the shipped cap's decision plays either way
 
 
-police_brain_module.forced_action = _instrumented
+def _arm() -> None:
+    """Wrap the brain's solver seam (import lazy for the same mirror-lint reason)."""
+    import copthief_police.brain as police_brain_module
+
+    police_brain_module.forced_action = _instrumented
+
 
 CONFIG = load_arena_config(Path("config/arena_pool.json"))
 POLICE = "police-m11"
@@ -71,6 +79,7 @@ THIEVES = [entry.name for entry in CONFIG.thief_roster]
 
 
 def main() -> int:
+    _arm()
     sdk = SimulationSdk(Path("config"))
     scenarios = scenario_suite(
         sdk.constitution, seeds=list(CONFIG.seeds), min_separation=CONFIG.scenario_min_separation
