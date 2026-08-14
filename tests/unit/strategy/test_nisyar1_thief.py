@@ -1,4 +1,10 @@
-"""NisYar1ThiefBrain (M11) — the flee-then-perch arm from the 08-11 g01 log."""
+"""NisYar1ThiefBrain (M11 part 2) — the runner arm from the 08-11 COUNTED logs.
+
+The M11 flee-then-perch arm modeled their a0ba98d1 friendly; the counted ran
+41b9fb76 and the perch is GONE (stays 20-25%, longest run 4, across g01/g03/g05).
+These tests pin the refreshed runner shape: flee under pressure, rest only
+briefly when safe, keep moving.
+"""
 
 from copthief_core.domain.belief import BeliefFilter
 from copthief_core.domain.board import Board, Coord
@@ -36,21 +42,28 @@ def make_observation(board: Board, position: Coord) -> Observation:
     )
 
 
-def test_perches_at_the_logged_distance_two() -> None:
-    """The g01 shape pinned exactly: at (0,4) with the cop believed at (2,4)
-    (Manhattan 2) the log shows 21 consecutive STAYs — the perch holds."""
+def test_flees_while_the_cop_is_in_press_range() -> None:
+    """Counted g02-class pressure: with the believed cop 2 away they MOVE
+    (the friendly perch at Manhattan 2 no longer happens — 41b9fb76)."""
     board = make_board()
     brain = NisYar1ThiefBrain(seed=1)
-    move = brain.pick_move(make_observation(board, (0, 4)), make_belief(board, (2, 4)))
-    assert move == "STAY"
+    move = brain.pick_move(make_observation(board, (3, 4)), make_belief(board, (3, 2)))
+    assert move != "STAY"
+    dest = board.apply_move((3, 4), move)
+    assert abs(dest[0] - 3) + abs(dest[1] - 2) >= 3  # distance grows
 
 
-def test_wakes_and_flees_when_the_cop_closes() -> None:
+def test_rests_briefly_when_safe_but_never_perches() -> None:
+    """Counted dwell shape: STAYs come in runs of <= 3 when the cop is far;
+    the fourth consecutive turn always moves (longest observed run was 4
+    including the wake turn; the 21-STAY perch is dead)."""
     board = make_board()
     brain = NisYar1ThiefBrain(seed=1)
-    move = brain.pick_move(make_observation(board, (0, 4)), make_belief(board, (1, 4)))
-    dest = board.apply_move((0, 4), move)
-    assert abs(dest[0] - 1) + abs(dest[1] - 4) >= 2  # distance restored
+    observation = make_observation(board, (5, 0))
+    belief = make_belief(board, (0, 6))
+    moves = [brain.pick_move(observation, belief) for _ in range(4)]
+    assert moves[0] == "STAY"  # far cop: resting is allowed...
+    assert "STAY" not in moves[3]  # ...but the dwell cap forces motion
 
 
 def test_registered_in_the_brain_factory() -> None:
