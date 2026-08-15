@@ -30,8 +30,8 @@ from copthief_core.strategy.genetic.fitness import fitness  # noqa: E402
 from copthief_core.strategy.scenarios import scenario_suite  # noqa: E402
 
 POOL = load_arena_config(Path("config/arena_pool.json"))
-CHAMPION_COP = "police-m11"
-CHAMPION_EVADER = "doctrine-m11"
+CHAMPION_COP = "police-m12"
+CHAMPION_EVADER = "doctrine-m12"
 FEED = "sharp199"
 
 

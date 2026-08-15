@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.07"
+version = "1.08"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -75,8 +75,15 @@ room_first = 1.0
 # arms the M9 doctrine knobs too (earlier hunted trigger, max safe_distance) -
 # full precision kept: these are the measured values, rounding is a new brain.
 cage_escape = 1.0
-forecast_walls = 1.7077724887827392
-forecast_wall_reach = 2.291547293741782
+# M12 (cop-repo ADR-0015, the best2934 35-75 lesson): the harvest's fractional
+# forecast_walls int-truncated in k_regions_by_dest - the champion played the
+# 08-14 friendly with a k=1 pocket forecast (16/32 survivals vs their range-4
+# plow cop; k=3 29/32; k=4 sweep winner 31/32). Integer-valued pins close the
+# truncation class. The k dial trades against interception-class cops
+# (anrbj666-police arm: k1 32/32, k3 22/32, k4 15/32 - spent pairing, and this
+# knob is per-pairing config if an unplayed opponent fields that class).
+forecast_walls = 4.0
+forecast_wall_reach = 2.0
 flight_floor = 1.6081389068646288
 center_margin_cap = 1.6587821646865204
 safe_distance = 6.0

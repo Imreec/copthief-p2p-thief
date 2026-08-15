@@ -104,8 +104,17 @@ def test_police_claim_threshold_parses_and_defaults_to_unmodelled(tmp_path: Path
     mixed = load_arena_config(path)
     assert mixed.thief_roster[0].claim_feed is None
     assert mixed.thief_roster[1].claim_feed == "truth"
+    # M12 invariant, sibling-safe (this test is mirrored and each repo reads its OWN
+    # arena.json — the PR #29 rule): our own role-package entries stay claim-UNMODELLED
+    # (the historical physics the committed tables were measured under); a modeled
+    # OPPONENT arm may carry its fielded claim posture (best2934's every-step 0.0 —
+    # the cop repo's gate tables were regenerated under it; the thief repo models none).
     shipped = load_arena_config(Path("config") / "arena.json")
-    assert all(entry.claim_threshold is None for entry in shipped.police_roster)
+    for entry in shipped.police_roster:
+        if ":" in entry.spec:  # our own dotted role package, never a modeled arm
+            assert entry.claim_threshold is None
+        else:
+            assert entry.claim_threshold in (None, 0.0)
 
 
 def test_champion_pin_defaults_to_the_shipped_gate_and_can_opt_out(tmp_path: Path) -> None:

@@ -78,7 +78,11 @@ jobs:
   # fixture is computed once.
   quality:
     runs-on: [self-hosted, fast24]
-    timeout-minutes: 25
+    # 25 -> 35 (M12): the champion evader's k-wall forecast now runs k=4 in the
+    # gate arena (C(sites,4) combos per decision - the measurement, not a speed
+    # knob), which grew the arena-harness module to ~6 min standalone. The cap
+    # stays a runaway backstop, not a performance target.
+    timeout-minutes: 35
     env:
       # Persistent LOCAL uv cache (2026-08-11): with the hosted cache
       # (enable-cache: true) every runner restart cost a ~10-minute cold run —
