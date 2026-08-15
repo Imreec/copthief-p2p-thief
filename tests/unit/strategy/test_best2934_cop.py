@@ -45,9 +45,10 @@ def test_the_cop_closes_on_the_belief_peak() -> None:
 
 def test_the_cop_does_not_wall_beyond_its_engage_range() -> None:
     """THE fielded parameter, and the one that makes them dangerous or harmless:
-    `barrier_engage_range` was tuned 4 -> 1 on their own sweep (capture 1.000 at range
-    1, 0.000 at range 3). Beyond it a wall costs a turn of movement for nothing, so
-    they move instead. At distance 3 the decision must be a move, never a barrier."""
+    first tuned 4 -> 1 on their own sweep, then RE-derived 1 -> 4 on 2026-08-14
+    (max-min over 40 seeds x 5 thieves) — the change that armed the evening plow.
+    Beyond the range a wall costs a turn of movement for nothing, so they move
+    instead. At their old range 1, distance 3 must be a move, never a barrier."""
     board = CONSTITUTION.board.make_board()
     brain = Best2934CopBrain(seed=1, options={"barrier_engage_range": 1})
     decision = brain.decide(
@@ -69,6 +70,35 @@ def test_the_cop_seals_at_contact_range() -> None:
     )
     assert decision.barrier is not None
     assert decision.move == "STAY"
+
+
+def test_the_open_board_plow_fires_inside_the_rederived_range() -> None:
+    """The 08-14 overhaul, reproduced: fielded range back to 4, and the area term
+    must NOT clamp on the negotiated board. Their `reachable_area(cell, limit=40)`
+    is a node budget that never binds on 49 cells, so an open-board wall shows its
+    true gain of 1 >= `barrier_min_gain` — which is the whole emergent plow. The
+    old arm's `region_cap 40.0` clamped 49 -> 40 on both sides of the diff and
+    silenced their waller entirely (gain 0 for every open-board wall)."""
+    board = CONSTITUTION.board.make_board()
+    brain = Best2934CopBrain(seed=1)
+    decision = brain.decide(
+        _observation(board, (2, 2), "police", max_barriers=14), _delta_belief((2, 5))
+    )
+    assert decision.barrier is not None  # distance 3 <= the re-derived range 4
+    assert decision.move == "STAY"
+
+
+def test_the_wall_lands_on_the_believed_thief_cell_at_contact() -> None:
+    """Their one explicit veto exemption: sealing ONTO the thief's own cell is the
+    rule-46 capture, allowed even though it severs the cop's path to the target
+    (the mass being unreachable afterwards is the win). Their `boxed_in`/
+    `wall_capture` enforcement (5 sites) scores it on the wire since 08-14."""
+    board = CONSTITUTION.board.make_board()
+    brain = Best2934CopBrain(seed=1)
+    decision = brain.decide(
+        _observation(board, (0, 1), "police", max_barriers=14), _delta_belief((0, 0))
+    )
+    assert decision.barrier == (0, 0)
 
 
 def test_the_cop_holds_its_endgame_reserve() -> None:

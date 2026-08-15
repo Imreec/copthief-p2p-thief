@@ -6,11 +6,17 @@ Koloshi, Alon Issman), linked from kit issue #45/#48. Companion to
 `best2934_thief`; see it for the modelling stance.
 
 `COP_DEFAULTS` carries the values they FIELD (`config/police/setup.json`), which for
-the barrier gate is NOT their class default: they tuned `barrier_engage_range` 4 -> 1
-on their own sweep (capture 1.000 at range 1, 0.000 at range 3) and their ADR-025
-records measuring the class defaults instead as a fault. This is the parameter that
-decides whether they are dangerous, so it is the one the tests pin hardest.
+the barrier gate is NOT their class default: first tuned 4 -> 1 on their own sweep,
+then RE-derived 1 -> 4 on 2026-08-14 (max-min over 40 seeds x 5 thieves) — the change
+that armed the evening plow that beat us 35-75. This is the parameter that decides
+whether they are dangerous, so it is the one the tests pin hardest.
 
+Rebuilt for M12 from offline study of their public code at 96d9b17 + our own
+g01/g03/g05 logs. Two fidelity fixes: their `reachable_area(cell, limit=40)` is a
+node budget that never binds on the negotiated 49-cell board (the old arm's clamp
+read 40 on both sides of every open-board diff and silenced the waller — gain must
+be the TRUE area shrink); and sealing onto the believed thief cell is their one veto
+exemption (rule-46 capture, scored on the wire by their `boxed_in` fix since 08-14).
 Their barrier search evaluates one cell at a time against the live board, which is
 mirrored exactly — including the consequence that a two-wall seal, neither half of
 which clears the gain bar alone, is invisible to it.
@@ -29,14 +35,14 @@ from copthief_core.strategy.region import path_length, region_size
 __all__ = ["COP_DEFAULTS", "Best2934CopBrain"]
 
 COP_DEFAULTS: dict[str, float] = {
-    "barrier_engage_range": 1.0,  # FIELDED value (tuned 4 -> 1 on their sweep)
+    "barrier_engage_range": 4.0,  # FIELDED 08-14 re-derivation (was 1 before the plow)
     "barrier_min_gain": 1.0,  # cells a wall must remove from the thief's world
     "barrier_endgame_reserve": 3.0,  # walls held back for a finishable squeeze
     "endgame_squeeze_range": 2.0,  # inside the reserve, only wall this close
     "idle_penalty": 0.35,  # standing still is rarely right for a pursuer
     "mobility_weight": 0.01,  # keep our own escape routes open on ties
     "gap_penalty": 0.5,  # their `- 0.5 * (after_gap - before_gap)`
-    "region_cap": 40.0,  # their `reachable_area(cell, limit=40)`
+    "region_cap": 49.0,  # their limit=40 is a node budget; on 7x7 the area is TRUE
 }
 
 
@@ -110,6 +116,12 @@ class Best2934CopBrain(BrainBase):
             return None
         best: tuple[float, Coord] | None = None
         for cell in sorted(_seal_candidates(board, observation.position, move_set)):
+            if cell == target:
+                # Their one veto exemption: the wall ON the believed thief cell is
+                # the rule-46 capture — severing our own route to it is the win.
+                if best is None or before_area > best[0]:
+                    best = (float(before_area), cell)
+                continue
             walled = board.with_barrier(cell)
             gain = before_area - region_size(walled, target, move_set, cap, {})
             after_gap = path_length(walled, observation.position, target, move_set)
