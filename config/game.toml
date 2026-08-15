@@ -21,9 +21,11 @@ llm_model = "none"
 # series vs nis-yar1 (90-30 sweep, +10 diversity as winner of the first meeting).
 # Advanced 2026-08-13 after the fifth counted series vs najamjad (30-90; all audits
 # Verified OK ×6, both reports auto-fired to the lecturer, +10 diversity theirs as
-# winner of the first meeting).
-counted_games_played = 5
-counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad"]
+# winner of the first meeting). Advanced 2026-08-15 after the sixth counted series vs
+# best2934 (47-47 TIE, 3-3, six survivals, all audits Verified OK ×6, diversity to
+# nobody - a tie has no winner).
+counted_games_played = 6
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad", "best2934"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
