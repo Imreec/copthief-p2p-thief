@@ -120,6 +120,7 @@ def load_private_settings(
         scent_physics_tolerance=float(scent.get("physics_tolerance", 0.0)),
         # M7-23 (PRD_scent §10.6 decision 1): ON by omission; a peer may opt out.
         frame_check=bool(scent.get("frame_check", True)),
+        refused_frame_trust=float(scent.get("refused_frame_trust", 0.0)),
         # M7-25: the declared information-consumption posture; belief by omission.
         info_mode=str(belief.get("info_mode", DEFAULT_INFO_MODE)),
         locked_models=locked_models,

@@ -81,12 +81,13 @@ class BrainBase(ABC):
             ):
                 return replace(proposal, move=STAY)
             return replace(proposal, barrier=None, move=self.pick_move(observation, belief))
-        return replace(
-            proposal,
-            move=clamp_move(
-                observation.board, observation.position, observation.move_set, proposal.move
-            ),
+        clamped = clamp_move(
+            observation.board, observation.position, observation.move_set, proposal.move
         )
+        if clamped != proposal.move:
+            # M13 (ADR-0016): a clamped landing is not the cell the brain priced.
+            return replace(proposal, move=clamped, landing_confidence=None)
+        return replace(proposal, move=clamped)
 
     @abstractmethod
     def _pick_move(self, observation: Observation, belief: BeliefFilter) -> str:

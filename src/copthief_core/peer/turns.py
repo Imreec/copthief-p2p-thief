@@ -35,6 +35,7 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         session.machine.advance(GameState.COMPUTING_MOVE)
     verdict = VERDICT_TRUTH
     barrier = None
+    landing_confidence: float | None = None  # M13: the brain's own price for this landing
     response_seconds = 0.0  # the mandatory final message costs no decision time
     if session.caught:  # the mandatory final message: no move, honest answer
         move, hint = "STAY", FINAL_CAUGHT_HINT
@@ -69,6 +70,7 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         else:
             move = decision.move
             session.position = session.board.apply_move(session.position, move)
+            landing_confidence = decision.landing_confidence
         max_words = session.constitution.world.hint_max_words
         if session.gazetteer is None:  # M1 fallback bank (no geography for the area)
             hint = session.policy.next_hint(hint_max_words=max_words)
@@ -119,14 +121,20 @@ def take_turn(session: PeerSession, *, now: float) -> dict[str, Any]:
         # evader (M7-18 measured the mirror: 0.31 -> 0.94 cop-tracking), and the book
         # gates only the LANDING capture on declaring it — so declaring below the
         # configured confidence gives away more than it can win. `claim_threshold`
-        # 0.0 (the default) is exactly the historical emitter.
+        # 0.0 (the default) is exactly the historical emitter. M13 (ADR-0016): the
+        # gate's input is the brain's OWN landing price when it offers one — the
+        # best2934 counted forfeits came from re-reading the raw, lagged belief here.
         capture_claim=(
             session.position
             if session.role == "police"
             and session.claim_policy.claims(
                 barrier_placed=barrier is not None,
                 move=move,
-                confidence=session.belief.prob_at(session.position),
+                confidence=(
+                    landing_confidence
+                    if landing_confidence is not None
+                    else session.belief.prob_at(session.position)
+                ),
             )
             else None
         ),

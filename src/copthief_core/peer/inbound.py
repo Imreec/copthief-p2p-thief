@@ -136,6 +136,14 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         session.belief.note_claim((message.capture_claim[0], message.capture_claim[1]))
     if scent_ok:
         session.belief.update_scent(message.smell_grid)
+    elif session.private.refused_frame_trust > 0.0:
+        # M13 quarantine (ADR-0016): a physics-refused frame stays out of the known
+        # field and the audit evidence, but the belief reads it at scaled trust —
+        # SQ3's multiplicative floor bounds fabrication damage, and the najamjad
+        # counted proved blindness (35/35 refusals, argmax 0/34) costs more.
+        session.belief.update_scent(
+            message.smell_grid, trust_scale=session.private.refused_frame_trust
+        )
     # M3-4: their hint feeds the belief ONLY through the closed-vocabulary parser —
     # adversarial text maps to a known landmark or to nothing (injection-safe by shape).
     if session.gazetteer is not None:

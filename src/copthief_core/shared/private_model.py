@@ -123,6 +123,9 @@ class PrivateSettings:
     # (§10.6 decision 1). Defaulted so direct constructions stay valid; the loader
     # always passes it explicitly.
     frame_check: bool = True
+    # M13 (ADR-0016): trust scale for a physics-REFUSED frame reaching the belief
+    # (0.0 = withheld whole, the shipped M7-23 posture). Evidence handling unchanged.
+    refused_frame_trust: float = 0.0
     # M7-25: which registered `info_mode` doc we declare at negotiate (kit SPEC §7).
     # "belief" = the field reaches decisions only through the belief layer — the
     # posture the M7-23 firewall enforces; the declaration makes it a checkable lock.

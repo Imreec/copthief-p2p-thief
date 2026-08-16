@@ -25,18 +25,26 @@ class Decision:
     `hint_verdict`/`hint_landmark` are the M5-3 hint-intent seam: the brain may ask
     the verbal layer to lie toward a chosen decoy (the M3-4 mechanism's policy input).
     None means the truthful default; the sealed intent always matches the verdict.
+
+    `landing_confidence` is the M13 claim-intent seam (ADR-0016): the brain's own
+    P(opponent on the cell this move lands on), priced from the SAME posterior it
+    hunted — the claim gate's input. None = unpriced; the emitter falls back to the
+    raw belief (every non-PoliceBrain brain, and every degrade path).
     """
 
     move: str = STAY
     barrier: Coord | None = None
     hint_verdict: str | None = None
     hint_landmark: str | None = None
+    landing_confidence: float | None = None
 
     def __post_init__(self) -> None:
         if self.barrier is not None and self.move != STAY:
             raise ValueError("a barrier turn moves nothing — move must be STAY")
         if self.hint_landmark is not None and self.hint_verdict is None:
             raise ValueError("a hint landmark needs a hint verdict")
+        if self.barrier is not None and self.landing_confidence is not None:
+            raise ValueError("a wall turn lands nowhere — it cannot price a landing")
 
 
 def clamp_move(board: Board, position: Coord, move_set: tuple[str, ...], proposal: str) -> str:
