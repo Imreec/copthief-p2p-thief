@@ -50,8 +50,10 @@ class ClaimPolicy:
         its belief — so a threshold buys silence exactly when a capture looks unlikely,
         and pays for it by forfeiting the landings its belief was wrong about.
         """
+        if barrier_placed or move == _NON_LANDING_MOVE:
+            # M13 (ADR-0016): nothing landed, so there is nothing to declare — true even
+            # for the unmodelled always-claim emitter (a STAY is not a landing on any wire).
+            return False
         if self.threshold is None:
             return True
-        if barrier_placed or move == _NON_LANDING_MOVE:
-            return False
         return confidence >= self.threshold

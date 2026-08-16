@@ -110,14 +110,14 @@ class BeliefFilter:
         self._envelope.spread(self._board, self._move_set)
         self._normalize()
 
-    def update_scent(self, grid: dict[str, float]) -> None:
+    def update_scent(self, grid: dict[str, float], trust_scale: float = 1.0) -> None:
         """§2.3, dispatched on what a value MEANS under the selected model (M7-14):
         age vouchers when intensity encodes age (reference form — the M3-3 path,
         byte-identical), kernel shape-match when it does not (book form — saturation
         makes 'freshest cell' meaningless, but the fresh kernel's ring structure
         identifies its centre). Multiplies `1 + smell_trust * score`; never
-        eliminates (floor 1)."""
-        if self._smell_trust <= 0.0 or not grid:
+        eliminates (floor 1). `trust_scale` (M13 quarantine, ADR-0016) scales both trusts."""
+        if self._smell_trust <= 0.0 or trust_scale <= 0.0 or not grid:
             return
         support = list(self._probs)
         scores, trust, self._last_scent = observation_scores(
@@ -126,8 +126,8 @@ class BeliefFilter:
             self._scent,
             self._last_scent,
             self._board,
-            self._smell_trust,
-            self._fresh_peak_trust,
+            self._smell_trust * trust_scale,
+            self._fresh_peak_trust * trust_scale,
         )
         if not scores:
             return

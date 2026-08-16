@@ -67,12 +67,15 @@ def test_forged_frame_is_refused_whole() -> None:
     assert police.known_field.cells() == {}  # nothing absorbed
 
 
-def test_refused_grid_never_reaches_belief() -> None:
-    police, thief = _pair(PRIVATE)
+def test_refused_grid_never_reaches_belief_with_quarantine_off() -> None:
+    # M13 (ADR-0016): the live config arms refused_frame_trust > 0 (quarantine tier,
+    # pinned in test_frame_quarantine.py); THIS pin holds the 0.0 posture byte-true.
+    quarantine_off = replace(PRIVATE, refused_frame_trust=0.0)
+    police, thief = _pair(quarantine_off)
     message = _forged(thief, thief.take_turn(now=1.0))
     police.handle_receive_turn(message)
     # Control twin (same seeds, same underlying turn): the grid simply absent.
-    police2, thief2 = _pair(PRIVATE)
+    police2, thief2 = _pair(quarantine_off)
     control = thief2.take_turn(now=1.0)
     control["smell_grid"] = {}
     police2.handle_receive_turn(control)

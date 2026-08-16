@@ -81,10 +81,11 @@ def play_referee_game(
     cop_trail = referee_trail(constitution, model=scent_model)
     feed = ScentFeed() if belief_feed is None else belief_feed  # wire-shape seam
     thief_feed = feed if thief_belief_feed is None else thief_belief_feed
-    # M7-19: the cop's claim is a strategy choice, so a same-cell ending resolves only
-    # while one stands. Unmodelled (the default) it always stands — historical physics.
+    # M7-19: the cop's claim is a strategy choice. M13 (ADR-0016): a claim is graded
+    # ONCE, at the thief's receive, against its post-move cell — so it gates ONLY the
+    # cop's own landing check below. Unmodelled (the default) = the always-claim
+    # emitter; the landing form still requires the cop to be the one who landed.
     claims = ClaimPolicy() if claim_policy is None else claim_policy
-    claim_standing = not claims.modeled
 
     def result(outcome: Outcome, steps: int) -> RefereeGameResult:
         return RefereeGameResult(
@@ -124,7 +125,10 @@ def play_referee_game(
             steps_survived=step,
             survival_threshold=threshold,
             max_moves=max_moves,
-            claim_standing=claim_standing,
+            # M13 wire-true (ADR-0016): nothing on the wire grades a thief-initiated
+            # collision — the landing form lives on the cop half-turn only. Barrier
+            # and imprisonment forms (rules 46/47) remain live here.
+            claim_standing=False,
         )
         if outcome is not None:
             return result(outcome, step)
@@ -139,19 +143,25 @@ def play_referee_game(
         else:
             cop = board.apply_move(cop, decision.move)
         # The claim decision, read off the belief as it stands after the thief moved:
-        # "how likely is it that I just landed on them". It gates BOTH half-turns until
-        # the cop's next turn — the friendly's g06 capture rode exactly such a standing
-        # claim, and a threshold that would have suppressed it forfeits that capture.
-        claim_standing = claims.claims(
+        # "how likely is it that I just landed on them". M13 (ADR-0016): it gates only
+        # the landing check immediately below — the wire grades a claim once, at the
+        # thief's receive, and nothing re-grades it after the thief's next move.
+        claims_this_landing = claims.claims(
             barrier_placed=decision.barrier is not None,
             move=decision.move,
-            confidence=police_belief.prob_at(cop),
+            # M13 (ADR-0016): the brain's own landing price when it offers one — the
+            # same coupling the live emitter runs (peer/turns.py); raw-belief fallback.
+            confidence=(
+                decision.landing_confidence
+                if decision.landing_confidence is not None
+                else police_belief.prob_at(cop)
+            ),
         )
         cop_trail.advance(cop, intensity)
         # Claim-conditional information (PRD_claims §5.2), composed at the loop level so
         # the BeliefFeed Protocol never learns about claims: a declared cell is a
         # certainty delta, silence leaves the thief on its ordinary hidden channel.
-        turn_feed = thief_claim_feed if (claim_standing and thief_claim_feed) else thief_feed
+        turn_feed = thief_claim_feed if (claims_this_landing and thief_claim_feed) else thief_feed
         thief_belief = turn_feed.observe(thief_belief, trail=cop_trail, truth=cop, board=board)
         outcome = check_end(
             board,
@@ -160,7 +170,7 @@ def play_referee_game(
             steps_survived=step,
             survival_threshold=threshold,
             max_moves=max_moves,
-            claim_standing=claim_standing,
+            claim_standing=claims_this_landing,
         )
         if outcome is not None:
             return result(outcome, step)

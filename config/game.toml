@@ -2,7 +2,7 @@
 # game.json overlays this file on shared keys - the private file can never weaken a signed term.
 # [trash_talk]/[llm]/[email] arrive with their milestones (M5/M6).
 
-version = "1.08"
+version = "1.09"
 
 [game]
 group_name = "ImreEyal-Thief"
@@ -145,6 +145,12 @@ model = "subtractive_chebyshev_v1"
 # differ in the last IEEE-754 bit because each side recomputes rather than receives.
 # Private, evidence-grade only (SQ3) - never negotiated, never flips a result.
 physics_tolerance = 1e-9
+# M13 quarantine (ADR-0016 in the police repo, synced): trust scale for a physics-
+# REFUSED inbound frame reaching the belief (0.0 = old blind posture). Armed on the
+# najamjad + bestteam evidence: opponents whose scent physics deviate from the locked
+# model refused 35/35 frames per game and blinded the belief; a 0.5-trust read of
+# bestteam's real frames tracked their thief 35/35 (evidence in the police repo).
+refused_frame_trust = 0.5
 
 [belief]
 # Private evidence-trust tuning (PRD_belief s5): how sharply the scent/hint likelihoods

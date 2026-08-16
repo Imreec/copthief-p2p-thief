@@ -1,13 +1,15 @@
 """Claim-gated capture through the whole referee loop (PRD_claims §5.1; M7-19).
 
 The book's scoring table makes the landing capture conditional on the cop declaring it,
-so once claiming is a choice the referee cannot resolve every same-cell ending. Both
-half-turns are gated on the cop's OWN most recent claim, because a same-cell ending can
-arise from the thief stepping onto the cop as well as the other way round — the friendly's
-g06 capture was exactly the second kind, riding the cop's standing claim.
+so once claiming is a choice the referee cannot resolve every same-cell ending. M13
+(ADR-0016) pinned the wire's actual grading: a claim is graded ONCE, at the thief's
+receive, against its post-move cell (empirical 19/19 across all counted claim/response
+pairs) — so the landing form lives on the cop's half-turn only, and a thief stepping
+onto the cop afterwards is graded by nothing. The old both-halves gating was the
+instrument's generosity; the counted series kept refuting it.
 
-The g06 lesson is pinned here as a passing test, not written off as a caveat: a cop that
-never declares never converts a collision, however sure we would like to be.
+The M7-19 lesson still stands as a passing test: a cop that never declares never
+converts a collision, however sure we would like to be.
 """
 
 from pathlib import Path
@@ -74,10 +76,42 @@ def _play(police: BrainBase, thief: BrainBase, policy: ClaimPolicy | None) -> Ou
     ).outcome
 
 
-def test_without_claim_modelling_a_collision_still_captures() -> None:
-    # The historical physics, which every committed arena table was measured under.
+def test_a_thief_initiated_collision_never_converts_even_unmodelled() -> None:
+    # M13 wire-true (ADR-0016): a claim is graded ONCE, at the thief's receive, against
+    # its post-move cell (empirical 19/19 across all counted claim/response pairs). A
+    # thief stepping onto the cop afterwards is graded by nothing — the old thief-half
+    # conversion here was the instrument's generosity, never the wire's.
     outcome = _play(_SitterBrain(seed=1), _WestWalkerBrain(seed=2), None)
-    assert outcome is Outcome.COP_CAPTURE
+    assert outcome is Outcome.THIEF_SURVIVAL
+
+
+class _FarWestWalkerBrain(BrainBase):
+    """Walks west twice, then sits — scripts the thief onto a cell the cop just claimed."""
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
+        self._steps = 0
+
+    def _pick_move(self, observation: Observation, belief: BeliefFilter) -> str:
+        self._steps += 1
+        return "W" if self._steps <= 2 else "STAY"
+
+
+def test_a_stale_claim_does_not_convert_the_thiefs_next_walk_in() -> None:
+    # M13 wire-true (ADR-0016): cop (3,3) steps E to (3,4) and claims it while the
+    # thief is still at (3,5) — graded false at receive. The thief then walks onto
+    # (3,4). No code path on the wire grades that second collision.
+    outcome = play_referee_game(
+        CONSTITUTION,
+        police_brain=_EastWalkerBrain(seed=1),
+        thief_brain=_FarWestWalkerBrain(seed=2),
+        smell_trust=PRIVATE.smell_trust_weight,
+        seed=1,
+        cop_start=COP_CELL,
+        thief_start=(3, 6),
+        claim_policy=ClaimPolicy(threshold=0.0),
+    ).outcome
+    assert outcome is Outcome.THIEF_SURVIVAL
 
 
 def test_a_cop_that_never_declares_never_converts_a_collision() -> None:
