@@ -26,6 +26,7 @@ def modeled_arm_classes() -> dict[str, type[BrainBase]]:
     from copthief_core.strategy.anrbj666_thief import Anrbj666ThiefBrain
     from copthief_core.strategy.best2934_cop import Best2934CopBrain
     from copthief_core.strategy.best2934_thief import Best2934ThiefBrain
+    from copthief_core.strategy.bestteam_thief import BestteamThiefBrain
     from copthief_core.strategy.hunter_cop import HunterCopBrain
     from copthief_core.strategy.nisyar1_cop import NisYar1CopBrain
     from copthief_core.strategy.nisyar1_thief import NisYar1ThiefBrain
@@ -35,6 +36,7 @@ def modeled_arm_classes() -> dict[str, type[BrainBase]]:
     return {
         "best2934-police": Best2934CopBrain,
         "best2934-thief": Best2934ThiefBrain,
+        "bestteam-thief": BestteamThiefBrain,
         "vibecode-police": VibecodeCopBrain,
         "vibecode-thief": VibecodeThiefBrain,
         "hunter-cop": HunterCopBrain,
