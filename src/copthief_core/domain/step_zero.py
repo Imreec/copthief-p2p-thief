@@ -18,11 +18,21 @@ def revealed_commit(records: list[dict[str, Any]]) -> str:
     """The commit a peer's revealed step-0 declared ("unknown" absent).
 
     Reads both step-0 spellings — our/the reference's `system_spec` and the book
-    example's `step_zero` — the field is what matters, not the label.
+    example's `step_zero` — and, failing those, an untyped FIRST record carrying the
+    field: a live pairing (bestteam, 2026-08-17) seals `github_commit` into its first
+    regular turn record with no type label, and scanning only for our labels filed a
+    real opponent as "unknown" across three series. The field is the declaration,
+    not the label; a typed record still outranks the incidental first-record field.
     """
     for record in records:
         payload = record.get("payload", {})
         if isinstance(payload, dict) and payload.get("type") in ("system_spec", "step_zero"):
             value = payload.get("github_commit")
             return str(value) if value else "unknown"
+    if records:
+        payload = records[0].get("payload", {})
+        if isinstance(payload, dict):
+            value = payload.get("github_commit")
+            if value:
+                return str(value)
     return "unknown"
