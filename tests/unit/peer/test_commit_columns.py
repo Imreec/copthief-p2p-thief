@@ -48,6 +48,27 @@ def test_opponent_commit_is_unknown_without_a_step0_or_without_the_field() -> No
     assert opponent_commit([]) == "unknown"
 
 
+def test_opponent_commit_falls_back_to_an_untyped_first_record() -> None:
+    # bestteam's convention (their 2026-08-17 letter): the commit rides the FIRST
+    # sealed record of each sub-game, with no type label at all. Scanning only for
+    # OUR labels filed a real opponent as "unknown" across three series — the field
+    # is the declaration, not the label (the M7-42 tolerance rule, again).
+    records = [
+        _revealed({"step": 1, "move": "MOVE:STAY", "github_commit": "57" * 20}),
+        _revealed({"step": 2, "move": "MOVE:N"}),
+    ]
+    assert opponent_commit(records) == "57" * 20
+
+
+def test_opponent_commit_prefers_a_typed_step0_over_the_first_record() -> None:
+    # A deliberate typed declaration outranks an incidental field on record one.
+    records = [
+        _revealed({"step": 1, "github_commit": "aa" * 20}),
+        _revealed({"step": 0, "type": "system_spec", "github_commit": "cd" * 20}),
+    ]
+    assert opponent_commit(records) == "cd" * 20
+
+
 def test_commit_for_module_resolves_this_checkout_for_our_own_package() -> None:
     # copthief_core lives in THIS repo, so its module commit is this checkout's HEAD.
     assert commit_for_module("copthief_core") == current_commit_hash()
