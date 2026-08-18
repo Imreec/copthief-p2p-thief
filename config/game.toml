@@ -24,8 +24,8 @@ llm_model = "none"
 # winner of the first meeting). Advanced 2026-08-15 after the sixth counted series vs
 # best2934 (47-47 TIE, 3-3, six survivals, all audits Verified OK ×6, diversity to
 # nobody - a tie has no winner).
-counted_games_played = 6
-counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad", "best2934"]
+counted_games_played = 7
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad", "best2934", "bestteam"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
