@@ -92,6 +92,12 @@ def opponent_identity_from_logs(logs: list[Path], opponent_group: str) -> dict[s
     record of what a team stated about itself, and inventing a plausible value there
     would be a fabricated record in a signed artifact. An interop note worth keeping:
     the reference's F8b block carries all seven, but a conforming peer may send fewer.
+
+    Only an identity that AGREES with the pairing is adopted. The wire guard refuses
+    a wrong-opponent agreement, but its reception is still logged — and on 2026-08-18
+    a third team's single refused push sat first in the log and renamed all six rows
+    of the mailed artifact. The configured pairing names the series; a stranger's
+    record never does, however early it arrived.
     """
     declared: dict[str, Any] = {}
     group_id = opponent_group
@@ -103,8 +109,11 @@ def opponent_identity_from_logs(logs: list[Path], opponent_group: str) -> dict[s
             if event.get("event") != "agreement_received":
                 continue
             raw = event.get("raw", {})
-            declared = dict(raw.get("identity") or {})
-            group_id = str(declared.get("group_id") or raw.get("group_id") or opponent_group)
+            candidate = dict(raw.get("identity") or {})
+            candidate_gid = str(candidate.get("group_id") or raw.get("group_id") or "")
+            if candidate_gid and candidate_gid != opponent_group:
+                continue
+            declared = candidate
             break
         if declared:
             break
