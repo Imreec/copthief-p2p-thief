@@ -44,6 +44,10 @@ class WatchedTransport:
         with self._watchdog.io_window():
             return self._inner.exchange_audit(payload)
 
+    def poll_audit(self) -> dict[str, Any] | None:
+        with self._watchdog.io_window():
+            return self._inner.poll_audit()
+
 
 def watched(inner: PeerTransport, watchdog: Watchdog) -> WatchedTransport:
     """The transport seam, named for the call site (`watched(transport, dog)`)."""
