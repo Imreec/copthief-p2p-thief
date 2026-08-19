@@ -12,7 +12,7 @@ sub_game_number = 1
 # whole-match declaration; the reference's writer requires every key.
 members = ["Imree Cohen", "Eyal Shtinmetz"]
 llm_model = "none"
-# M7-41 league ledger (book §9.2.1; rules 37-38) — MUST stay identical to the police
+# M7-41 league ledger (book Â§9.2.1; rules 37-38) â€” MUST stay identical to the police
 # repo's config/game.toml: either repo can be the one declaring at a handshake, and a
 # stale count makes the NEXT counted game declare a false first meeting (rule 38 =
 # project-level disqualification). Advanced 2026-08-04 after the first counted series
@@ -20,12 +20,12 @@ llm_model = "none"
 # third counted series vs vibecode (30-90). Advanced 2026-08-11 after the fourth counted
 # series vs nis-yar1 (90-30 sweep, +10 diversity as winner of the first meeting).
 # Advanced 2026-08-13 after the fifth counted series vs najamjad (30-90; all audits
-# Verified OK ×6, both reports auto-fired to the lecturer, +10 diversity theirs as
+# Verified OK Ã—6, both reports auto-fired to the lecturer, +10 diversity theirs as
 # winner of the first meeting). Advanced 2026-08-15 after the sixth counted series vs
-# best2934 (47-47 TIE, 3-3, six survivals, all audits Verified OK ×6, diversity to
+# best2934 (47-47 TIE, 3-3, six survivals, all audits Verified OK Ã—6, diversity to
 # nobody - a tie has no winner).
-counted_games_played = 7
-counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad", "best2934", "bestteam"]
+counted_games_played = 8
+counted_opponents = ["anrbj666", "uoh-sqak", "vibecode", "nis-yar1", "najamjad", "best2934", "bestteam", "SMNGRP05"]
 
 [game.repos]
 cop = "https://github.com/Imreec/copthief-p2p-cop"
@@ -40,7 +40,7 @@ thief = "https://thief.imreeyal.com/mcp"
 # package.module:Class notation for role brains). The sparring host stays on the
 # generic brain - tuned weights never deploy there (CLAUDE.md s9).
 police_class = "random"
-# M9 (ADR-0011 in the lead repo): the doctrine evader — lethal gate above flight,
+# M9 (ADR-0011 in the lead repo): the doctrine evader â€” lethal gate above flight,
 # belief-native worst-wall forecast, stay cap, hunted-only flee lift. The counted
 # 30-90 corner deaths refuse at their first step. The old ThiefBrain stays available
 # by flipping this line back; its tuned tables below are inert under the doctrine
@@ -54,7 +54,7 @@ hint_bank = "classic"
 # M9-5 claim gate (mirrored gate pin in tests/unit/peer/test_claims.py requires the
 # live config to carry it): claim only when the landing's own belief mass clears
 # this. This repo's police side is the generic sparring stand-in, but the gate is a
-# property of the SHIPPED stack in both repos — 0.1 = the published sweep's point.
+# property of the SHIPPED stack in both repos â€” 0.1 = the published sweep's point.
 claim_threshold = 0.1
 tie_epsilon = 0.25
 
