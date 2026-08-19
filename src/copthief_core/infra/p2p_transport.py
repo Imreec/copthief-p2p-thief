@@ -111,3 +111,6 @@ class McpTransport:
         with contextlib.suppress(TransportError):
             self._push_with_retry("submit_audit", payload, budget=self._connect_timeout)
         return take_one(self._inboxes.audits, self._connect_timeout)
+
+    def poll_audit(self) -> dict[str, Any] | None:
+        return take_one(self._inboxes.audits, self._connect_timeout)

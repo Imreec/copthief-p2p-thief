@@ -15,6 +15,7 @@ from copthief_core.domain.state_machine import GameState
 from copthief_core.domain.step_zero import revealed_commit
 from copthief_core.peer import events
 from copthief_core.peer.audit_flow import build_audit, verify_audit, wire_result
+from copthief_core.peer.audit_intake import matching_audit
 from copthief_core.peer.outcome_check import emit_outcome_check
 from copthief_core.peer.scent_check import emit_scent_physics
 from copthief_core.peer.session import PeerSession
@@ -118,7 +119,11 @@ def settle(session: PeerSession, transport: PeerTransport, emit: LogFn) -> PeerG
     full_records = [session.spec_record] if session.spec_record is not None else []
     ours = build_audit(session.role, full_records + session.records, wire_result(outcome))
     emit({"event": "audit", "payload": ours})
-    theirs = transport.exchange_audit(ours)
+    # 2026-08-19 (ali-ahm1 g02, live): a redelivered PREVIOUS-window audit must never
+    # be verified as this window's — the guard discards role-mismatched echoes loudly.
+    theirs = matching_audit(
+        transport.exchange_audit(ours), transport, own_role=session.role, emit=emit
+    )
     if theirs is not None:
         events.inbound(emit, "audit_received", session.role, theirs)
     if theirs is None:

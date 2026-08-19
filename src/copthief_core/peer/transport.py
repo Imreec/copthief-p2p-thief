@@ -82,6 +82,15 @@ class PeerTransport(Protocol):
         """Best-effort send of my audit; block for theirs (None if it never arrives)."""
         ...
 
+    def poll_audit(self) -> dict[str, Any] | None:
+        """One more queued audit, or None once the wait budget burns empty.
+
+        Exists for the stale-audit guard (2026-08-19 live): the M7-10 redelivery route
+        can land a PREVIOUS window's audit ahead of this window's real one, so
+        settlement must be able to keep reading past a discard.
+        """
+        ...
+
 
 class QueueTransport:
     """In-process half of a peer pair: writes into the OPPONENT's queues, reads its own."""
@@ -103,6 +112,9 @@ class QueueTransport:
 
     def exchange_audit(self, payload: dict[str, Any]) -> dict[str, Any] | None:
         self._opponent.audits.put(payload)
+        return take_one(self._own.audits, self._wait_timeout)
+
+    def poll_audit(self) -> dict[str, Any] | None:
         return take_one(self._own.audits, self._wait_timeout)
 
 
