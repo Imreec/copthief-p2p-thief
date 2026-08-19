@@ -35,6 +35,14 @@ class McpToolClient:
         return asyncio.run(self._call(tool, payload))
 
     async def _call(self, tool: str, payload: dict[str, Any]) -> dict[str, Any]:
+        # The budget is TOTAL — enter, tool call, and session close. `Client(timeout=)`
+        # alone bounds only the tool call: on 2026-08-19 (ali-ahm1 friendly) a push was
+        # served in 95.6 ms and the client then hung ~61 s CLOSING the session, so our
+        # next turn left one second after the opponent's signed 60 s window. Same
+        # disease as M7-57's original 2026-08-09 face, one layer down.
+        return await asyncio.wait_for(self._exchange(tool, payload), timeout=self._timeout)
+
+    async def _exchange(self, tool: str, payload: dict[str, Any]) -> dict[str, Any]:
         async with Client(self._url, timeout=self._timeout) as client:
             result = await client.call_tool(tool, {_PARAM_NAME.get(tool, "message"): payload})
         data = result.data
@@ -55,5 +63,8 @@ class McpToolClient:
                 return
 
     async def _ping(self) -> None:
+        await asyncio.wait_for(self._ping_exchange(), timeout=self._timeout)
+
+    async def _ping_exchange(self) -> None:
         async with Client(self._url, timeout=self._timeout) as client:
             await client.list_tools()
