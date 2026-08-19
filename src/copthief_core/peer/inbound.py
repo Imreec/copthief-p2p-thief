@@ -63,6 +63,13 @@ def handle_receive_turn(session: PeerSession, raw: dict[str, Any]) -> dict[str, 
         message = TurnMessage.from_wire(raw)
     except WireValidationError as error:
         raise session.collapse(str(error)) from error
+    # 2026-08-19 (ali-ahm1 g05 live): a PREVIOUS window's turn, redelivered here by the
+    # M7-10 late-retry route, must never be graded as this window's — it killed a live
+    # window as a false "step discontinuity". A turn claiming OUR OWN role cannot come
+    # from the opponent, so it is absorbed as transport tolerance (M7-8 posture), the
+    # exact mirror of the audit channel's stale guard (peer/audit_intake).
+    if message.sender == session.role:
+        return _tolerated(message.step, inbox_order.STALE_ECHO)
     expected = len(session.inbound) + 1
     # Terminal-message step convention (M5 friendly g1 live finding): the reference
     # seals its mandatory caught final message at its CURRENT step (a caught thief

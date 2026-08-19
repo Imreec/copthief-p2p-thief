@@ -29,6 +29,10 @@ ILLEGAL = "illegal"
 # best2934 and gal-roy1 both send at step 0 before their cop's first real move. It is
 # not a game step, so it is absorbed here rather than classified as one.
 HANDOVER = "handover"
+# 2026-08-19 (ali-ahm1 g05 live): a redelivered PREVIOUS-window turn, recognisable
+# because a genuine opponent can never send OUR OWN role. Routed here by the same
+# M7-10 late-retry design the audit channel already guards against (audit_intake).
+STALE_ECHO = "stale_echo"
 
 __all__ = [
     "ACCEPTED",
@@ -36,6 +40,7 @@ __all__ = [
     "DUPLICATE",
     "HANDOVER",
     "ILLEGAL",
+    "STALE_ECHO",
     "InboundSequencer",
     "Verdict",
 ]
