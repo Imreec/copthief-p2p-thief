@@ -440,6 +440,7 @@ dev = [
     { name = "mypy" },
     { name = "nbclient" },
     { name = "nbformat" },
+    { name = "pillow" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -458,6 +459,7 @@ notebook = [
 ]
 viz = [
     { name = "matplotlib" },
+    { name = "pillow" },
 ]
 
 [package.metadata]
@@ -470,6 +472,7 @@ dev = [
     { name = "mypy", specifier = ">=1.11" },
     { name = "nbclient", specifier = ">=0.10" },
     { name = "nbformat", specifier = ">=5.10" },
+    { name = "pillow", specifier = ">=10.0" },
     { name = "pre-commit", specifier = ">=3.7" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-cov", specifier = ">=5.0" },
@@ -486,7 +489,10 @@ notebook = [
     { name = "nbclient", specifier = ">=0.10" },
     { name = "nbformat", specifier = ">=5.10" },
 ]
-viz = [{ name = "matplotlib", specifier = ">=3.8" }]
+viz = [
+    { name = "matplotlib", specifier = ">=3.8" },
+    { name = "pillow", specifier = ">=10.0" },
+]
 
 [[package]]
 name = "coverage"
