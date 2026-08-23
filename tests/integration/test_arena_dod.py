@@ -15,6 +15,9 @@ from copthief_core.sdk.arena_config import load_arena_config
 from copthief_core.sdk.simulation import SimulationSdk
 from copthief_core.strategy.scenarios import scenario_suite
 
+# Post-league (ADR-0018): strategy-measurement eval - on-demand arena workflow lane.
+pytestmark = pytest.mark.arena
+
 CONFIG = load_arena_config(Path("config") / "arena.json")
 
 

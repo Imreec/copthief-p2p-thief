@@ -21,6 +21,11 @@ from copthief_core.sdk.arena import (
 from copthief_core.sdk.arena_config import load_arena_config
 from copthief_core.sdk.simulation import SimulationSdk
 
+# Post-league (ADR-0018): the round robin is a strategy-measurement eval, not a code
+# gate - it runs on demand via the arena workflow, mandatory before merging any
+# change that touches a brain, a weight table, or the referee.
+pytestmark = pytest.mark.arena
+
 CONFIG = load_arena_config(Path("config") / "arena.json")
 
 
