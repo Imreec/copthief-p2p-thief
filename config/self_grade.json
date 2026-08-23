@@ -1,42 +1,42 @@
 {
-  "version": "1.00",
-  "note": "Code quality only — never league results (App E rule 55). Scores stay 0 until the work exists; prose in docs/SELF_GRADE.md must match script output at M8.",
+  "version": "1.01",
+  "note": "Code quality only - never league results (App E rule 55). Prose in SELF_GRADE.md must match script output exactly (M8). Scores assess the two-repo system this repo is half of; role-specific evidence cited per category.",
   "categories": [
     {
       "name": "Architecture & orchestration patterns",
       "weight": 20,
-      "score": 0,
-      "justification": "M0 — not yet gradeable; no production code exists."
+      "score": 94,
+      "justification": "The mirror topology held end-to-end: byte-identical core verified in CI both sides, core edits never made here, role code cleanly isolated in copthief_thief (9 modules, all within the 150-line rule). Held back by: the shared peer layer's sprawl and the session-per-call transport shape (lead L-06) apply here identically."
     },
     {
       "name": "Protocol/crypto correctness & interop evidence",
       "weight": 20,
-      "score": 0,
-      "justification": "M0 — not yet gradeable; kit conformance lands at M1, oracle spike at M2."
+      "score": 95,
+      "justification": "Kit CORE vectors CI-blocking; the thief's own concession machinery (rules 46/47 self-adjudication at the seal) closed a live rule-35 shape; all ten counted settlements byte-identical. Held back by: the shared reader-side spelling gaps and the M7-58 silent-comparison window (lead L-02/L-05)."
     },
     {
       "name": "Strategy-module engineering (clarity, tests, tuning methodology)",
       "weight": 20,
-      "score": 0,
-      "justification": "M0 — not yet gradeable; brains land at M5."
+      "score": 91,
+      "justification": "The thief's lab methodology is the strength: opponent cops rebuilt as arms from primary evidence, every doctrine knob swept before deployment, an honest null result kept on the record (M7-30), the k=4 trade documented rather than hidden (T-01). Held back by: the arena instrument defect that stood until M13 mismeasured this side's numbers too, the modest GA delta (T-04), and offline-only deception evidence (T-06)."
     },
     {
       "name": "Reliability engineering (state machine, deadline, watchdog, chaos evidence)",
       "weight": 15,
-      "score": 0,
-      "justification": "M0 — not yet gradeable."
+      "score": 90,
+      "justification": "The shared 19-drill battery plus the thief-specific pacing machinery (hold, catch up, never settle an empty window) born from a live partial-series defect. Held back by: the same two live-found deadline defects and the latent echo bug as the lead repo - found by opponents' clocks, not our drills."
     },
     {
       "name": "Documentation & research artifacts",
       "weight": 15,
-      "score": 0,
-      "justification": "M0 — planning docs approved and landed; scored only with the full evidence layer at M8."
+      "score": 95,
+      "justification": "Full academic report with regenerable figures including a real captured live-GUI screenshot and a counted-log replay animation; 28 thief-side evidence files; notebook committed with outputs and pinned renders-clean. Held back by: doctrine-era evidence lives lead-side by topology (T-02), so this repo's trail alone under-documents the fielded brain."
     },
     {
       "name": "Process discipline",
       "weight": 10,
-      "score": 0,
-      "justification": "M0 — gates wired; scored across the project's PR history at M8."
+      "score": 92,
+      "justification": "Sync discipline held (no core edit ever landed here), conventional commits, cross-model review, truthful prompt log. Held back by: the same caught-and-corrected doc-repo drift moments as the lead (a milestone tracked stale cross-repo for days)."
     }
   ]
 }

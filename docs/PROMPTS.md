@@ -3,6 +3,30 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
+## PR (this one) — docs/m8-readme-report (M8-1 + M8-2: the academic report + the disclosure pair)
+
+- **Driver:** Imree ("I want our readme to be a masterpiece... take the HW6 readme as the
+  floor"; role deltas per repo) · **Author:** Claude (terminal) · **Reviewer:** cross-model
+  review on the thread.
+- **What was asked:** this repo's half of the M8-1 README pair — the full §9.4.2 academic
+  report narrating THE THIEF, with real visual assets — plus KNOWN_LIMITATIONS.md and
+  SELF_GRADE.md.
+- **Outcome:** README rebuilt as the evader's report (Dec-POMDP with the belief used
+  worst-case-first, thief-specific orchestration dilemmas — pacing under the survival clock,
+  honest cage concession — the doctrine-evader stack with its measured numbers and the k=4
+  trade stated plainly, ThiefBrain + the opponent lab with this repo's own evidence trail,
+  GA/self-play curves, screenshots). Assets all real and regenerable: the counted vm__fabi
+  g01 survival GIF from the committed audit log (log added to docs/evidence/), a live-GUI
+  screenshot captured from a real local match in this repo (the M4-2 deferred item), a
+  replay-GUI Verified-OK capture on the counted log, belief-vs-truth overlays, notebook
+  figure extracts. KNOWN_LIMITATIONS.md carries the thief-side T-01…T-06 (the k=4 trade,
+  lead-side evidence topology, the inert M5 tables, the modest GA delta, single committed
+  wire log, offline-only deception evidence) + the lead's L-entries by reference.
+  SELF_GRADE.md == `self_grade.py` output (93.0, config v1.01). pyproject gains the pillow
+  viz dep + the `arena` marker/addopts (pairs with the lead's ADR-0018 CI slim, whose
+  workflows/tests arrive via the sync ritual). TODO M8-1/M8-2 ticked; M4-2's deferred
+  screenshot noted delivered.
+
 ## PR — chore/m8-todo-truth-pass (the TODO stops being a second journal)
 
 - **Driver:** Imree (asked for a pre-M8 cleanup of the drift sources in both repos) ·

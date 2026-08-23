@@ -35,6 +35,7 @@ def test_genome_stays_inside_the_search_box() -> None:
     assert decode(spec, genome) == {"a": genome[0], "b": genome[1]}
 
 
+@pytest.mark.arena  # ~10 min of referee games - on-demand arena lane (ADR-0018)
 def test_smoke_evolution_is_deterministic_with_non_decreasing_best() -> None:
     first = evolve(CONFIG, CONFIG.smoke)
     again = evolve(CONFIG, CONFIG.smoke)
@@ -108,6 +109,7 @@ def test_fitness_threads_the_doors_to_the_series() -> None:
     assert 0.0 <= value <= 1.0
 
 
+@pytest.mark.arena  # ~1 min of referee games - on-demand arena lane (ADR-0018)
 def test_an_opponent_pool_averages_fitness_across_its_members() -> None:
     """M7-15: a GA tuned against ONE opponent overfits (the book-v1 retune beat the
     claim-reader but stalled vs a random walker). A pool scores the candidate

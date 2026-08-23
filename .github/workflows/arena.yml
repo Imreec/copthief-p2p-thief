@@ -1,0 +1,49 @@
+# The on-demand strategy-measurement lane (ADR-0018, post-league).
+#
+# Runs everything `-m arena`: the champion-regression round robin, the DoD win-rate
+# floors, and the GA smoke — the evals that measure strategy STRENGTH rather than
+# code correctness. Post-league the strategy is frozen, so these left the per-PR
+# path; they remain MANDATORY before merging any change that touches a brain, a
+# weight table, or the referee — trigger this workflow from the PR and link the
+# green run on the thread.
+#
+# Self-hosted lane notes (ops memory): the fast24 runner must be RUNNING or this
+# queues silently; `shell: bash` is required (the box's PowerShell execution policy
+# blocks generated .ps1 steps); the persistent local uv cache avoids the ~10-min
+# cold rebuild after runner restarts. Arena seeds and the solver node cap are the
+# measurement, not speed knobs — never tune them for CI time.
+
+name: Arena
+
+on:
+  workflow_dispatch:
+
+jobs:
+  arena:
+    runs-on: [self-hosted, fast24]
+    timeout-minutes: 45
+    env:
+      UV_CACHE_DIR: D:\uv-ci-cache
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: false
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      # Explicit -m overrides the addopts exclusion (last -m wins).
+      - name: Strategy-measurement evals
+        run: uv run pytest -n auto --dist loadscope -m "arena and not live" -v

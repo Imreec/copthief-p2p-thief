@@ -27,6 +27,8 @@ dev = [
 ]
 viz = [
     "matplotlib>=3.8",
+    # M8-1: GIF assembly for scripts/render_replay_gif.py (analysis-time only).
+    "pillow>=10.0",
 ]
 notebook = [
     "nbformat>=5.10",
@@ -73,8 +75,14 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["live: needs a real LLM / network / deployed server — excluded from CI"]
-addopts = "-m 'not live'"
+markers = [
+    "live: needs a real LLM / network / deployed server — excluded from CI",
+    # ADR-0018 (post-league): heavy strategy-measurement evals (champion-gate arena,
+    # DoD floors, GA smoke). Excluded from the default run; the on-demand arena
+    # workflow runs them, and they stay MANDATORY before merging any strategy change.
+    "arena: slow strategy-measurement evals — on-demand lane, excluded from default CI",
+]
+addopts = "-m 'not live and not arena'"
 
 [tool.coverage.run]
 source = ["src"]

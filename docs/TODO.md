@@ -59,7 +59,7 @@
 ## Phase M4 — Observability
 
 - ☑ **M4-1** `docs/PRD_gui_replay.md` — C, approved I (cop PR #24; PRD lives in the lead repo).
-- ☑ **M4-2** Live GUI (heatmap + turn banner; local truth only) — C (cop PRs #25/#26, core synced). ⚑ Thief-window screenshot for THIS repo's README rides M8-1.
+- ☑ **M4-2** Live GUI (heatmap + turn banner; local truth only) — C (cop PRs #25/#26, core synced). ⚑ Thief-window screenshot delivered at M8-1 (`assets/thief-live-belief-heatmap.png`, captured from a real local match).
 - ☑ **M4-3** Replay verifier — C, review AG (cop PR #27, core synced; rule-19 mutation matrix runs in this repo's CI too).
 - ☑ **M4-4** Belief-vs-truth overlay + belief-error curve export — C (cop PR #28, core synced).
 
@@ -117,8 +117,8 @@
 
 ## Phase M8 — Submission hardening
 
-- ☐ **M8-1** README academic reports ×2 (§9.4.2 sections + user-manual sections + contradiction-choices narrative + screenshots + sibling links) — C, review E+AG, approve I. DoD: `check_submission.py` README items green.
-- ☐ **M8-2** KNOWN_LIMITATIONS.md + SELF_GRADE.md (`self_grade.py` output; code-quality only) — C, approve I.
+- ☑ **M8-1** README academic report (this repo's half of the ×2): all six §9.4.2 components + guidelines §2.1 user-manual sections + screenshots (incl. the M4-2 deferred thief-window live screenshot, captured from a real local match) + the counted survival GIF + sibling link — C, review AG, approve I. `check_submission.py` README items green. Assets regenerate from the committed vm__fabi g01 counted log.
+- ☑ **M8-2** KNOWN_LIMITATIONS.md (T-01…T-06 + the lead repo's L-entries by reference) + SELF_GRADE.md == `self_grade.py` output (93.0; config v1.01; rule-55 code-quality only) — C, approve I.
 - ☐ **M8-3** Full checklist sweep (`check_submission.py` fully green both repos; guidelines §17 + App C table 6) — C+I.
 - ☐ **M8-4** Annotated tags `v1.0-submission` pushed both repos; Moodle per-member submission + PDF form + group ID (OI-1 resolved) — I.
 - ☐ **M8-5** Final doc↔repo alignment audit (README numbers vs tree; PROMPTS.md truthful/complete) — C+I. DoD: zero contradictions found.
