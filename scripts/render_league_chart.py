@@ -1,10 +1,10 @@
 """Render the league-campaign chart from the banked counted-series artifacts (M8-1).
 
-Reads every `result_*.json` under reports/counted-series/imreeyal/ — the same
-artifacts the lecturer holds — and draws the ten series as paired horizontal
-bars (our score vs the opponent's), ordered by our own played-count field.
-Nothing is hand-entered; re-run after any new counted series. Palette is
-dark-surface categorical, validated (CVD dE >= 24, contrast >= 3:1).
+Reads every `result_*.json` under reports/counted-series/ (one folder per
+opponent) — the same artifacts the lecturer holds — and draws the ten series as
+paired horizontal bars (our score vs the opponent's), ordered by our own
+played-count field. Nothing is hand-entered; re-run after any new counted
+series. Palette is dark-surface categorical, validated (CVD dE >= 24).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ matplotlib.use("Agg")  # never require a display
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent.parent
-RESULTS = ROOT / "reports" / "counted-series" / "imreeyal"
+RESULTS = ROOT / "reports" / "counted-series"
 US = "imreeyal"
 # Display-only theme (mirrors config/game.toml [gui]) + the validated pair.
 BG, PANEL, FG, MUTED = "#0f172a", "#1e293b", "#e2e8f0", "#94a3b8"
@@ -30,7 +30,7 @@ def load_series() -> list[dict]:
     """All counted results, in play order (Input: none; Output: list of
     {opponent, ours, theirs, won, tie, diversity} sorted by our ledger count)."""
     rows = []
-    for path in sorted(RESULTS.glob("result_*.json")):
+    for path in sorted(RESULTS.rglob("result_*.json")):
         final = json.loads(path.read_text(encoding="utf-8"))["final_result"]
         opponent = next(k for k in final["total_score"] if k != US)
         rows.append(
@@ -81,7 +81,7 @@ def render(rows: list[dict], out: Path) -> None:
     bonuses = sum(1 for r in rows if r["diversity"])
     axes.set_title(
         f"League campaign - {len(rows)} counted series (the cap)  |  "
-        f"{wins}W-{losses}L-{ties}T  |  points {ours}-{theirs}  |  +10 diversity x{bonuses}",
+        f"{wins}W-{losses}L-{ties}T  |  points {ours}:{theirs}  |  +10 diversity x{bonuses}",
         color=FG,
         fontsize=11,
         pad=14,

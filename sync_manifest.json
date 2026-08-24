@@ -29,7 +29,7 @@
     "scripts/m11_probe.py": "0cb0457d91d7d59d780e350a718cdcb4cdd9060c7dfe33971dd299be0fed80c5",
     "scripts/m11_wiring_check.py": "72cd3e0ab965c657241c96ee64a8d1d81d9cae3ef0ada6f1651aa6d3337f133d",
     "scripts/make_sparring_config.py": "99c851b11923e29478ab089ce896ea7bd66023af8ea23c2da9a95b4a7d79222f",
-    "scripts/render_league_chart.py": "3de3e02b3788db2890104727d3c7ec0ecf1a0999456ebc4757f0cc17feb75e2f",
+    "scripts/render_league_chart.py": "93e7884ee0885bb2e5ef69a6f13e1a35818caf21778112d6c488180323b9eb74",
     "scripts/render_replay_gif.py": "bb4cac1c84737387fcddc70f0190f78f89ff333daad3cd7359c1688d3067189c",
     "scripts/replay_gif_data.py": "2544a39432ac995403cd354538f8cdb0fec0540c8c8aac7c5df35814da321992",
     "scripts/self_grade.py": "ddd3502071896bc68b167018200d54b0202ec1d5849b97ec98057217611542d9",
@@ -383,7 +383,7 @@
     "tests/unit/wire/test_audit_control.py": "96112c5ad9102e515134db59908b1437dd1ef665170c9c01549256e8a879bc1c",
     "tests/unit/wire/test_turn_message.py": "7d82777b45962e7b0d5abdc62af26508c5421f1eee1019d4429e8596d5dba87f"
   },
-  "source_commit": "471860b",
+  "source_commit": "c1b2c8b",
   "source_repo": "copthief-p2p-cop",
-  "tree_hash": "3ee01487aaf9c5b9ef87c6278b288f382d05337ce22a03e599a86120dc7f744b"
+  "tree_hash": "bfb6add8338d7d1d2a3049f8b569a1e311d3146121c9d8889fdb2c9dddb55b5d"
 }
