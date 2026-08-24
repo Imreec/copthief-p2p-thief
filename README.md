@@ -33,6 +33,21 @@
 
 ---
 
+## 🎯 The four metrics — the book's own success criteria, answered
+
+The book is explicit that success is measured on **four metrics — "and not the beauty of a single algorithm"** (ch.11.4, table 4; App C). Each one maps to a place where this system *proves* it:
+
+| Metric (book ch.) | What the book asks | Where this system answers |
+|---|---|---|
+| **Coordination** (ch.2) | turn management and two-agent sync over P2P FastMCP, no central referee | [Orchestration dilemmas](#%EF%B8%8F-orchestration-dilemmas--fastmcp-with-no-referee) — proven live by **ten different teams' codebases settling cleanly against ours**, including the thief-owned pacing and honest-concession duties |
+| **Adaptation** (ch.4, 6) | a probabilistic belief over the rival, built from decaying scent + verbal hints | [the exact Bayes filter](#-the-dec-pomdp-model), used worst-case-first by [the doctrine evader](#%EF%B8%8F-strategies--the-graded-core) — 15/15 counted survivals is adaptation *measured on the wire* |
+| **Integrity** (ch.5) | cheat prevention via Commit-Reveal + SHA-256 and full mutual audit | [the commit-reveal rail](#-hidden-positions-provable-truth--commit-reveal--audit) — even our deceptions are sealed as honest lies, and **all ten counted series settled byte-identical on both sides** |
+| **Architecture** (ch.8, 10) | Gatekeeper + Orchestrator patterns; code that survives load and failure | the single-gateway loop, gatekeeper chain and watchdog ([dilemmas](#%EF%B8%8F-orchestration-dilemmas--fastmcp-with-no-referee)) + the 19-drill chaos battery in keyless CI |
+
+The book closes that table with the bar we aimed at: a team that answers yes on all four *"is not just running an agent — it is operating a system."*
+
+---
+
 ## ✅ Deliverables — every requirement, one click to its proof
 
 The book's mandatory README components (§9.4.2) and repository contents (§9.4.1 + App C), mapped to where they live. A **★** marks where we built past the floor.
@@ -49,7 +64,7 @@ The book's mandatory README components (§9.4.2) and repository contents (§9.4.
 | 8 | `config/` committed (§9.4.1) | [`config/`](config/) | [Configuration guide](#%EF%B8%8F-configuration-guide) |
 | 9 ★ | **League play** — ≥2 counted series vs distinct groups (App F) | **10 of 10** — [The league campaign](#-the-league-campaign) | artifact sets in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series/imreeyal); this repo mirrors the ledger |
 | 10 | Automatic reporting (App E rules 32/34/35) | [`report/`](src/copthief_core/report/) | the interlock refuses any unconfigured recipient |
-| 11 ★ | Byte-level interop | our public **[conformance kit](https://github.com/Imreec/copthief-league-protocol)** | kit CORE vectors are CI-blocking fixtures ([`tests/conformance/`](tests/conformance/)) |
+| 11 ★ | Byte-level interop | [The conformance kit](#-the-conformance-kit--a-deliverable-the-whole-league-used) — our public league standard | kit CORE vectors are CI-blocking fixtures ([`tests/conformance/`](tests/conformance/)) |
 | 12 | Security (App A / rule 30) | [Security](#-reporting--the-safety-rails---security) | `gmail.send`-only token · secrets never tracked |
 | 13 | Honest disclosure | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) · [`SELF_GRADE.md`](SELF_GRADE.md) · [`COST.md`](COST.md) | [Known limitations](#%EF%B8%8F-known-limitations--self-grade) |
 | 14 | User manual (guidelines §2.1) | [Installation](#-installation) · [Usage](#%EF%B8%8F-usage) · [Configuration](#%EF%B8%8F-configuration-guide) | run the commands |
@@ -129,9 +144,9 @@ Reading the cop's capture-claims at all was its own measured half: claim collaps
 
 ### ⚑ The role package: `ThiefBrain` and the opponent lab
 
-[`src/copthief_thief/`](src/copthief_thief/) is this repo's native code. [`brain.py`](src/copthief_thief/brain.py) is the M5 engineered baseline — **region-survival** ([`regions.py`](src/copthief_thief/regions.py): a barrier-aware two-front BFS race counting cells we reach strictly before the cop), **articulation awareness** ([`articulation.py`](src/copthief_thief/articulation.py): Tarjan points a single barrier could seal while the cop's quota can pay), and **deception timing** ([`deception.py`](src/copthief_thief/deception.py): a *self-mirror* — a second belief filter fed only our own transmitted scent — so we lie exactly when the cop knows enough to act on the truth). Its CI-blocking DoD: **28/32 = 88% survival vs the reference cop** (floor 60%, [`docs/evidence/m5-arena.md`](docs/evidence/m5-arena.md)). The package also carries the thief's opponent lab — rival cops rebuilt as arena arms from their public code and our audit tapes ([`sqak_apex.py`](src/copthief_thief/sqak_apex.py), [`adversary.py`](src/copthief_thief/adversary.py)) — where every tuning number above was measured before it was risked live.
+[`src/copthief_thief/`](src/copthief_thief/) is this repo's native code. [`brain.py`](src/copthief_thief/brain.py) is the M5 engineered baseline — **region-survival** ([`regions.py`](src/copthief_thief/regions.py): a barrier-aware two-front BFS race counting cells we reach strictly before the cop), **articulation awareness** ([`articulation.py`](src/copthief_thief/articulation.py): Tarjan points a single barrier could seal while the cop's quota can pay), and **deception timing** ([`deception.py`](src/copthief_thief/deception.py): a *self-mirror* — a second belief filter fed only our own transmitted scent — so we lie exactly when the cop knows enough to act on the truth). Its CI-blocking DoD: **28/32 = 88% survival vs the reference cop** (floor 60%, [`docs/evidence/m5-arena.md`](docs/evidence/m5-arena.md)). The package also carries the thief's opponent lab — rival cops rebuilt as arena arms from the audit tapes of our own pairings and, where teams published it, their code ([`sqak_apex.py`](src/copthief_thief/sqak_apex.py), [`adversary.py`](src/copthief_thief/adversary.py)) — where every tuning number above was measured before it was risked live.
 
-That lab's evidence trail is this repo's own: the uoh-sqak siege diagnosis (survivals 0/32 → 10/32 at their live tempo — and our analysis surfaced a Barrier-Law violation in *their* cop, which they fixed within two hours; [`m7-46-sqak-thief.md`](docs/evidence/m7-46-sqak-thief.md)), the close-threat trigger (0/32 → 6/32 vs their fixed cop; [`m7-51-close-threat.md`](docs/evidence/m7-51-close-threat.md)), the sharp-ramp arms (a rival cop class 18 → 32; [`m7-47-informed-ramp.md`](docs/evidence/m7-47-informed-ramp.md)), and an honest **null result** kept on the record: the anti-walling retune that failed its every-arm gate and was never deployed ([`m7-30-thief-vs-walling.md`](docs/evidence/m7-30-thief-vs-walling.md)).
+The lab worked the way the audit rail invites: **every played game left a complete, tamper-evident tape, and the tapes became training data** — a rival cop's style rebuilt as an arm from the games our own pairings produced (plus code where a team published theirs), trusted only once it reproduced those same logs. Its evidence trail is this repo's own: the uoh-sqak siege diagnosis (survivals 0/32 → 10/32 at their live tempo — and our analysis surfaced a Barrier-Law violation in *their* cop, which they fixed within two hours; [`m7-46-sqak-thief.md`](docs/evidence/m7-46-sqak-thief.md)), the close-threat trigger (0/32 → 6/32 vs their fixed cop; [`m7-51-close-threat.md`](docs/evidence/m7-51-close-threat.md)), the sharp-ramp arms (a rival cop class 18 → 32; [`m7-47-informed-ramp.md`](docs/evidence/m7-47-informed-ramp.md)), and an honest **null result** kept on the record: the anti-walling retune that failed its every-arm gate and was never deployed ([`m7-30-thief-vs-walling.md`](docs/evidence/m7-30-thief-vs-walling.md)).
 
 ### What it added up to
 
@@ -154,6 +169,8 @@ We chose **evolution over temporal-difference learning** (the policy is a small 
 ---
 
 ## 📸 Screenshots
+
+The book marks these as an absolute must, and explains why (App C): the belief map is *proof the agent actually performs probabilistic inference under partial observability*, and the Verified OK banner is *proof the cryptographic move chain was checked and held*. Both follow, from this repo's own runs.
 
 **Live GUI — the evader's belief heatmap** (App E rules 8–9: local truth only — the window renders *our belief of the cop*, never the objective board), captured from a real local match in this repo, the doctrine evader surviving to step 35:
 
@@ -193,6 +210,12 @@ We chose **evolution over temporal-difference learning** (the policy is a small 
 | 10 | vm__fabi | **W** | 90–30 | 6–0 | **+10** |
 
 Ten series, ten distinct teams, ten first meetings; the +10 diversity bonus in all six wins; `tokens_total_series` **0 for both sides in all ten filings**; every settled series byte-identical on both teams' independently-generated reports. The counted artifact sets live in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series/imreeyal); this repo mirrors the ledger in [`config/game.toml`](config/game.toml) and holds the thief-side evidence trail in [`docs/evidence/`](docs/evidence/). In every one of the six wins, the thief windows contributed their full 30 points (3 × survival-10); the campaign chart and the loss postmortems are in the [lead README](https://github.com/Imreec/copthief-p2p-cop#-the-league-campaign).
+
+---
+
+## 📐 The conformance kit — a deliverable the whole league used
+
+Behind those ten clean settlements sits our third repository: **[copthief-league-protocol](https://github.com/Imreec/copthief-league-protocol)**, the public, stdlib-only conformance kit we published for the whole course. It pins every hash-bearing construction of the book as **executable vectors verified byte-for-byte against the reference implementation** — including the forms the book itself states inconsistently — ships negative vectors so a failure diagnoses itself, and includes a local **sparring peer** any team can dial for a full handshake-to-audit pairing before risking a real one. Over the season it became the league's shared interop reference: the majority of the teams we faced ran its vector suites or sparring peer before our series, coordinated pairings through its issue tracker, and had real pre-wire defects in their own agents caught by its checks. Ten cross-team series, ten byte-identical settlements, zero interop disqualifications — that record is the kit's as much as the agents'. The full story is in the [lead repo's kit section](https://github.com/Imreec/copthief-p2p-cop#-the-conformance-kit--a-deliverable-the-whole-league-used).
 
 ---
 
@@ -255,18 +278,29 @@ uv run copthief overlay --log <audited.jsonl> --out overlay.png --role thief
 
 ---
 
-## 🧪 Engineering envelope
+## 🛠️ Engineering & reproducibility envelope
+
+The book's submission criterion judges the *whole project* — code, structure, process — against the course's software guidelines; each claim below is backed by a gate that enforces it:
 
 | | |
 |---|---|
 | **Every file ≤ 150 source lines** | CI-enforced across src, tests and scripts — split, never compress. 162 modules under `src/`. |
-| **Strict typing** | `mypy --strict` on `src/`: 0 errors; hints on 100% of public APIs. |
+| **Strict typing** | `mypy --strict` on `src/`: 0 errors; hints on 100% of public APIs; docstrings on all public code. |
 | **1122 keyless tests, 94% coverage** | unit / integration / role / conformance; coverage gate ≥85% in CI. |
 | **Kit CORE vectors as CI fixtures** | byte-level wire conformance re-verified on every push. |
 | **Core-mirror integrity** | the SHA-256 manifest verified in CI; core edits only in the lead repo. |
 | **Cross-model review + process** | Antigravity reviews every PR · Conventional Commits · branch → PR → review → squash · TDD · truthful per-PR prompt log ([`docs/PROMPTS.md`](docs/PROMPTS.md)). |
 
 CI: a fast hosted **gates** lane (lint, format, types, sizes, scanners, mirror check, kit vectors) + the **suite with coverage**; the heavy strategy-measurement evals run in the on-demand arena lane now that the league is over (ADR-0018, in the lead repo).
+
+**Reproduce everything, keylessly** — the gates, the verdicts, and every figure in this README rebuild from the committed tree with no key, no network, no GPU:
+
+```bash
+make grade                                            # the full CI gate locally -> "ALL GATES GREEN"
+uv run copthief replay --log docs/evidence/counted-vm__fabi-2026-08-23/imreeyal-vs-vm__fabi_g01.jsonl   # -> Verified OK
+uv run python scripts/render_replay_gif.py --log docs/evidence/counted-vm__fabi-2026-08-23/imreeyal-vs-vm__fabi_g01.jsonl --out replay.gif
+uv run python scripts/export_notebook_figs.py         # the learning curves, from the committed notebook
+```
 
 ## 💰 Cost
 
@@ -303,4 +337,4 @@ Built for **Orchestration of AI Agents** (203.3763), University of Haifa · Dr. 
 
 Ownership honest per `git shortlog` ([`AUTHORS.md`](AUTHORS.md)). Licensed **MIT** — [`LICENSE`](LICENSE).
 
-**The family:** 🚔 [copthief-p2p-cop](https://github.com/Imreec/copthief-p2p-cop) (the sibling agent and lead repo) · 📐 [copthief-league-protocol](https://github.com/Imreec/copthief-league-protocol) (our public conformance kit) · planning docs: [PRD](docs/PRD.md) · [PLAN](docs/PLAN.md) · [TODO](docs/TODO.md).
+**The family:** 🚔 [copthief-p2p-cop](https://github.com/Imreec/copthief-p2p-cop) (the sibling agent and lead repo) · 📐 [copthief-league-protocol](https://github.com/Imreec/copthief-league-protocol) (our public conformance kit — [the league's shared interop standard](#-the-conformance-kit--a-deliverable-the-whole-league-used)) · planning docs: [PRD](docs/PRD.md) · [PLAN](docs/PLAN.md) · [TODO](docs/TODO.md).
