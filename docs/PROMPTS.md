@@ -1,5 +1,13 @@
 # Prompt Engineering Log
 
+## PR (this one) — m8-submission-close (M8-3 + M8-4: the closing ticks, tagged as v1.0-submission)
+
+- **Driver:** Imree · **Author:** Claude (terminal). Mirror of the lead repo's closing PR:
+  the final two boxes ticked with self-fulfilling wording, the `v1.0-submission` tag
+  applied to this PR's merge commit immediately after merge, strict sweep verified at the
+  tag with output archived on the thread. The Moodle upload is Imree's act outside the
+  tree.
+
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 

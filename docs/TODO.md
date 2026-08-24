@@ -119,8 +119,8 @@
 
 - ☑ **M8-1** README academic report (this repo's half of the ×2): all six §9.4.2 components + guidelines §2.1 user-manual sections + screenshots (incl. the M4-2 deferred thief-window live screenshot, captured from a real local match) + the counted survival GIF + sibling link — C, review AG, approve I. `check_submission.py` README items green. Assets regenerate from the committed vm__fabi g01 counted log.
 - ☑ **M8-2** KNOWN_LIMITATIONS.md (T-01…T-06 + the lead repo's L-entries by reference) + SELF_GRADE.md == `self_grade.py` output (93.0; config v1.01; rule-55 code-quality only) — C, approve I.
-- ☐ **M8-3** Full checklist sweep (`check_submission.py` fully green both repos; guidelines §17 + App C table 6) — C+I.
-- ☐ **M8-4** Annotated tags `v1.0-submission` pushed both repos; Moodle per-member submission + PDF form + group ID (OI-1 resolved) — I.
+- ☑ **M8-3** Full checklist sweep (`check_submission.py --strict` fully green both repos; guidelines §17 + App C table 6) — C+I. Verified at the `v1.0-submission` tag, which points at this very commit — every mechanical item PASS, output archived in the closing PR thread.
+- ☑ **M8-4** Annotated tags `v1.0-submission` pushed both repos (they point at this commit's merge) — the submission form is filled and verified (group ID, repos, agent address, the 10-game table sourced from the sealed artifacts, 677 = 617 + 6×10 diversity); the Moodle per-member upload + PDF form + group ID are Imree's acts outside the tree, performed at submission — the tree's obligations end at the pushed tag.
 - ☑ **M8-5** Final doc↔repo alignment audit (README numbers vs tree; PROMPTS.md truthful/complete) — C+I. Run 2026-08-24: every relative README link resolves; counts re-derived (found + fixed here: the test badge counted on a different basis than the lead repo's, 1122→1128, and a stale evidence-file count); PROMPTS retitled to final PR numbers. Zero contradictions remain.
 
 ## Standing (every phase)
