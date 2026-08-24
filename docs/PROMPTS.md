@@ -3,7 +3,17 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
-## PR (this one) — docs/m8-readme-report (M8-1 + M8-2: the academic report + the disclosure pair)
+## PR (this one) — m8-structure-polish (README corrections, Imree's review round)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** PR left open for Imree's
+  review — not self-merged.
+- **Outcome:** point totals stated exactly (617:517 on the board, 677:547 with diversity —
+  the en-dash form read like a range); the two lead-repo deep links updated to the
+  per-opponent `reports/counted-series/` layout that lands with cop #156. The lead repo's
+  half of this round (the reports-tree reorganization itself + its TODO truth pass) is cop
+  #156; the mirrored chart-script change arrives here via the post-merge sync ritual.
+
+## PR #107 — docs/m8-readme-report (M8-1 + M8-2 + sync; polish follow-up #108)
 
 - **Driver:** Imree ("I want our readme to be a masterpiece... take the HW6 readme as the
   floor"; role deltas per repo) · **Author:** Claude (terminal) · **Reviewer:** cross-model
