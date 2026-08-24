@@ -21,7 +21,7 @@
 ---
 
 > ### 📌 TL;DR — the headline result
-> Our team played the **full league cap: 10 counted series against 10 distinct teams**, every one a first meeting, finishing **6W–3L–1T, 617–517 points, +10 diversity in all six wins** — with every settled series ending in **byte-identical mutual reports** (`mutual_agreement.sha256` matched on ours *and* theirs) and every report **emailed autonomously by the agent**. This repo's half of that record is the evasion: after its mid-league rebuild (worst-wall doctrine → cage escape → the k=4 wall forecast), the fielded evader **survived the full 35-step horizon in all 15 of its thief windows across the last five counted series** — one of those survivals animated below from its committed audit log. Match-time LLM tokens across all ten series: **0, for both sides, sealed inside the commit-reveal payloads**.
+> Our team played the **full league cap: 10 counted series against 10 distinct teams**, every one a first meeting, finishing **6W–3L–1T with 617 points to their 517** — **677 to 547 once the +10 first-meeting diversity bonuses land, ours earned in all six wins** — with every settled series ending in **byte-identical mutual reports** (`mutual_agreement.sha256` matched on ours *and* theirs) and every report **emailed autonomously by the agent**. This repo's half of that record is the evasion: after its mid-league rebuild (worst-wall doctrine → cage escape → the k=4 wall forecast), the fielded evader **survived the full 35-step horizon in all 15 of its thief windows across the last five counted series** — one of those survivals animated below from its committed audit log. Match-time LLM tokens across all ten series: **0, for both sides, sealed inside the commit-reveal payloads**.
 
 <div align="center">
 
@@ -62,7 +62,7 @@ The book's mandatory README components (§9.4.2) and repository contents (§9.4.
 | 6 | **Sibling-repo link** (§9.4.2-6) | [copthief-p2p-cop](https://github.com/Imreec/copthief-p2p-cop) | its README links back here |
 | 7 | PRD / PLAN / TODO + per-mechanism PRDs (§9.4.1) | [`docs/`](docs/) | incl. this repo's own [`PRD_thief_brain.md`](docs/PRD_thief_brain.md) |
 | 8 | `config/` committed (§9.4.1) | [`config/`](config/) | [Configuration guide](#%EF%B8%8F-configuration-guide) |
-| 9 ★ | **League play** — ≥2 counted series vs distinct groups (App F) | **10 of 10** — [The league campaign](#-the-league-campaign) | artifact sets in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series/imreeyal); this repo mirrors the ledger |
+| 9 ★ | **League play** — ≥2 counted series vs distinct groups (App F) | **10 of 10** — [The league campaign](#-the-league-campaign) | artifact sets in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series); this repo mirrors the ledger |
 | 10 | Automatic reporting (App E rules 32/34/35) | [`report/`](src/copthief_core/report/) | the interlock refuses any unconfigured recipient |
 | 11 ★ | Byte-level interop | [The conformance kit](#-the-conformance-kit--a-deliverable-the-whole-league-used) — our public league standard | kit CORE vectors are CI-blocking fixtures ([`tests/conformance/`](tests/conformance/)) |
 | 12 | Security (App A / rule 30) | [Security](#-reporting--the-safety-rails---security) | `gmail.send`-only token · secrets never tracked |
@@ -209,7 +209,7 @@ The book marks these as an absolute must, and explains why (App C): the belief m
 | 9 | ali-ahm1 | **W** | 90–30 | 6–0 | **+10** |
 | 10 | vm__fabi | **W** | 90–30 | 6–0 | **+10** |
 
-Ten series, ten distinct teams, ten first meetings; the +10 diversity bonus in all six wins; `tokens_total_series` **0 for both sides in all ten filings**; every settled series byte-identical on both teams' independently-generated reports. The counted artifact sets live in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series/imreeyal); this repo mirrors the ledger in [`config/game.toml`](config/game.toml) and holds the thief-side evidence trail in [`docs/evidence/`](docs/evidence/). In every one of the six wins, the thief windows contributed their full 30 points (3 × survival-10); the campaign chart and the loss postmortems are in the [lead README](https://github.com/Imreec/copthief-p2p-cop#-the-league-campaign).
+Ten series, ten distinct teams, ten first meetings. On the board: **617 points for, 517 against**; after the +10 first-meeting diversity bonuses (ours in all six wins, theirs in their three) the league tally is **677 to 547**. `tokens_total_series` **0 for both sides in all ten filings**; every settled series byte-identical on both teams' independently-generated reports. The counted artifact sets live in the [lead repo](https://github.com/Imreec/copthief-p2p-cop/tree/main/reports/counted-series), one folder per opponent; this repo mirrors the ledger in [`config/game.toml`](config/game.toml) and holds the thief-side evidence trail in [`docs/evidence/`](docs/evidence/). In every one of the six wins, the thief windows contributed their full 30 points (3 × survival-10); the campaign chart and the loss postmortems are in the [lead README](https://github.com/Imreec/copthief-p2p-cop#-the-league-campaign).
 
 ---
 
