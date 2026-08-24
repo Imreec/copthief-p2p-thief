@@ -10,7 +10,7 @@
 ![uv](https://img.shields.io/badge/packaging-uv-DE5FE9)
 ![ruff](https://img.shields.io/badge/lint-ruff%20clean-261230?logo=ruff&logoColor=white)
 ![mypy](https://img.shields.io/badge/mypy-strict%200%20errors-2A6DB2)
-![tests](https://img.shields.io/badge/tests-1122%20keyless-2ca02c)
+![tests](https://img.shields.io/badge/tests-1128%20keyless-2ca02c)
 ![coverage](https://img.shields.io/badge/coverage-94%25-2ca02c)
 ![files](https://img.shields.io/badge/every%20file-%E2%89%A4150%20lines-blue)
 ![league](https://img.shields.io/badge/league-10%2F10%20counted%20·%206W--3L--1T-b45309)
@@ -286,7 +286,7 @@ The book's submission criterion judges the *whole project* — code, structure, 
 |---|---|
 | **Every file ≤ 150 source lines** | CI-enforced across src, tests and scripts — split, never compress. 162 modules under `src/`. |
 | **Strict typing** | `mypy --strict` on `src/`: 0 errors; hints on 100% of public APIs; docstrings on all public code. |
-| **1122 keyless tests, 94% coverage** | unit / integration / role / conformance; coverage gate ≥85% in CI. |
+| **1128 keyless tests, 94% coverage** | unit / integration / role / conformance; coverage gate ≥85% in CI. |
 | **Kit CORE vectors as CI fixtures** | byte-level wire conformance re-verified on every push. |
 | **Core-mirror integrity** | the SHA-256 manifest verified in CI; core edits only in the lead repo. |
 | **Cross-model review + process** | Antigravity reviews every PR · Conventional Commits · branch → PR → review → squash · TDD · truthful per-PR prompt log ([`docs/PROMPTS.md`](docs/PROMPTS.md)). |
@@ -321,7 +321,7 @@ copthief-p2p-thief/
 │                             #   timing) + the thief's opponent lab (sqak apex, sealer arms)
 ├── tests/                    # unit · integration · role (thief-side pins) · conformance
 ├── config/                   # game.json (signed) · game.toml (doctrine knobs, port 8801) · instruments
-├── docs/                     # PRD/PLAN/TODO · PRD_thief_brain.md · evidence/ (28 thief-side files)
+├── docs/                     # PRD/PLAN/TODO · PRD_thief_brain.md · evidence/ (the thief-side trail + a counted wire log)
 ├── assets/                   # every figure in this README (regenerable from committed evidence)
 └── scripts/                  # CI scanners · instruments · renderers (synced from the lead)
 ```
