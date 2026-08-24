@@ -3,10 +3,21 @@
 > Truthful, per-PR entries for **committed** work only (CLAUDE.md §7). Development prompts —
 > runtime agent prompts live in source. Format: PR · driver/reviewer · what was asked · outcome.
 
-## PR (this one) — m8-structure-polish (README corrections, Imree's review round)
+## PR (this one) — m8-final-audit (M8-5: doc↔repo alignment + standing-duty close-out)
 
-- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** PR left open for Imree's
-  review — not self-merged.
+- **Driver:** Imree ("yes" to the final audit) · **Author:** Claude (terminal).
+- **Outcome:** mechanical audit over both repos — every relative README link resolves; counts
+  re-derived from the trees. Fixed here: the test badge counted on a different basis than the
+  lead repo's (1122 → 1128, arena evals included like the cop's), and a stale evidence-file
+  count in the repo map. M8-5 ticked; standing S-1…S-5 closed as held-through-the-project;
+  PROMPTS retitled to final PR numbers. Repo hygiene same day (no PR needed): all non-main
+  branches deleted on origin, locals pruned. The #110 sync (chart renderer follows the
+  per-opponent reports layout) merged on Imree's word the same afternoon.
+
+## PR #109 — m8-structure-polish (README corrections; merged on Imree's word after his review)
+
+- **Driver:** Imree · **Author:** Claude (terminal) · **Reviewer:** left open for Imree's
+  review, merged on his word; the same-branch clarity sweep rode it.
 - **Outcome:** point totals stated exactly (617:517 on the board, 677:547 with diversity —
   the en-dash form read like a range); the two lead-repo deep links updated to the
   per-opponent `reports/counted-series/` layout that lands with cop #156. The lead repo's
